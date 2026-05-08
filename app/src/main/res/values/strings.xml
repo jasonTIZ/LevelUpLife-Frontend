@@ -1,3 +1,41 @@
 <resources>
     <string name="app_name">LevelUpLife</string>
+
+    <!-- Login -->
+    <string name="login_welcome">Bienvenido</string>
+    <string name="login_welcome_subtitle">Tu aventura continúa aquí</string>
+    <string name="login_email_placeholder">Email o usuario</string>
+    <string name="login_password_placeholder">Contraseña</string>
+    <string name="login_submit">INICIAR</string>
+    <string name="login_no_account">¿NO TIENES CUENTA?</string>
+    <string name="login_register_cta">REGÍSTRATE</string>
+    <string name="login_retry">Reintentar</string>
+    <string name="login_dismiss">Cerrar</string>
+
+    <!-- Login: errores -->
+    <string name="login_error_invalid_credentials">Usuario/email o contraseña incorrectos</string>
+    <string name="login_error_account_locked">Tu cuenta está bloqueada. Intenta más tarde.</string>
+    <string name="login_error_bad_request">Solicitud inválida. Revisa los datos ingresados.</string>
+    <string name="login_error_server">Error del servidor. Intenta más tarde.</string>
+    <string name="login_error_network">Sin conexión. Revisa tu red e intenta de nuevo.</string>
+    <string name="login_error_unknown">Ocurrió un error inesperado.</string>
+
+    <!-- Validación de campos -->
+    <string name="field_required">Campo obligatorio</string>
+    <string name="field_invalid_email">Email inválido</string>
+    <string name="field_invalid_username_or_email">Ingresa un email o usuario válido</string>
+    <string name="field_min_length">Mínimo %1$d caracteres</string>
+    <string name="field_max_length">Máximo %1$d caracteres</string>
+
+    <!-- Accesibilidad -->
+    <string name="cd_show_password">Mostrar contraseña</string>
+    <string name="cd_hide_password">Ocultar contraseña</string>
+    <string name="cd_switch_to_dark">Cambiar a modo oscuro</string>
+    <string name="cd_switch_to_light">Cambiar a modo claro</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">¡Bienvenido!</string>
+    <string name="dashboard_subtitle">Has iniciado sesión correctamente.</string>
+    <string name="dashboard_session_active">Sesión activa</string>
+    <string name="dashboard_logout">Cerrar sesión</string>
 </resources>
