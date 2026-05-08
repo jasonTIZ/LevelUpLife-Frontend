@@ -38,18 +38,18 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `submit con email invalido no llama al repositorio y muestra error de campo`() = runTest(testDispatcher) {
+    fun `submit con identificador invalido no llama al repositorio y muestra error de campo`() = runTest(testDispatcher) {
         val fake = FakeAuthRepository()
         val vm = LoginViewModel(fake)
 
-        vm.onEmailChange("not-an-email")
+        vm.onEmailChange("bad email!")
         vm.onPasswordChange("123456")
         vm.onSubmit()
 
         advanceUntilIdle()
 
         val state = vm.state.value
-        assertEquals(FieldError.InvalidEmail, state.emailError)
+        assertEquals(FieldError.InvalidUserNameOrEmail, state.emailError)
         assertNull(state.passwordError)
         assertFalse(state.isLoading)
         assertEquals(0, fake.loginCalls)
@@ -79,10 +79,9 @@ class LoginViewModelTest {
             refreshToken = "refresh-456",
             user = AuthUser(
                 id = "u1",
-                name = "Darwin",
-                email = "darwin@levelup.life",
-                avatarUrl = null,
-                roles = listOf("USER"),
+                userName = "Darwin",
+                level = 5,
+                className = "Warrior",
             ),
         )
         val fake = FakeAuthRepository(result = Result.success(session))
@@ -101,7 +100,7 @@ class LoginViewModelTest {
         assertFalse(finalState.isLoading)
         assertNull(finalState.bannerError)
         assertNotNull(finalState.loggedInUser)
-        assertEquals("Darwin", finalState.loggedInUser?.name)
+        assertEquals("Darwin", finalState.loggedInUser?.userName)
         assertEquals(1, fake.loginCalls)
         assertEquals("access-123" to "refresh-456", fake.currentTokens())
     }
@@ -143,7 +142,7 @@ class LoginViewModelTest {
             AuthSession(
                 accessToken = "ok",
                 refreshToken = null,
-                user = AuthUser("u", "name", "darwin@levelup.life", null, emptyList()),
+                user = AuthUser(id = "u", userName = "name", level = 1, className = "Warrior"),
             ),
         )
         vm.onSubmit()

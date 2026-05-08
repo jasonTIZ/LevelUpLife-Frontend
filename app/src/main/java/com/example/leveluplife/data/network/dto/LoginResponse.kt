@@ -2,25 +2,32 @@ package com.example.leveluplife.data.network.dto
 
 import kotlinx.serialization.Serializable
 
+/**
+ * Wrapper que devuelve el backend `LevelUpLife`:
+ *
+ * ```
+ * { "success": true, "data": { "token": "...", "userName": "...", "level": 1, "className": "..." } }
+ * ```
+ */
 @Serializable
 data class LoginResponse(
-    val accessToken: String,
-    val refreshToken: String? = null,
-    val user: UserDto,
+    val success: Boolean = false,
+    val data: LoginData? = null,
+    val message: String? = null,
 )
 
 @Serializable
-data class UserDto(
-    val id: String,
-    val name: String,
-    val email: String,
-    val avatarUrl: String? = null,
-    val roles: List<String> = emptyList(),
+data class LoginData(
+    val token: String,
+    val userName: String,
+    val level: Int = 0,
+    val className: String = "",
 )
 
 @Serializable
 data class ApiErrorBody(
     val message: String? = null,
+    val title: String? = null,
     val code: String? = null,
     val errors: Map<String, List<String>>? = null,
 )

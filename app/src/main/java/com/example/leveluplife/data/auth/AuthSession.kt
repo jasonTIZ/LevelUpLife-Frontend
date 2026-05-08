@@ -1,6 +1,6 @@
 package com.example.leveluplife.data.auth
 
-import com.example.leveluplife.data.network.dto.UserDto
+import com.example.leveluplife.data.network.dto.LoginData
 
 data class AuthSession(
     val accessToken: String,
@@ -10,18 +10,16 @@ data class AuthSession(
 
 data class AuthUser(
     val id: String,
-    val name: String,
-    val email: String,
-    val avatarUrl: String?,
-    val roles: List<String>,
+    val userName: String,
+    val level: Int,
+    val className: String,
 ) {
     companion object {
-        fun fromDto(dto: UserDto): AuthUser = AuthUser(
-            id = dto.id,
-            name = dto.name,
-            email = dto.email,
-            avatarUrl = dto.avatarUrl,
-            roles = dto.roles,
+        fun fromData(data: LoginData, id: String): AuthUser = AuthUser(
+            id = id,
+            userName = data.userName,
+            level = data.level,
+            className = data.className,
         )
     }
 }

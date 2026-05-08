@@ -10,7 +10,7 @@ import com.example.leveluplife.domain.validation.Validators
 @Composable
 fun FieldError.toMessage(): String = when (this) {
     is FieldError.Required -> stringResource(id = R.string.field_required)
-    is FieldError.InvalidEmail -> stringResource(id = R.string.field_invalid_email)
+    is FieldError.InvalidUserNameOrEmail -> stringResource(id = R.string.field_invalid_username_or_email)
     is FieldError.TooShort -> stringResource(
         id = R.string.field_min_length,
         min,

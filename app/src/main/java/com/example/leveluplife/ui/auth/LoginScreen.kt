@@ -181,7 +181,8 @@ private fun LoginContent(
                 )
             }
 
-            // Email
+            // Email o usuario
+            val emailFieldLabel = stringResource(R.string.login_email_placeholder)
             OutlinedTextField(
                 value = state.email,
                 onValueChange = onEmailChange,
@@ -189,7 +190,7 @@ private fun LoginContent(
                 isError = state.emailError != null,
                 shape = RoundedCornerShape(14.dp),
                 colors = filledFieldColors(),
-                placeholder = { Text(stringResource(R.string.login_email_placeholder)) },
+                placeholder = { Text(emailFieldLabel) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Outlined.Email,
@@ -212,7 +213,7 @@ private fun LoginContent(
                     .focusRequester(emailFocus)
                     .testTag(LoginTestTags.EMAIL_FIELD)
                     .semantics {
-                        contentDescription = "Email"
+                        contentDescription = emailFieldLabel
                     },
             )
 

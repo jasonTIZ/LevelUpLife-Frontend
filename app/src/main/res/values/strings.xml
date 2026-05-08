@@ -4,7 +4,7 @@
     <!-- Login -->
     <string name="login_welcome">Bienvenido</string>
     <string name="login_welcome_subtitle">Tu aventura continúa aquí</string>
-    <string name="login_email_placeholder">Email</string>
+    <string name="login_email_placeholder">Email o usuario</string>
     <string name="login_password_placeholder">Contraseña</string>
     <string name="login_submit">INICIAR</string>
     <string name="login_no_account">¿NO TIENES CUENTA?</string>
@@ -13,7 +13,7 @@
     <string name="login_dismiss">Cerrar</string>
 
     <!-- Login: errores -->
-    <string name="login_error_invalid_credentials">Email o contraseña incorrectos</string>
+    <string name="login_error_invalid_credentials">Usuario/email o contraseña incorrectos</string>
     <string name="login_error_account_locked">Tu cuenta está bloqueada. Intenta más tarde.</string>
     <string name="login_error_bad_request">Solicitud inválida. Revisa los datos ingresados.</string>
     <string name="login_error_server">Error del servidor. Intenta más tarde.</string>
@@ -23,6 +23,7 @@
     <!-- Validación de campos -->
     <string name="field_required">Campo obligatorio</string>
     <string name="field_invalid_email">Email inválido</string>
+    <string name="field_invalid_username_or_email">Ingresa un email o usuario válido</string>
     <string name="field_min_length">Mínimo %1$d caracteres</string>
     <string name="field_max_length">Máximo %1$d caracteres</string>
 

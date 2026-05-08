@@ -24,7 +24,7 @@ class LoginViewModel(
         _state.update {
             it.copy(
                 email = value,
-                emailError = if (it.emailError != null) Validators.validateEmail(value) else null,
+                emailError = if (it.emailError != null) Validators.validateUserNameOrEmail(value) else null,
                 bannerError = null,
             )
         }
@@ -48,7 +48,7 @@ class LoginViewModel(
         val current = _state.value
         if (current.isLoading) return
 
-        val emailError = Validators.validateEmail(current.email)
+        val emailError = Validators.validateUserNameOrEmail(current.email)
         val passwordError = Validators.validatePassword(current.password)
 
         if (emailError != null || passwordError != null) {

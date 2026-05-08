@@ -20,14 +20,19 @@ class DefaultAuthRepository(
 ) : AuthRepository {
 
     override suspend fun login(email: String, password: String): Result<AuthSession> = try {
-        val response = api.login(LoginRequest(email = email, password = password))
+        val response = api.login(LoginRequest(userNameOrEmail = email, password = password))
         if (response.isSuccessful) {
             val body = response.body()
                 ?: return Result.failure(AuthErrorException(AuthError.Unknown("empty_body")))
+            val data = body.data
+                ?: return Result.failure(AuthErrorException(AuthError.Unknown("missing_data")))
+            // El backend solo devuelve el JWT; sacamos el id del claim `sub`
+            // y caemos en el username como fallback si el token no se pudiera decodificar.
+            val userId = JwtUtils.extractSub(data.token) ?: data.userName
             val session = AuthSession(
-                accessToken = body.accessToken,
-                refreshToken = body.refreshToken,
-                user = AuthUser.fromDto(body.user),
+                accessToken = data.token,
+                refreshToken = null,
+                user = AuthUser.fromData(data, id = userId),
             )
             tokenStore.saveTokens(session.accessToken, session.refreshToken)
             Result.success(session)
