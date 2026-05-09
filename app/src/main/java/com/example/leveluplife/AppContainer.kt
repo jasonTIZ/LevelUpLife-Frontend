@@ -26,13 +26,14 @@ class AppContainer(applicationContext: Context) {
     val debugApiPreferences: DebugApiPreferences = DebugApiPreferences(appContext)
     val hostProvider: HostProvider = HostProvider(debugApiPreferences)
 
-    private val okHttp = NetworkModule.provideOkHttp()
+    val tokenStore: TokenStore = EncryptedTokenStore(appContext)
+
+    private val okHttp = NetworkModule.provideOkHttp(tokenStore)
     private val retrofit by lazy {
         NetworkModule.provideRetrofit(okHttp, hostProvider.resolveBaseUrl())
     }
     private val authApi: AuthApi by lazy { NetworkModule.provideAuthApi(retrofit) }
 
-    val tokenStore: TokenStore = EncryptedTokenStore(appContext)
     val authRepository: AuthRepository by lazy {
         DefaultAuthRepository(
             api = authApi,
