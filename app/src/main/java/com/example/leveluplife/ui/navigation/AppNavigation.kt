@@ -10,7 +10,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.leveluplife.AppContainer
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
-import com.example.leveluplife.ui.dashboard.DashboardScreen
+import com.example.leveluplife.ui.home.HomeScreen
+import com.example.leveluplife.ui.home.HomeViewModel
 
 object Routes {
     const val LOGIN = "login"
@@ -53,9 +54,13 @@ fun AppNavigation(
             )
         }
         composable(Routes.DASHBOARD) {
-            DashboardScreen(
-                container = container,
+            val vm: HomeViewModel = viewModel(
+                factory = HomeViewModel.Factory(container.habitRepository),
+            )
+            HomeScreen(
+                viewModel = vm,
                 onLoggedOut = {
+                    container.authRepository.logout()
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.DASHBOARD) { inclusive = true }
                         launchSingleTop = true
