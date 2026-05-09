@@ -68,6 +68,9 @@ fun AppNavigation(
                         launchSingleTop = true
                     }
                 },
+                onNavigateToDiscipline = { id ->
+                    navController.navigate(Routes.disciplineDetail(id))
+                },
             )
         }
         composable(

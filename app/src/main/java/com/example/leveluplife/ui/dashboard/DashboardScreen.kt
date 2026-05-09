@@ -9,11 +9,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,9 +31,11 @@ import com.example.leveluplife.R
 fun DashboardScreen(
     container: AppContainer,
     onLoggedOut: () -> Unit,
+    onNavigateToDiscipline: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val tokens = remember { container.authRepository.currentTokens() }
+    var disciplineId by remember { mutableStateOf("") }
 
     Scaffold(modifier = modifier.fillMaxSize()) { padding ->
         Column(
@@ -59,6 +66,29 @@ fun DashboardScreen(
                 )
             }
             Spacer(Modifier.height(32.dp))
+            OutlinedTextField(
+                value = disciplineId,
+                onValueChange = { disciplineId = it },
+                label = { Text("ID de disciplina") },
+                singleLine = true,
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(12.dp))
+            Button(
+                onClick = { onNavigateToDiscipline(disciplineId.trim()) },
+                enabled = disciplineId.isNotBlank(),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+            ) {
+                Text("Ver disciplina")
+            }
+            Spacer(Modifier.height(12.dp))
             Button(
                 onClick = {
                     container.authRepository.logout()
