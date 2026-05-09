@@ -1,6 +1,9 @@
 package com.example.leveluplife.data.network
 
 import com.example.leveluplife.BuildConfig
+import com.example.leveluplife.data.auth.TokenStore
+import com.example.leveluplife.data.network.interceptor.AuthInterceptor
+import com.example.leveluplife.data.network.interceptor.RetryInterceptor
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -17,7 +20,11 @@ object NetworkModule {
         encodeDefaults = false
     }
 
-    fun provideOkHttp(): OkHttpClient {
+    // Interceptor order (outermost → innermost):
+    //   RetryInterceptor  – retries transient 5xx / IOException
+    //   AuthInterceptor   – re-reads token on every attempt (future-proof for refresh)
+    //   HttpLoggingInterceptor – logs the final request including auth header
+    fun provideOkHttp(tokenStore: TokenStore): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
             else HttpLoggingInterceptor.Level.NONE
@@ -26,6 +33,8 @@ object NetworkModule {
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
+            .addInterceptor(RetryInterceptor())
+            .addInterceptor(AuthInterceptor(tokenStore))
             .addInterceptor(logging)
             .build()
     }
