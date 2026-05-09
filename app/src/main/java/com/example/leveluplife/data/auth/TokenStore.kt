@@ -6,9 +6,10 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
 interface TokenStore {
-    fun saveTokens(accessToken: String, refreshToken: String?)
+    fun saveTokens(accessToken: String, refreshToken: String?, userId: String? = null)
     fun accessToken(): String?
     fun refreshToken(): String?
+    fun userId(): String?
     fun clear()
     fun hasSession(): Boolean = !accessToken().isNullOrBlank()
 }
@@ -28,16 +29,19 @@ class EncryptedTokenStore(context: Context) : TokenStore {
         )
     }
 
-    override fun saveTokens(accessToken: String, refreshToken: String?) {
+    override fun saveTokens(accessToken: String, refreshToken: String?, userId: String?) {
         prefs.edit()
             .putString(KEY_ACCESS, accessToken)
             .putString(KEY_REFRESH, refreshToken)
+            .putString(KEY_USER_ID, userId)
             .apply()
     }
 
     override fun accessToken(): String? = prefs.getString(KEY_ACCESS, null)
 
     override fun refreshToken(): String? = prefs.getString(KEY_REFRESH, null)
+
+    override fun userId(): String? = prefs.getString(KEY_USER_ID, null)
 
     override fun clear() {
         prefs.edit().clear().apply()
@@ -47,5 +51,6 @@ class EncryptedTokenStore(context: Context) : TokenStore {
         const val FILE_NAME = "lul_secure_tokens"
         const val KEY_ACCESS = "access_token"
         const val KEY_REFRESH = "refresh_token"
+        const val KEY_USER_ID = "user_id"
     }
 }
