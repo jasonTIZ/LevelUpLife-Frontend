@@ -5,7 +5,10 @@ import com.example.leveluplife.data.auth.AuthRepository
 import com.example.leveluplife.data.auth.DefaultAuthRepository
 import com.example.leveluplife.data.auth.EncryptedTokenStore
 import com.example.leveluplife.data.auth.TokenStore
+import com.example.leveluplife.data.disciplines.DefaultDisciplineRepository
+import com.example.leveluplife.data.disciplines.DisciplineRepository
 import com.example.leveluplife.data.network.AuthApi
+import com.example.leveluplife.data.network.DisciplineApi
 import com.example.leveluplife.data.network.HostProvider
 import com.example.leveluplife.data.network.NetworkModule
 import com.example.leveluplife.data.preferences.DebugApiPreferences
@@ -33,6 +36,7 @@ class AppContainer(applicationContext: Context) {
         NetworkModule.provideRetrofit(okHttp, hostProvider.resolveBaseUrl())
     }
     private val authApi: AuthApi by lazy { NetworkModule.provideAuthApi(retrofit) }
+    private val disciplineApi: DisciplineApi by lazy { NetworkModule.provideDisciplineApi(retrofit) }
 
     val authRepository: AuthRepository by lazy {
         DefaultAuthRepository(
@@ -40,5 +44,8 @@ class AppContainer(applicationContext: Context) {
             tokenStore = tokenStore,
             json = NetworkModule.jsonParser(),
         )
+    }
+    val disciplineRepository: DisciplineRepository by lazy {
+        DefaultDisciplineRepository(api = disciplineApi, tokenStore = tokenStore)
     }
 }

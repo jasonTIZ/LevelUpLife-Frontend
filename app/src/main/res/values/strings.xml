@@ -33,6 +33,24 @@
     <string name="cd_switch_to_dark">Cambiar a modo oscuro</string>
     <string name="cd_switch_to_light">Cambiar a modo claro</string>
 
+    <!-- Discipline Detail -->
+    <string name="discipline_detail_title">Disciplina</string>
+    <string name="discipline_not_found">Disciplina no encontrada</string>
+    <string name="discipline_not_found_subtitle">Esta disciplina no existe o fue eliminada.</string>
+    <string name="discipline_go_back">Volver</string>
+    <string name="discipline_error_title">Ocurrió un error</string>
+    <string name="discipline_retry">Reintentar</string>
+    <string name="discipline_habits_section">Hábitos asociados (%1$d)</string>
+    <string name="discipline_no_habits">Sin hábitos registrados aún.</string>
+    <string name="discipline_add_habit">Agregar hábito</string>
+    <string name="discipline_created_at">Creado: %1$s</string>
+    <string name="discipline_page_prev">Anterior</string>
+    <string name="discipline_page_next">Siguiente</string>
+    <string name="discipline_page_indicator">Pág. %1$d de %2$d</string>
+
+    <!-- Accesibilidad adicional -->
+    <string name="cd_navigate_back">Volver</string>
+
     <!-- Dashboard -->
     <string name="dashboard_title">¡Bienvenido!</string>
     <string name="dashboard_subtitle">Has iniciado sesión correctamente.</string>
