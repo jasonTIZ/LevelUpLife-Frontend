@@ -10,15 +10,15 @@ import retrofit2.http.Query
 
 interface DisciplineApi {
 
-    @GET("disciplines/{id}")
+    @GET("api/disciplines/{id}")
     suspend fun getDiscipline(
         @Path("id") id: String,
         @Header("Authorization") token: String,
     ): Response<DisciplineResponse>
 
-    @GET("habits")
+    @GET("api/habit/disciplines/{disciplineId}")
     suspend fun getHabits(
-        @Query("disciplineId") disciplineId: String,
+        @Path("disciplineId") disciplineId: String,
         @Query("page") page: Int,
         @Query("size") size: Int,
         @Header("Authorization") token: String,
