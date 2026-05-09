@@ -152,6 +152,22 @@ fun HomeScreen(
                     }
                 }
 
+                state.error != null -> item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = state.error,
+                            color = DarkOnSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+
                 state.habits.isEmpty() -> item {
                     Box(
                         modifier = Modifier
