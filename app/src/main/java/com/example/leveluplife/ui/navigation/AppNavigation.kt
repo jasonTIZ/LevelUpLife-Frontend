@@ -4,18 +4,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.leveluplife.AppContainer
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
+import com.example.leveluplife.ui.habitdetail.HabitDetailScreen
+import com.example.leveluplife.ui.habitdetail.HabitDetailViewModel
 import com.example.leveluplife.ui.home.HomeScreen
 import com.example.leveluplife.ui.home.HomeViewModel
 
 object Routes {
     const val LOGIN = "login"
     const val DASHBOARD = "dashboard"
+    const val HABIT_DETAIL = "habit_detail/{habitId}"
+    fun habitDetail(id: Int) = "habit_detail/$id"
 }
 
 @Composable
@@ -66,6 +72,22 @@ fun AppNavigation(
                         launchSingleTop = true
                     }
                 },
+                onHabitClick = { habitId ->
+                    navController.navigate(Routes.habitDetail(habitId))
+                },
+            )
+        }
+        composable(
+            route = Routes.HABIT_DETAIL,
+            arguments = listOf(navArgument("habitId") { type = NavType.IntType }),
+        ) { backStackEntry ->
+            val habitId = backStackEntry.arguments?.getInt("habitId") ?: return@composable
+            val vm: HabitDetailViewModel = viewModel(
+                factory = HabitDetailViewModel.Factory(container.habitRepository, habitId),
+            )
+            HabitDetailScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
             )
         }
     }

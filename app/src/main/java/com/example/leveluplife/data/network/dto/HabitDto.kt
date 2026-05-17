@@ -16,7 +16,31 @@ data class HabitDto(
 )
 
 @Serializable
-data class HabitTaskDto(val id: Int)
+data class RepetitionCriteriaDto(
+    val id: Int,
+    val habitTaskId: Int,
+    val repetitions: Int = 0,
+    val measurementUnit: String = "",
+    val isPartialAllowed: Boolean = false,
+    val isActive: Boolean = false,
+) {
+    fun toReadableSummary(): String {
+        val unit = when (measurementUnit.uppercase()) {
+            "REPS" -> if (repetitions == 1) "repetición" else "repeticiones"
+            "SERIES" -> if (repetitions == 1) "serie" else "series"
+            "KMS" -> "km"
+            "CALS" -> "cal"
+            else -> measurementUnit.lowercase()
+        }
+        return "$repetitions $unit"
+    }
+}
+
+@Serializable
+data class HabitTaskDto(
+    val id: Int,
+    val repetitionCriteria: RepetitionCriteriaDto? = null,
+)
 
 @Serializable
 data class PaginationDto(

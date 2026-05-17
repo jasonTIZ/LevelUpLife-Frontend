@@ -77,6 +77,7 @@ private val OrangeFire = Color(0xFFF59E0B)
 fun HomeScreen(
     viewModel: HomeViewModel,
     onLoggedOut: () -> Unit,
+    onHabitClick: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -185,7 +186,7 @@ fun HomeScreen(
 
                 else -> {
                     items(state.habits, key = { it.id }) { habit ->
-                        HabitCard(habit = habit)
+                        HabitCard(habit = habit, onClick = { onHabitClick(habit.id) })
                         Spacer(Modifier.height(10.dp))
                     }
                     if (state.isLoadingMore) {
@@ -393,8 +394,9 @@ private fun CalendarWeekCard() {
 }
 
 @Composable
-private fun HabitCard(habit: HabitDto) {
+private fun HabitCard(habit: HabitDto, onClick: () -> Unit = {}) {
     Card(
+        onClick = onClick,
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
         modifier = Modifier.fillMaxWidth(),
