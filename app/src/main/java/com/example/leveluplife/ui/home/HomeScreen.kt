@@ -1,6 +1,7 @@
 package com.example.leveluplife.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -77,6 +78,8 @@ private val OrangeFire = Color(0xFFF59E0B)
 fun HomeScreen(
     viewModel: HomeViewModel,
     onLoggedOut: () -> Unit,
+    onHabitClick: (habitId: Int) -> Unit = {},
+    onCreateTask: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -99,7 +102,7 @@ fun HomeScreen(
         containerColor = DarkBackground,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {},
+                onClick = onCreateTask,
                 containerColor = PurplePrimary,
                 contentColor = Color.White,
                 shape = CircleShape,
@@ -185,7 +188,10 @@ fun HomeScreen(
 
                 else -> {
                     items(state.habits, key = { it.id }) { habit ->
-                        HabitCard(habit = habit)
+                        HabitCard(
+                            habit = habit,
+                            onClick = { onHabitClick(habit.id) },
+                        )
                         Spacer(Modifier.height(10.dp))
                     }
                     if (state.isLoadingMore) {
@@ -393,11 +399,16 @@ private fun CalendarWeekCard() {
 }
 
 @Composable
-private fun HabitCard(habit: HabitDto) {
+private fun HabitCard(
+    habit: HabitDto,
+    onClick: () -> Unit,
+) {
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
