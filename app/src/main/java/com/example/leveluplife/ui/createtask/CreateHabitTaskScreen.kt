@@ -443,7 +443,7 @@ private fun CreateHabitTaskForm(
                     label = stringResource(R.string.create_task_field_period_unit),
                     options = CreateHabitTaskOptions.periodUnits,
                     selected = state.periodUnit,
-                    error = null,
+                    error = if (state.showValidationErrors) state.fieldErrors.periodUnit else null,
                     onSelected = onPeriodUnitChange,
                     fieldColors = fieldColors,
                     modifier = Modifier.weight(1f),
@@ -456,18 +456,17 @@ private fun CreateHabitTaskForm(
                 label = { Text(stringResource(R.string.create_task_field_start_date)) },
                 modifier = Modifier.fillMaxWidth(),
                 isError = state.showValidationErrors && state.fieldErrors.startDate != null,
-                supportingText = {
-                    Column {
-                        Text(
-                            stringResource(R.string.create_task_start_date_hint),
-                            color = DarkOnSurfaceVariant,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        if (state.showValidationErrors && state.fieldErrors.startDate != null) {
-                            Text(state.fieldErrors.startDate!!.toMessage())
-                        }
-                    }
-                },
+            supportingText = {
+                if (state.showValidationErrors && state.fieldErrors.startDate != null) {
+                    Text(state.fieldErrors.startDate!!.toMessage())
+                } else {
+                    Text(
+                        stringResource(R.string.create_task_start_date_hint),
+                        color = DarkOnSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            },
                 colors = fieldColors,
                 singleLine = true,
             )

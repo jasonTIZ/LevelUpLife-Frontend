@@ -126,11 +126,14 @@ fun AppNavigation(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },
                 onTaskCreated = { task ->
+                    val taskJson = json.encodeToString(HabitTaskDto.serializer(), task)
+                    navController.navigate(Routes.habitTaskDetail(task.id)) {
+                        popUpTo(Routes.CREATE_HABIT_TASK) { inclusive = true }
+                    }
                     navController.currentBackStackEntry?.savedStateHandle?.set(
                         Routes.ARG_CREATED_TASK_JSON,
-                        json.encodeToString(HabitTaskDto.serializer(), task),
+                        taskJson,
                     )
-                    navController.navigate(Routes.habitTaskDetail(task.id))
                 },
             )
         }
@@ -139,9 +142,10 @@ fun AppNavigation(
             arguments = listOf(navArgument("taskId") { type = NavType.IntType }),
         ) { backStackEntry ->
             val taskId = backStackEntry.arguments?.getInt("taskId") ?: return@composable
-            val taskJson = navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.get<String>(Routes.ARG_CREATED_TASK_JSON)
+            val taskJson = backStackEntry.savedStateHandle.get<String>(Routes.ARG_CREATED_TASK_JSON)
+                ?: navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<String>(Routes.ARG_CREATED_TASK_JSON)
             val task = taskJson?.let {
                 runCatching { json.decodeFromString(HabitTaskDto.serializer(), it) }.getOrNull()
             }
@@ -149,7 +153,9 @@ fun AppNavigation(
                 HabitTaskDetailScreen(
                     task = task,
                     showConfirmation = true,
-                    onBack = { navController.popBackStack() },
+                    onBack = {
+                        navController.popBackStack(Routes.DASHBOARD, inclusive = false)
+                    },
                     onDone = {
                         navController.popBackStack(Routes.DASHBOARD, inclusive = false)
                     },

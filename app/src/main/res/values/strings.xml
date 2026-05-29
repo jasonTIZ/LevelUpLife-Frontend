@@ -93,6 +93,7 @@
     <string name="create_task_option_period_weeks">Semanas</string>
     <string name="create_task_option_period_months">Meses</string>
     <string name="create_task_error_invalid_number">Valor numérico inválido</string>
+    <string name="create_task_error_invalid_date">Fecha inválida. Usá el formato AAAA-MM-DD</string>
     <string name="create_task_error_criteria_required">Completa los criterios de repetición</string>
     <string name="create_task_error_evidence_required">Selecciona un tipo de evidencia</string>
     <string name="create_task_success_message">¡Tarea creada correctamente!</string>

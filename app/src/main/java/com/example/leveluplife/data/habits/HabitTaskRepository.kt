@@ -25,9 +25,17 @@ class DefaultHabitTaskRepository(
             response.code() == 404 -> Result.failure(Exception("Hábito no encontrado o inactivo."))
             response.code() == 403 -> Result.failure(Exception("No tienes permiso para crear tareas en este hábito."))
             response.code() == 401 -> Result.failure(Exception("Sesión expirada. Vuelve a iniciar sesión."))
-            response.code() == 400 -> Result.failure(
-                Exception("Datos inválidos. Revisa los campos del formulario."),
-            )
+            response.code() == 400 -> {
+                val body = runCatching { response.errorBody()?.string() }.getOrNull()
+                val parsed = HabitTaskApiErrorParser.parse400(body)
+                if (parsed.fieldErrors.hasErrors) {
+                    Result.failure(
+                        HabitTaskValidationFailure(parsed.fieldErrors, parsed.summary),
+                    )
+                } else {
+                    Result.failure(Exception(parsed.summary))
+                }
+            }
             else -> Result.failure(Exception("HTTP ${response.code()}"))
         }
     } catch (e: SocketTimeoutException) {

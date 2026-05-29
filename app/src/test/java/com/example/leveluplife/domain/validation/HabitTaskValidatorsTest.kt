@@ -58,6 +58,20 @@ class HabitTaskValidatorsTest {
         assertEquals(HabitTaskFieldError.TooShort(3), error)
     }
 
+    @Test
+    fun `invalid start date returns InvalidDate`() {
+        val error = HabitTaskValidators.validateStartDate("2026-13-40")
+        assertEquals(HabitTaskFieldError.InvalidDate, error)
+    }
+
+    @Test
+    fun `blank period length is required`() {
+        val errors = HabitTaskValidators.validateForm(
+            validRepetitionsForm().copy(periodLength = ""),
+        )
+        assertEquals(HabitTaskFieldError.Required, errors.periodLength)
+    }
+
     private fun validRepetitionsForm() = HabitTaskFormInput(
         habitId = 1,
         title = "Rutina de fuerza",

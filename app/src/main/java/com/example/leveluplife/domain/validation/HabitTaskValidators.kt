@@ -5,6 +5,7 @@ sealed class HabitTaskFieldError {
     data class TooShort(val min: Int) : HabitTaskFieldError()
     data class TooLong(val max: Int) : HabitTaskFieldError()
     object InvalidNumber : HabitTaskFieldError()
+    object InvalidDate : HabitTaskFieldError()
     object CriteriaRequired : HabitTaskFieldError()
     object EvidenceRequired : HabitTaskFieldError()
 }
@@ -31,6 +32,7 @@ data class HabitTaskFormErrors(
     val difficulty: HabitTaskFieldError? = null,
     val frequency: HabitTaskFieldError? = null,
     val periodLength: HabitTaskFieldError? = null,
+    val periodUnit: HabitTaskFieldError? = null,
     val startDate: HabitTaskFieldError? = null,
     val completionCriteria: HabitTaskFieldError? = null,
     val repetitions: HabitTaskFieldError? = null,
@@ -44,6 +46,7 @@ data class HabitTaskFormErrors(
             difficulty,
             frequency,
             periodLength,
+            periodUnit,
             startDate,
             completionCriteria,
             repetitions,
@@ -64,6 +67,7 @@ object HabitTaskValidators {
         difficulty = validateRequiredSelection(input.difficulty),
         frequency = validateRequiredSelection(input.frequency),
         periodLength = validatePeriodLength(input.periodLength),
+        periodUnit = validateRequiredSelection(input.periodUnit),
         startDate = validateStartDate(input.startDate),
         completionCriteria = validateRequiredSelection(input.completionCriteria),
         repetitions = validateRepetitions(input),
@@ -88,8 +92,9 @@ object HabitTaskValidators {
         if (value.isNullOrBlank()) HabitTaskFieldError.Required else null
 
     fun validatePeriodLength(value: String): HabitTaskFieldError? {
-        if (value.isBlank()) return null
-        val parsed = value.toIntOrNull() ?: return HabitTaskFieldError.InvalidNumber
+        val trimmed = value.trim()
+        if (trimmed.isEmpty()) return HabitTaskFieldError.Required
+        val parsed = trimmed.toIntOrNull() ?: return HabitTaskFieldError.InvalidNumber
         return if (parsed < 1) HabitTaskFieldError.InvalidNumber else null
     }
 
@@ -97,8 +102,11 @@ object HabitTaskValidators {
         val trimmed = value.trim()
         return when {
             trimmed.isEmpty() -> HabitTaskFieldError.Required
-            !DATE_REGEX.matches(trimmed) -> HabitTaskFieldError.InvalidNumber
-            else -> null
+            !DATE_REGEX.matches(trimmed) -> HabitTaskFieldError.InvalidDate
+            else -> runCatching {
+                java.time.LocalDate.parse(trimmed)
+                null
+            }.getOrElse { HabitTaskFieldError.InvalidDate }
         }
     }
 
