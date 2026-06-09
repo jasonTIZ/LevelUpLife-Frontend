@@ -19,6 +19,11 @@ fun FieldError.toMessage(): String = when (this) {
         id = R.string.field_max_length,
         max,
     )
+    is FieldError.InvalidRange -> stringResource(
+        id = R.string.field_invalid_range,
+        min,
+        max,
+    )
 }
 
 @Composable

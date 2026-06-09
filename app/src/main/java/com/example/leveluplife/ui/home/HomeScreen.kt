@@ -77,6 +77,7 @@ private val OrangeFire = Color(0xFFF59E0B)
 fun HomeScreen(
     viewModel: HomeViewModel,
     onLoggedOut: () -> Unit,
+    onCreateHabit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -99,12 +100,12 @@ fun HomeScreen(
         containerColor = DarkBackground,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {},
+                onClick = onCreateHabit,
                 containerColor = PurplePrimary,
                 contentColor = Color.White,
                 shape = CircleShape,
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Agregar misión")
+                Icon(Icons.Filled.Add, contentDescription = "Create Habit")
             }
         },
         bottomBar = { HomeBottomBar() },

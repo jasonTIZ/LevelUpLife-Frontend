@@ -10,12 +10,15 @@ import androidx.navigation.compose.rememberNavController
 import com.example.leveluplife.AppContainer
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
+import com.example.leveluplife.ui.habit.CreateHabitScreen
+import com.example.leveluplife.ui.habit.CreateHabitViewModel
 import com.example.leveluplife.ui.home.HomeScreen
 import com.example.leveluplife.ui.home.HomeViewModel
 
 object Routes {
     const val LOGIN = "login"
     const val DASHBOARD = "dashboard"
+    const val CREATE_HABIT = "create_habit"
 }
 
 @Composable
@@ -65,6 +68,20 @@ fun AppNavigation(
                         popUpTo(Routes.DASHBOARD) { inclusive = true }
                         launchSingleTop = true
                     }
+                },
+                onCreateHabit = {
+                    navController.navigate(Routes.CREATE_HABIT)
+                },
+            )
+        }
+        composable(Routes.CREATE_HABIT) {
+            val vm: CreateHabitViewModel = viewModel(
+                factory = CreateHabitViewModel.Factory(container.habitRepository),
+            )
+            CreateHabitScreen(
+                viewModel = vm,
+                onHabitCreated = {
+                    navController.popBackStack()
                 },
             )
         }
