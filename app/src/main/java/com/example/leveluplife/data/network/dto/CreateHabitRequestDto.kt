@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CreateHabitRequest(
+data class CreateHabitRequestDto(
     val title: String,
     val description: String? = null,
     @SerialName("disciplineId") val disciplineId: Int,
