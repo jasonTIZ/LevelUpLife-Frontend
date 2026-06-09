@@ -20,6 +20,7 @@ class CreateHabitViewModel(
 
     companion object {
         fun Factory(repository: HabitRepository): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return CreateHabitViewModel(repository) as T
             }
@@ -70,8 +71,9 @@ class CreateHabitViewModel(
         updateTask(taskIndex) { it.copy(repetitionCriteria = newRepetitionCriteria) }
     }
 
-    fun createHabit(userId: Int) {
+    fun createHabit() {
         val state = _uiState.value
+        val userId = repository.getCurrentUserId()
         val validationError = validateHabit(state, userId)
         if (validationError != null) {
             _uiState.value = state.copy(error = validationError)

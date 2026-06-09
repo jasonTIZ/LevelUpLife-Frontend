@@ -10,9 +10,19 @@ import okhttp3.internal.cache.CacheRequest
 interface HabitRepository {
     suspend fun getActiveHabits(page: Int, pageSize: Int = 10): Result<HabitsPageResponse>
     suspend fun createHabit(request: CreateHabitRequestDto): Result<CreateHabitResponseDto>
+    fun setCurrentUserId(userId: Int)
+    fun getCurrentUserId(): Int
 }
 
 class DefaultHabitRepository(private val api: HabitsApi) : HabitRepository {
+
+    private var currentUserId: Int = 1
+
+    override fun setCurrentUserId(userId: Int) {
+        currentUserId = userId
+    }
+
+    override fun getCurrentUserId(): Int = currentUserId
 
     override suspend fun getActiveHabits(page: Int, pageSize: Int): Result<HabitsPageResponse> = try {
         val response = api.getActiveHabits(page, pageSize)

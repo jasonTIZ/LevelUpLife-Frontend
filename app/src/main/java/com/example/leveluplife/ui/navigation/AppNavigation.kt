@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.leveluplife.AppContainer
+import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
 import com.example.leveluplife.ui.habit.CreateHabitScreen
@@ -40,7 +41,7 @@ fun AppNavigation(
     ) {
         composable(Routes.LOGIN) {
             val vm: LoginViewModel = viewModel(
-                factory = LoginViewModel.Factory(container.authRepository),
+                factory = LoginViewModel.Factory(container.authRepository, container.habitRepository as HabitRepository),
             )
             LoginScreen(
                 viewModel = vm,
@@ -58,7 +59,7 @@ fun AppNavigation(
         }
         composable(Routes.DASHBOARD) {
             val vm: HomeViewModel = viewModel(
-                factory = HomeViewModel.Factory(container.habitRepository),
+                factory = HomeViewModel.Factory(container.habitRepository as HabitRepository),
             )
             HomeScreen(
                 viewModel = vm,
@@ -76,7 +77,7 @@ fun AppNavigation(
         }
         composable(Routes.CREATE_HABIT) {
             val vm: CreateHabitViewModel = viewModel(
-                factory = CreateHabitViewModel.Factory(container.habitRepository),
+                factory = CreateHabitViewModel.Factory(container.habitRepository as HabitRepository),
             )
             CreateHabitScreen(
                 viewModel = vm,

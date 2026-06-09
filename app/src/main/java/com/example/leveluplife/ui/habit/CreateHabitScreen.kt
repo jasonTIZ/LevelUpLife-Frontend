@@ -130,7 +130,7 @@ fun CreateHabitScreen(
 
             LulPrimaryButton(
                 text = if (uiState.isLoading) "Creating..." else "Create Habit",
-                onClick = { viewModel.createHabit(1) },
+                onClick = { viewModel.createHabit() },
                 enabled = !uiState.isLoading,
                 modifier = Modifier.fillMaxWidth(),
                 isLoading = uiState.isLoading
