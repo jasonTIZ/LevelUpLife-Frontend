@@ -39,4 +39,21 @@
     <string name="dashboard_subtitle">Has iniciado sesión correctamente.</string>
     <string name="dashboard_session_active">Sesión activa</string>
     <string name="dashboard_logout">Cerrar sesión</string>
+
+    <!-- Settings / deactivate account -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_back">Volver</string>
+    <string name="settings_deactivate_section_title">Desactivar cuenta</string>
+    <string name="settings_deactivate_consequences">Al desactivar tu cuenta:\n\n• No podrás iniciar sesión de nuevo.\n• Tu progreso y hábitos quedarán inactivos.\n• Se cerrará la sesión en este dispositivo.\n• Se borrarán los datos locales de la app.</string>
+    <string name="settings_reactivation_info">La reactivación no está disponible desde la app. Si necesitás recuperar tu cuenta, contactá al equipo de soporte.</string>
+    <string name="settings_deactivate_button">Desactivar mi cuenta</string>
+    <string name="settings_confirm_title">¿Desactivar cuenta?</string>
+    <string name="settings_confirm_message">Esta acción desactiva tu cuenta de forma permanente desde la app. Confirmá solo si entendés las consecuencias.</string>
+    <string name="settings_confirm_acknowledge">Entiendo las consecuencias y quiero continuar</string>
+    <string name="settings_deactivate_reason_label">Motivo (opcional)</string>
+    <string name="settings_deactivate_reason_hint">Contanos por qué te vas…</string>
+    <string name="settings_cancel">Cancelar</string>
+    <string name="settings_confirm_deactivate">Desactivar</string>
+    <string name="settings_deactivating">Desactivando…</string>
+    <string name="settings_deactivate_success">Tu cuenta fue desactivada. La sesión local se cerró correctamente.</string>
 </resources>

@@ -11,6 +11,9 @@ import com.example.leveluplife.data.network.AuthApi
 import com.example.leveluplife.data.network.HabitsApi
 import com.example.leveluplife.data.network.HostProvider
 import com.example.leveluplife.data.network.NetworkModule
+import com.example.leveluplife.data.network.PlayerApi
+import com.example.leveluplife.data.player.DefaultPlayerRepository
+import com.example.leveluplife.data.player.PlayerRepository
 import com.example.leveluplife.data.preferences.DebugApiPreferences
 import com.example.leveluplife.data.preferences.ThemePreferences
 import com.example.leveluplife.ui.theme.ThemeController
@@ -37,6 +40,7 @@ class AppContainer(applicationContext: Context) {
     }
     private val authApi: AuthApi by lazy { NetworkModule.provideAuthApi(retrofit) }
     private val habitsApi: HabitsApi by lazy { NetworkModule.provideHabitsApi(retrofit) }
+    private val playerApi: PlayerApi by lazy { NetworkModule.providePlayerApi(retrofit) }
 
     val authRepository: AuthRepository by lazy {
         DefaultAuthRepository(
@@ -48,5 +52,9 @@ class AppContainer(applicationContext: Context) {
 
     val habitRepository: HabitRepository by lazy {
         DefaultHabitRepository(api = habitsApi)
+    }
+
+    val playerRepository: PlayerRepository by lazy {
+        DefaultPlayerRepository(api = playerApi, tokenStore = tokenStore)
     }
 }

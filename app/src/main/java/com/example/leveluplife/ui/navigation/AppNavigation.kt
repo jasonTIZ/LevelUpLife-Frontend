@@ -12,10 +12,15 @@ import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
 import com.example.leveluplife.ui.home.HomeScreen
 import com.example.leveluplife.ui.home.HomeViewModel
+import com.example.leveluplife.ui.settings.SettingsScreen
+import com.example.leveluplife.ui.settings.SettingsViewModel
 
 object Routes {
     const val LOGIN = "login"
     const val DASHBOARD = "dashboard"
+    const val SETTINGS = "settings"
+
+    const val ARG_DEACTIVATION_MESSAGE = "deactivation_message"
 }
 
 @Composable
@@ -35,22 +40,26 @@ fun AppNavigation(
         startDestination = startDestination,
         modifier = modifier,
     ) {
-        composable(Routes.LOGIN) {
+        composable(Routes.LOGIN) { backStackEntry ->
+            val deactivationMessage = backStackEntry.savedStateHandle
+                .get<String>(Routes.ARG_DEACTIVATION_MESSAGE)
             val vm: LoginViewModel = viewModel(
                 factory = LoginViewModel.Factory(container.authRepository),
             )
             LoginScreen(
                 viewModel = vm,
                 themeController = container.themeController,
+                infoMessage = deactivationMessage,
+                onInfoMessageShown = {
+                    backStackEntry.savedStateHandle.remove<String>(Routes.ARG_DEACTIVATION_MESSAGE)
+                },
                 onLoggedIn = {
                     navController.navigate(Routes.DASHBOARD) {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
-                onNavigateToRegister = {
-                    // Registro fuera de alcance de esta tarea.
-                },
+                onNavigateToRegister = {},
             )
         }
         composable(Routes.DASHBOARD) {
@@ -64,6 +73,30 @@ fun AppNavigation(
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.DASHBOARD) { inclusive = true }
                         launchSingleTop = true
+                    }
+                },
+                onOpenSettings = {
+                    navController.navigate(Routes.SETTINGS)
+                },
+            )
+        }
+        composable(Routes.SETTINGS) {
+            val vm: SettingsViewModel = viewModel(
+                factory = SettingsViewModel.Factory(container.playerRepository),
+            )
+            SettingsScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onAccountDeactivated = { message ->
+                    container.authRepository.logout()
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.DASHBOARD) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                    runCatching {
+                        navController.getBackStackEntry(Routes.LOGIN)
+                            .savedStateHandle
+                            .set(Routes.ARG_DEACTIVATION_MESSAGE, message)
                     }
                 },
             )
