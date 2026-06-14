@@ -15,6 +15,7 @@
 
     <!-- Login: errores -->
     <string name="login_error_invalid_credentials">Usuario/email o contraseña incorrectos</string>
+    <string name="login_error_session_expired">Tu sesión expiró. Iniciá sesión de nuevo.</string>
     <string name="login_error_account_locked">Tu cuenta está bloqueada. Intenta más tarde.</string>
     <string name="login_error_bad_request">Solicitud inválida. Revisa los datos ingresados.</string>
     <string name="login_error_server">Error del servidor. Intenta más tarde.</string>
@@ -24,6 +25,8 @@
     <!-- Validación de campos -->
     <string name="field_required">Campo obligatorio</string>
     <string name="field_invalid_email">Email inválido</string>
+    <string name="field_invalid_birthdate">Usa una fecha válida en formato AAAA-MM-DD</string>
+    <string name="field_invalid_characters">Solo se permiten letras, espacios, apóstrofes y guiones</string>
     <string name="field_invalid_username_or_email">Ingresa un email o usuario válido</string>
     <string name="field_min_length">Mínimo %1$d caracteres</string>
     <string name="field_max_length">Máximo %1$d caracteres</string>
@@ -39,4 +42,40 @@
     <string name="dashboard_subtitle">Has iniciado sesión correctamente.</string>
     <string name="dashboard_session_active">Sesión activa</string>
     <string name="dashboard_logout">Cerrar sesión</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Mi perfil</string>
+    <string name="profile_back">Volver</string>
+    <string name="profile_subtitle">Revisá tu información pública</string>
+    <string name="profile_edit_subtitle">Modificá los campos que quieras actualizar</string>
+    <string name="profile_edit">Editar perfil</string>
+    <string name="profile_cancel_edit">Cancelar</string>
+    <string name="profile_not_set">Sin definir</string>
+    <string name="profile_avatar_change">Cambiar avatar</string>
+    <string name="profile_avatar_hint">JPG, PNG o WebP. Máximo 2 MB.</string>
+    <string name="profile_avatar_too_large">La imagen supera el tamaño máximo</string>
+    <string name="profile_avatar_invalid_type">Formato de imagen no permitido</string>
+    <string name="profile_name_label">Nombre</string>
+    <string name="profile_last_name_label">Apellido</string>
+    <string name="profile_email_label">Email</string>
+    <string name="profile_username_label">Usuario</string>
+    <string name="profile_birthdate_label">Fecha de nacimiento</string>
+    <string name="profile_birthdate_hint">AAAA-MM-DD (opcional)</string>
+    <string name="profile_bio_label">Bio</string>
+    <string name="profile_bio_hint">Contá algo sobre vos (solo en este dispositivo por ahora)</string>
+    <string name="profile_class_label">Clase</string>
+    <string name="profile_level_label">Nivel %1$d</string>
+    <string name="profile_save">Guardar cambios</string>
+    <string name="profile_saving">Guardando…</string>
+    <string name="profile_save_success">Perfil actualizado correctamente</string>
+    <string name="profile_load_error">No se pudo cargar el perfil</string>
+    <string name="profile_error_network">Sin conexión. Revisá tu red e intentá de nuevo.</string>
+    <string name="profile_error_conflict">Ese usuario ya está en uso.</string>
+    <string name="profile_error_precondition">El perfil cambió en otro lugar. Recargá e intentá de nuevo.</string>
+    <string name="profile_retry">Reintentar</string>
+    <string name="profile_logout">Cerrar sesión</string>
+    <string name="profile_logout_confirm_title">¿Cerrar sesión?</string>
+    <string name="profile_logout_confirm_message">Se cerrará tu sesión en este dispositivo. Tendrás que volver a iniciar sesión para entrar.</string>
+    <string name="profile_logout_confirm">Cerrar sesión</string>
+    <string name="cd_profile_avatar">Avatar de perfil</string>
 </resources>

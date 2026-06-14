@@ -11,6 +11,9 @@ import com.example.leveluplife.domain.validation.Validators
 fun FieldError.toMessage(): String = when (this) {
     is FieldError.Required -> stringResource(id = R.string.field_required)
     is FieldError.InvalidUserNameOrEmail -> stringResource(id = R.string.field_invalid_username_or_email)
+    is FieldError.InvalidEmail -> stringResource(id = R.string.field_invalid_email)
+    is FieldError.InvalidBirthdate -> stringResource(id = R.string.field_invalid_birthdate)
+    is FieldError.InvalidCharacters -> stringResource(id = R.string.field_invalid_characters)
     is FieldError.TooShort -> stringResource(
         id = R.string.field_min_length,
         min,

@@ -62,6 +62,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.leveluplife.data.network.dto.HabitDto
+import com.example.leveluplife.data.player.ProfileCache
 import com.example.leveluplife.ui.theme.DarkBackground
 import com.example.leveluplife.ui.theme.DarkOnBackground
 import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
@@ -76,10 +77,12 @@ private val OrangeFire = Color(0xFFF59E0B)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onLoggedOut: () -> Unit,
+    profileCache: ProfileCache,
+    onOpenProfile: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
+    val cachedProfile by profileCache.profile.collectAsState()
     val listState = rememberLazyListState()
 
     val shouldLoadMore by remember {
@@ -120,7 +123,7 @@ fun HomeScreen(
             ),
         ) {
             item {
-                HomeHeader(onLoggedOut = onLoggedOut)
+                HomeHeader(onOpenProfile = onOpenProfile, displayName = cachedProfile?.userName)
                 Spacer(Modifier.height(10.dp))
                 StatsRow()
                 Spacer(Modifier.height(20.dp))
@@ -210,38 +213,47 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeHeader(onLoggedOut: () -> Unit) {
+private fun HomeHeader(onOpenProfile: () -> Unit, displayName: String?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    SpanStyle(
-                        color = OrangeFire,
-                        fontStyle = FontStyle.Italic,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-                ) { append("LEVEL UP ") }
-                withStyle(
-                    SpanStyle(
-                        color = PurplePrimary,
-                        fontStyle = FontStyle.Italic,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-                ) { append("LIFE") }
-            },
-            fontSize = 22.sp,
-        )
+        Column {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            color = OrangeFire,
+                            fontStyle = FontStyle.Italic,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
+                    ) { append("LEVEL UP ") }
+                    withStyle(
+                        SpanStyle(
+                            color = PurplePrimary,
+                            fontStyle = FontStyle.Italic,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
+                    ) { append("LIFE") }
+                },
+                fontSize = 22.sp,
+            )
+            if (!displayName.isNullOrBlank()) {
+                Text(
+                    text = displayName,
+                    color = DarkOnSurfaceVariant,
+                    fontSize = 12.sp,
+                )
+            }
+        }
         IconButton(
-            onClick = onLoggedOut,
+            onClick = onOpenProfile,
             modifier = Modifier
                 .background(DarkSurfaceVariant, RoundedCornerShape(14.dp))
                 .size(46.dp),
         ) {
-            Icon(Icons.Filled.Person, contentDescription = "Perfil / Cerrar sesión", tint = DarkOnBackground)
+            Icon(Icons.Filled.Person, contentDescription = "Perfil", tint = DarkOnBackground)
         }
     }
 }
