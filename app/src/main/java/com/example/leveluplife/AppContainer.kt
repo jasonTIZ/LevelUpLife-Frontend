@@ -5,9 +5,12 @@ import com.example.leveluplife.data.auth.AuthRepository
 import com.example.leveluplife.data.auth.DefaultAuthRepository
 import com.example.leveluplife.data.auth.EncryptedTokenStore
 import com.example.leveluplife.data.auth.TokenStore
+import com.example.leveluplife.data.categories.DefaultHabitCategoryRepository
+import com.example.leveluplife.data.categories.HabitCategoryRepository
 import com.example.leveluplife.data.habits.DefaultHabitRepository
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.network.AuthApi
+import com.example.leveluplife.data.network.HabitCategoriesApi
 import com.example.leveluplife.data.network.HabitsApi
 import com.example.leveluplife.data.network.HostProvider
 import com.example.leveluplife.data.network.NetworkModule
@@ -37,6 +40,9 @@ class AppContainer(applicationContext: Context) {
     }
     private val authApi: AuthApi by lazy { NetworkModule.provideAuthApi(retrofit) }
     private val habitsApi: HabitsApi by lazy { NetworkModule.provideHabitsApi(retrofit) }
+    private val habitCategoriesApi: HabitCategoriesApi by lazy {
+        NetworkModule.provideHabitCategoriesApi(retrofit)
+    }
 
     val authRepository: AuthRepository by lazy {
         DefaultAuthRepository(
@@ -48,5 +54,9 @@ class AppContainer(applicationContext: Context) {
 
     val habitRepository: HabitRepository by lazy {
         DefaultHabitRepository(api = habitsApi)
+    }
+
+    val habitCategoryRepository: HabitCategoryRepository by lazy {
+        DefaultHabitCategoryRepository(api = habitCategoriesApi)
     }
 }

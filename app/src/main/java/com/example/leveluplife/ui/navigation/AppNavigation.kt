@@ -10,12 +10,15 @@ import androidx.navigation.compose.rememberNavController
 import com.example.leveluplife.AppContainer
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
+import com.example.leveluplife.ui.categories.CategoriesScreen
+import com.example.leveluplife.ui.categories.CategoriesViewModel
 import com.example.leveluplife.ui.home.HomeScreen
 import com.example.leveluplife.ui.home.HomeViewModel
 
 object Routes {
     const val LOGIN = "login"
     const val DASHBOARD = "dashboard"
+    const val CATEGORIES = "categories"
 }
 
 @Composable
@@ -65,6 +68,23 @@ fun AppNavigation(
                         popUpTo(Routes.DASHBOARD) { inclusive = true }
                         launchSingleTop = true
                     }
+                },
+                onOpenCategories = {
+                    navController.navigate(Routes.CATEGORIES) {
+                        launchSingleTop = true
+                    }
+                },
+            )
+        }
+        composable(Routes.CATEGORIES) {
+            val vm: CategoriesViewModel = viewModel(
+                factory = CategoriesViewModel.Factory(container.habitCategoryRepository),
+            )
+            CategoriesScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onCategoryClick = {
+                    // Navegación al detalle de categoría: fuera de alcance de esta tarea.
                 },
             )
         }

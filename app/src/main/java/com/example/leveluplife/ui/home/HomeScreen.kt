@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -77,6 +78,7 @@ private val OrangeFire = Color(0xFFF59E0B)
 fun HomeScreen(
     viewModel: HomeViewModel,
     onLoggedOut: () -> Unit,
+    onOpenCategories: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -120,7 +122,7 @@ fun HomeScreen(
             ),
         ) {
             item {
-                HomeHeader(onLoggedOut = onLoggedOut)
+                HomeHeader(onLoggedOut = onLoggedOut, onOpenCategories = onOpenCategories)
                 Spacer(Modifier.height(10.dp))
                 StatsRow()
                 Spacer(Modifier.height(20.dp))
@@ -210,7 +212,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeHeader(onLoggedOut: () -> Unit) {
+private fun HomeHeader(onLoggedOut: () -> Unit, onOpenCategories: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -235,13 +237,23 @@ private fun HomeHeader(onLoggedOut: () -> Unit) {
             },
             fontSize = 22.sp,
         )
-        IconButton(
-            onClick = onLoggedOut,
-            modifier = Modifier
-                .background(DarkSurfaceVariant, RoundedCornerShape(14.dp))
-                .size(46.dp),
-        ) {
-            Icon(Icons.Filled.Person, contentDescription = "Perfil / Cerrar sesión", tint = DarkOnBackground)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            IconButton(
+                onClick = onOpenCategories,
+                modifier = Modifier
+                    .background(DarkSurfaceVariant, RoundedCornerShape(14.dp))
+                    .size(46.dp),
+            ) {
+                Icon(Icons.Filled.Category, contentDescription = "Categorías", tint = DarkOnBackground)
+            }
+            IconButton(
+                onClick = onLoggedOut,
+                modifier = Modifier
+                    .background(DarkSurfaceVariant, RoundedCornerShape(14.dp))
+                    .size(46.dp),
+            ) {
+                Icon(Icons.Filled.Person, contentDescription = "Perfil / Cerrar sesión", tint = DarkOnBackground)
+            }
         }
     }
 }
