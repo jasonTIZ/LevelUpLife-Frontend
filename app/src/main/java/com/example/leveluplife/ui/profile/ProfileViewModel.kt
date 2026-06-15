@@ -123,7 +123,7 @@ class ProfileViewModel(
     }
 
     fun onAvatarSelected(uri: String, mimeType: String?, sizeBytes: Long) {
-        when (AvatarValidator.validate(mimeType, sizeBytes)) {
+        when (val validationError = AvatarValidator.validate(mimeType, sizeBytes)) {
             null -> {
                 viewModelScope.launch {
                     val persistedUri = avatarStorage.persistFromPickerUri(uri, mimeType)
@@ -142,11 +142,8 @@ class ProfileViewModel(
                     profileCache.updateLocalExtras(persistedUri, _state.value.bio)
                 }
             }
-            AvatarValidationError.TooLarge -> {
-                _state.update { it.copy(avatarError = AvatarValidationError.TooLarge) }
-            }
-            AvatarValidationError.UnsupportedType -> {
-                _state.update { it.copy(avatarError = AvatarValidationError.UnsupportedType) }
+            else -> {
+                _state.update { it.copy(avatarError = validationError) }
             }
         }
     }
