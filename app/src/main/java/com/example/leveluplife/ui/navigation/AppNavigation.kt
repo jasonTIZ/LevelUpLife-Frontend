@@ -3,7 +3,9 @@ package com.example.leveluplife.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.leveluplife.R
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,6 +27,7 @@ object Routes {
     const val SETTINGS = "settings"
 
     const val ARG_DEACTIVATION_MESSAGE = "deactivation_message"
+    const val ARG_SESSION_EXPIRED_MESSAGE = "session_expired_message"
 }
 
 @Composable
@@ -39,12 +42,19 @@ fun AppNavigation(
         Routes.LOGIN
     }
 
-    LaunchedEffect(container.sessionEvents) {
+    val sessionExpiredMessage = stringResource(R.string.login_session_expired_redirect)
+
+    LaunchedEffect(container.sessionEvents, sessionExpiredMessage) {
         container.sessionEvents.expired.collect {
             container.authRepository.logout()
             navController.navigate(Routes.LOGIN) {
                 popUpTo(Routes.DASHBOARD) { inclusive = true }
                 launchSingleTop = true
+            }
+            runCatching {
+                navController.getBackStackEntry(Routes.LOGIN)
+                    .savedStateHandle
+                    .set(Routes.ARG_SESSION_EXPIRED_MESSAGE, sessionExpiredMessage)
             }
         }
     }
@@ -55,17 +65,20 @@ fun AppNavigation(
         modifier = modifier,
     ) {
         composable(Routes.LOGIN) { backStackEntry ->
-            val deactivationMessage = backStackEntry.savedStateHandle
+            val infoMessage = backStackEntry.savedStateHandle
                 .get<String>(Routes.ARG_DEACTIVATION_MESSAGE)
+                ?: backStackEntry.savedStateHandle
+                    .get<String>(Routes.ARG_SESSION_EXPIRED_MESSAGE)
             val vm: LoginViewModel = viewModel(
                 factory = LoginViewModel.Factory(container.authRepository),
             )
             LoginScreen(
                 viewModel = vm,
                 themeController = container.themeController,
-                infoMessage = deactivationMessage,
+                infoMessage = infoMessage,
                 onInfoMessageShown = {
                     backStackEntry.savedStateHandle.remove<String>(Routes.ARG_DEACTIVATION_MESSAGE)
+                    backStackEntry.savedStateHandle.remove<String>(Routes.ARG_SESSION_EXPIRED_MESSAGE)
                 },
                 onLoggedIn = {
                     navController.navigate(Routes.DASHBOARD) {
