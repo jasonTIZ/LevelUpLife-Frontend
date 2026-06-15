@@ -3,6 +3,7 @@ package com.example.leveluplife.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.leveluplife.data.player.DeactivateAccountError
 import com.example.leveluplife.data.player.DeactivateAccountException
 import com.example.leveluplife.data.player.PlayerRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -89,16 +90,15 @@ class SettingsViewModel(
 
     private fun mapError(t: Throwable): String = when (t) {
         is DeactivateAccountException -> when (val err = t.error) {
-            is com.example.leveluplife.data.player.DeactivateAccountError.Network ->
-                if (err.message == "timeout" || err.message == "unknown_host") {
-                    "Sin conexión. Revisá tu red e intentá de nuevo."
-                } else {
-                    "Sin conexión. Revisá tu red e intentá de nuevo."
-                }
+            is DeactivateAccountError.Network -> NETWORK_ERROR_MESSAGE
             else -> err.message
         }
-        is IOException -> "Sin conexión. Revisá tu red e intentá de nuevo."
+        is IOException -> NETWORK_ERROR_MESSAGE
         else -> t.message ?: "No se pudo desactivar la cuenta."
+    }
+
+    private companion object {
+        const val NETWORK_ERROR_MESSAGE = "Sin conexión. Revisá tu red e intentá de nuevo."
     }
 
     class Factory(

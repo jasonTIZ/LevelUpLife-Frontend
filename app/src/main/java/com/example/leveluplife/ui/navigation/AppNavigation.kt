@@ -119,7 +119,6 @@ fun AppNavigation(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },
                 onAccountDeactivated = { message ->
-                    container.authRepository.logout()
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.DASHBOARD) { inclusive = true }
                         launchSingleTop = true
