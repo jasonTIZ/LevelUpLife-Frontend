@@ -3,6 +3,9 @@ package com.example.leveluplife.domain.validation
 sealed class FieldError {
     object Required : FieldError()
     object InvalidUserNameOrEmail : FieldError()
+    object InvalidEmail : FieldError()
+    object InvalidBirthdate : FieldError()
+    object InvalidCharacters : FieldError()
     data class TooShort(val min: Int) : FieldError()
     data class TooLong(val max: Int) : FieldError()
 }
@@ -51,4 +54,6 @@ object Validators {
             else -> null
         }
     }
+
+    fun isValidEmail(input: String): Boolean = EMAIL_REGEX.matches(input.trim())
 }

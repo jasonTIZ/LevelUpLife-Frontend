@@ -1,6 +1,7 @@
 package com.example.leveluplife.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -12,12 +13,15 @@ import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
 import com.example.leveluplife.ui.home.HomeScreen
 import com.example.leveluplife.ui.home.HomeViewModel
+import com.example.leveluplife.ui.profile.ProfileScreen
+import com.example.leveluplife.ui.profile.ProfileViewModel
 import com.example.leveluplife.ui.settings.SettingsScreen
 import com.example.leveluplife.ui.settings.SettingsViewModel
 
 object Routes {
     const val LOGIN = "login"
     const val DASHBOARD = "dashboard"
+    const val PROFILE = "profile"
     const val SETTINGS = "settings"
 
     const val ARG_DEACTIVATION_MESSAGE = "deactivation_message"
@@ -33,6 +37,16 @@ fun AppNavigation(
         Routes.DASHBOARD
     } else {
         Routes.LOGIN
+    }
+
+    LaunchedEffect(container.sessionEvents) {
+        container.sessionEvents.expired.collect {
+            container.authRepository.logout()
+            navController.navigate(Routes.LOGIN) {
+                popUpTo(Routes.DASHBOARD) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
     }
 
     NavHost(
@@ -68,15 +82,32 @@ fun AppNavigation(
             )
             HomeScreen(
                 viewModel = vm,
-                onLoggedOut = {
+                profileCache = container.profileCache,
+                onOpenProfile = {
+                    navController.navigate(Routes.PROFILE) { launchSingleTop = true }
+                },
+                onOpenSettings = {
+                    navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
+                },
+            )
+        }
+        composable(Routes.PROFILE) {
+            val vm: ProfileViewModel = viewModel(
+                factory = ProfileViewModel.Factory(
+                    container.profileRepository,
+                    container.profileCache,
+                    container.profileAvatarStorage,
+                ),
+            )
+            ProfileScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onLogout = {
                     container.authRepository.logout()
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.DASHBOARD) { inclusive = true }
                         launchSingleTop = true
                     }
-                },
-                onOpenSettings = {
-                    navController.navigate(Routes.SETTINGS)
                 },
             )
         }
