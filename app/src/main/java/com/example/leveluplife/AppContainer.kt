@@ -13,9 +13,11 @@ import com.example.leveluplife.data.network.HabitsApi
 import com.example.leveluplife.data.network.HostProvider
 import com.example.leveluplife.data.network.NetworkModule
 import com.example.leveluplife.data.network.PlayerApi
+import com.example.leveluplife.data.player.DefaultPlayerRepository
 import com.example.leveluplife.data.player.DefaultProfileCache
 import com.example.leveluplife.data.player.DefaultProfileRepository
 import com.example.leveluplife.data.player.LocalProfileAvatarStorage
+import com.example.leveluplife.data.player.PlayerRepository
 import com.example.leveluplife.data.player.ProfileAvatarStorage
 import com.example.leveluplife.data.player.ProfileCache
 import com.example.leveluplife.data.player.ProfileRepository
@@ -64,6 +66,10 @@ class AppContainer(applicationContext: Context) {
 
     val habitRepository: HabitRepository by lazy {
         DefaultHabitRepository(api = habitsApi)
+    }
+
+    val playerRepository: PlayerRepository by lazy {
+        DefaultPlayerRepository(api = playerApi, tokenStore = tokenStore)
     }
 
     val profileRepository: ProfileRepository by lazy {

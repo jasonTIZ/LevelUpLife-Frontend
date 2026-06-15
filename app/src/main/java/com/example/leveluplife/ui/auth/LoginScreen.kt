@@ -80,9 +80,12 @@ fun LoginScreen(
     themeController: ThemeController,
     onLoggedIn: () -> Unit,
     onNavigateToRegister: () -> Unit,
+    infoMessage: String? = null,
+    onInfoMessageShown: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
 
     LaunchedEffect(state.loggedInUser) {
         if (state.loggedInUser != null) {
@@ -91,17 +94,30 @@ fun LoginScreen(
         }
     }
 
-    LoginContent(
-        state = state,
-        themeController = themeController,
-        onEmailChange = viewModel::onEmailChange,
-        onPasswordChange = viewModel::onPasswordChange,
-        onTogglePasswordVisibility = viewModel::onTogglePasswordVisibility,
-        onSubmit = viewModel::onSubmit,
-        onDismissError = viewModel::dismissError,
-        onNavigateToRegister = onNavigateToRegister,
+    LaunchedEffect(infoMessage) {
+        if (!infoMessage.isNullOrBlank()) {
+            snackbarHostState.showSnackbar(infoMessage)
+            onInfoMessageShown()
+        }
+    }
+
+    androidx.compose.material3.Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background,
         modifier = modifier,
-    )
+    ) { innerPadding ->
+        LoginContent(
+            state = state,
+            themeController = themeController,
+            onEmailChange = viewModel::onEmailChange,
+            onPasswordChange = viewModel::onPasswordChange,
+            onTogglePasswordVisibility = viewModel::onTogglePasswordVisibility,
+            onSubmit = viewModel::onSubmit,
+            onDismissError = viewModel::dismissError,
+            onNavigateToRegister = onNavigateToRegister,
+            modifier = Modifier.padding(innerPadding),
+        )
+    }
 }
 
 @Composable

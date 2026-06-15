@@ -79,6 +79,7 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     profileCache: ProfileCache,
     onOpenProfile: () -> Unit,
+    onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -110,7 +111,7 @@ fun HomeScreen(
                 Icon(Icons.Filled.Add, contentDescription = "Agregar misión")
             }
         },
-        bottomBar = { HomeBottomBar() },
+        bottomBar = { HomeBottomBar(onOpenSettings = onOpenSettings) },
     ) { innerPadding ->
         LazyColumn(
             state = listState,
@@ -453,15 +454,20 @@ private fun HabitCard(habit: HabitDto) {
     }
 }
 
-private data class NavItem(val label: String, val icon: ImageVector, val selected: Boolean)
+private data class NavItem(
+    val label: String,
+    val icon: ImageVector,
+    val selected: Boolean,
+    val onClick: () -> Unit = {},
+)
 
 @Composable
-private fun HomeBottomBar() {
+private fun HomeBottomBar(onOpenSettings: () -> Unit) {
     val items = listOf(
-        NavItem("INICIO", Icons.Filled.Home, true),
-        NavItem("COACH", Icons.Filled.Chat, false),
-        NavItem("TIENDA", Icons.Filled.ShoppingBag, false),
-        NavItem("AJUSTES", Icons.Filled.Settings, false),
+        NavItem("INICIO", Icons.Filled.Home, true, onClick = {}),
+        NavItem("COACH", Icons.Filled.Chat, false, onClick = {}),
+        NavItem("TIENDA", Icons.Filled.ShoppingBag, false, onClick = {}),
+        NavItem("AJUSTES", Icons.Filled.Settings, false, onClick = onOpenSettings),
     )
     NavigationBar(
         containerColor = DarkSurface,
@@ -470,7 +476,7 @@ private fun HomeBottomBar() {
         items.forEach { item ->
             NavigationBarItem(
                 selected = item.selected,
-                onClick = {},
+                onClick = item.onClick,
                 icon = { Icon(item.icon, contentDescription = item.label) },
                 label = {
                     Text(
