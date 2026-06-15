@@ -11,9 +11,12 @@
     <string name="login_register_cta">REGÍSTRATE</string>
     <string name="login_retry">Reintentar</string>
     <string name="login_dismiss">Cerrar</string>
+    <string name="error_dialog_title">Error</string>
 
     <!-- Login: errores -->
     <string name="login_error_invalid_credentials">Usuario/email o contraseña incorrectos</string>
+    <string name="login_error_session_expired">Tu sesión expiró. Iniciá sesión de nuevo.</string>
+    <string name="login_session_expired_redirect">Tu sesión terminó y se cerró automáticamente. Iniciá sesión de nuevo para continuar.</string>
     <string name="login_error_account_locked">Tu cuenta está bloqueada. Intenta más tarde.</string>
     <string name="login_error_bad_request">Solicitud inválida. Revisa los datos ingresados.</string>
     <string name="login_error_server">Error del servidor. Intenta más tarde.</string>
@@ -23,6 +26,8 @@
     <!-- Validación de campos -->
     <string name="field_required">Campo obligatorio</string>
     <string name="field_invalid_email">Email inválido</string>
+    <string name="field_invalid_birthdate">Usa una fecha válida en formato AAAA-MM-DD</string>
+    <string name="field_invalid_characters">Solo se permiten letras, espacios, apóstrofes y guiones</string>
     <string name="field_invalid_username_or_email">Ingresa un email o usuario válido</string>
     <string name="field_min_length">Mínimo %1$d caracteres</string>
     <string name="field_max_length">Máximo %1$d caracteres</string>
@@ -103,4 +108,58 @@
     <string name="task_detail_meta">%1$s · %2$s · inicio %3$s</string>
     <string name="task_detail_criteria_section">CRITERIOS</string>
     <string name="task_detail_back_home">Volver al inicio</string>
+
+    <!-- Settings / deactivate account -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_back">Volver</string>
+    <string name="settings_deactivate_section_title">Desactivar cuenta</string>
+    <string name="settings_deactivate_consequences">Al desactivar tu cuenta:\n\n• No podrás iniciar sesión de nuevo.\n• Tu progreso y hábitos quedarán inactivos.\n• Se cerrará la sesión en este dispositivo.\n• Se borrarán los datos locales de la app.</string>
+    <string name="settings_reactivation_info">La reactivación no está disponible desde la app. Si necesitás recuperar tu cuenta, contactá al equipo de soporte.</string>
+    <string name="settings_deactivate_button">Desactivar mi cuenta</string>
+    <string name="settings_confirm_title">¿Desactivar cuenta?</string>
+    <string name="settings_confirm_message">Esta acción desactiva tu cuenta de forma permanente desde la app. Confirmá solo si entendés las consecuencias.</string>
+    <string name="settings_confirm_acknowledge">Entiendo las consecuencias y quiero continuar</string>
+    <string name="settings_deactivate_reason_label">Motivo (opcional)</string>
+    <string name="settings_deactivate_reason_hint">Contanos por qué te vas…</string>
+    <string name="settings_cancel">Cancelar</string>
+    <string name="settings_confirm_deactivate">Desactivar</string>
+    <string name="settings_deactivating">Desactivando…</string>
+    <string name="settings_deactivate_success">Tu cuenta fue desactivada. La sesión local se cerró correctamente.</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Mi perfil</string>
+    <string name="profile_back">Volver</string>
+    <string name="profile_subtitle">Revisá tu información pública</string>
+    <string name="profile_edit_subtitle">Modificá los campos que quieras actualizar</string>
+    <string name="profile_edit">Editar perfil</string>
+    <string name="profile_cancel_edit">Cancelar</string>
+    <string name="profile_not_set">Sin definir</string>
+    <string name="profile_avatar_change">Cambiar avatar</string>
+    <string name="profile_avatar_hint">JPG, PNG o WebP. Máximo 2 MB.</string>
+    <string name="profile_avatar_too_large">La imagen supera el tamaño máximo</string>
+    <string name="profile_avatar_invalid_type">Formato de imagen no permitido</string>
+    <string name="profile_avatar_persist_failed">No se pudo guardar la imagen. Intentá de nuevo.</string>
+    <string name="profile_name_label">Nombre</string>
+    <string name="profile_last_name_label">Apellido</string>
+    <string name="profile_email_label">Email</string>
+    <string name="profile_username_label">Usuario</string>
+    <string name="profile_birthdate_label">Fecha de nacimiento</string>
+    <string name="profile_birthdate_hint">AAAA-MM-DD (opcional)</string>
+    <string name="profile_bio_label">Bio</string>
+    <string name="profile_bio_hint">Contá algo sobre vos (solo en este dispositivo por ahora)</string>
+    <string name="profile_class_label">Clase</string>
+    <string name="profile_level_label">Nivel %1$d</string>
+    <string name="profile_save">Guardar cambios</string>
+    <string name="profile_saving">Guardando…</string>
+    <string name="profile_save_success">Perfil actualizado correctamente</string>
+    <string name="profile_load_error">No se pudo cargar el perfil</string>
+    <string name="profile_error_network">Sin conexión. Revisá tu red e intentá de nuevo.</string>
+    <string name="profile_error_conflict">Ese usuario ya está en uso.</string>
+    <string name="profile_error_precondition">El perfil cambió en otro lugar. Recargá e intentá de nuevo.</string>
+    <string name="profile_retry">Reintentar</string>
+    <string name="profile_logout">Cerrar sesión</string>
+    <string name="profile_logout_confirm_title">¿Cerrar sesión?</string>
+    <string name="profile_logout_confirm_message">Se cerrará tu sesión en este dispositivo. Tendrás que volver a iniciar sesión para entrar.</string>
+    <string name="profile_logout_confirm">Cerrar sesión</string>
+    <string name="cd_profile_avatar">Avatar de perfil</string>
 </resources>

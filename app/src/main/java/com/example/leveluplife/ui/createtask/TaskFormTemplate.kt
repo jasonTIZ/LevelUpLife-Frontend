@@ -63,20 +63,5 @@ object TaskFormTemplates {
             evidence = "PHOTO",
             isPartialAllowed = false,
         ),
-        TaskFormTemplate(
-            id = "timer_focus",
-            label = "⏱️ Timer · enfoque",
-            title = "Sesión cronometrada",
-            description = "Completa la tarea dentro del tiempo planificado.",
-            difficulty = "MEDIUM",
-            frequency = "DAILY",
-            periodLength = "1",
-            periodUnit = "DAYS",
-            completionCriteria = "TIMER",
-            repetitions = "",
-            measurementUnit = null,
-            evidence = null,
-            isPartialAllowed = false,
-        ),
     )
 }

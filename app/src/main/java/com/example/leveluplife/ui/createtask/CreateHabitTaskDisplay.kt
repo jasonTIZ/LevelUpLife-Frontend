@@ -13,7 +13,6 @@ data class LabeledOption(val value: String, @StringRes val labelRes: Int)
 object CreateHabitTaskOptions {
     val completionCriteria = listOf(
         LabeledOption("REPETITIONS", R.string.create_task_option_criteria_repetitions),
-        LabeledOption("TIMER", R.string.create_task_option_criteria_timer),
         LabeledOption("EVIDENCE", R.string.create_task_option_criteria_evidence),
     )
     val measurementUnits = listOf(
@@ -67,7 +66,6 @@ object CreateHabitTaskOptions {
             "$count $unit"
         }
         "EVIDENCE" -> resolveLabel(evidenceTypes, evidence).ifBlank { "—" }
-        "TIMER" -> stringResource(R.string.create_task_option_criteria_timer)
         else -> "—"
     }
 }

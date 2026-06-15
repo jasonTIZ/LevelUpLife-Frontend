@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.leveluplife.data.auth.AuthRepository
 import com.example.leveluplife.data.auth.DefaultAuthRepository
 import com.example.leveluplife.data.auth.EncryptedTokenStore
+import com.example.leveluplife.data.auth.SessionEvents
 import com.example.leveluplife.data.auth.TokenStore
 import com.example.leveluplife.data.habits.DefaultHabitRepository
 import com.example.leveluplife.data.habits.DefaultHabitTaskRepository
@@ -14,6 +15,15 @@ import com.example.leveluplife.data.network.HabitTasksApi
 import com.example.leveluplife.data.network.HabitsApi
 import com.example.leveluplife.data.network.HostProvider
 import com.example.leveluplife.data.network.NetworkModule
+import com.example.leveluplife.data.network.PlayerApi
+import com.example.leveluplife.data.player.DefaultPlayerRepository
+import com.example.leveluplife.data.player.DefaultProfileCache
+import com.example.leveluplife.data.player.DefaultProfileRepository
+import com.example.leveluplife.data.player.LocalProfileAvatarStorage
+import com.example.leveluplife.data.player.PlayerRepository
+import com.example.leveluplife.data.player.ProfileAvatarStorage
+import com.example.leveluplife.data.player.ProfileCache
+import com.example.leveluplife.data.player.ProfileRepository
 import com.example.leveluplife.data.preferences.DebugApiPreferences
 import com.example.leveluplife.data.preferences.ThemePreferences
 import com.example.leveluplife.ui.theme.ThemeController
@@ -33,14 +43,22 @@ class AppContainer(applicationContext: Context) {
     val hostProvider: HostProvider = HostProvider(debugApiPreferences)
 
     val tokenStore: TokenStore = EncryptedTokenStore(appContext)
+    val sessionEvents: SessionEvents = SessionEvents()
 
-    private val okHttp = NetworkModule.provideOkHttp(tokenStore)
+    private val okHttp = NetworkModule.provideOkHttp(tokenStore, sessionEvents)
     private val retrofit by lazy {
         NetworkModule.provideRetrofit(okHttp, hostProvider.resolveBaseUrl())
     }
     private val authApi: AuthApi by lazy { NetworkModule.provideAuthApi(retrofit) }
     private val habitsApi: HabitsApi by lazy { NetworkModule.provideHabitsApi(retrofit) }
     private val habitTasksApi: HabitTasksApi by lazy { NetworkModule.provideHabitTasksApi(retrofit) }
+    private val playerApi: PlayerApi by lazy { NetworkModule.providePlayerApi(retrofit) }
+
+    val profileAvatarStorage: ProfileAvatarStorage by lazy { LocalProfileAvatarStorage(appContext) }
+
+    val profileCache: ProfileCache by lazy {
+        DefaultProfileCache(appContext, profileAvatarStorage)
+    }
 
     val authRepository: AuthRepository by lazy {
         DefaultAuthRepository(
@@ -56,5 +74,17 @@ class AppContainer(applicationContext: Context) {
 
     val habitTaskRepository: HabitTaskRepository by lazy {
         DefaultHabitTaskRepository(api = habitTasksApi)
+    }
+
+    val playerRepository: PlayerRepository by lazy {
+        DefaultPlayerRepository(api = playerApi, tokenStore = tokenStore)
+    }
+
+    val profileRepository: ProfileRepository by lazy {
+        DefaultProfileRepository(
+            api = playerApi,
+            profileCache = profileCache,
+            json = NetworkModule.jsonParser(),
+        )
     }
 }

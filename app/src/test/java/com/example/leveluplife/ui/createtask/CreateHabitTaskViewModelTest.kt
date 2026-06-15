@@ -105,23 +105,6 @@ class CreateHabitTaskViewModelTest {
         assertFalse(vm.state.value.isSubmitting)
     }
 
-    @Test
-    fun `submit with TIMER template calls repository`() = runTest(testDispatcher) {
-        val habitRepo = FakeHabitRepository()
-        val taskRepo = FakeHabitTaskRepository()
-        val vm = CreateHabitTaskViewModel(habitRepo, taskRepo, preselectedHabitId = 1)
-
-        advanceUntilIdle()
-
-        val timerTemplate = TaskFormTemplates.all.first { it.completionCriteria == "TIMER" }
-        vm.applyTemplate(timerTemplate)
-        vm.submit()
-
-        advanceUntilIdle()
-
-        assertEquals(1, taskRepo.createCalls)
-    }
-
     private class FakeHabitRepository : HabitRepository {
         override suspend fun getActiveHabits(page: Int, pageSize: Int): Result<HabitsPageResponse> =
             Result.success(
