@@ -55,6 +55,7 @@
     <string name="profile_avatar_hint">JPG, PNG o WebP. Máximo 2 MB.</string>
     <string name="profile_avatar_too_large">La imagen supera el tamaño máximo</string>
     <string name="profile_avatar_invalid_type">Formato de imagen no permitido</string>
+    <string name="profile_avatar_persist_failed">No se pudo guardar la imagen. Intentá de nuevo.</string>
     <string name="profile_name_label">Nombre</string>
     <string name="profile_last_name_label">Apellido</string>
     <string name="profile_email_label">Email</string>

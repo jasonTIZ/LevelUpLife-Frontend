@@ -128,7 +128,7 @@ class ProfileViewModel(
                 viewModelScope.launch {
                     val persistedUri = avatarStorage.persistFromPickerUri(uri, mimeType)
                     if (persistedUri == null) {
-                        _state.update { it.copy(avatarError = FieldError.InvalidEmail) }
+                        _state.update { it.copy(avatarError = AvatarValidationError.PersistFailed) }
                         return@launch
                     }
                     _state.update {
@@ -143,10 +143,10 @@ class ProfileViewModel(
                 }
             }
             AvatarValidationError.TooLarge -> {
-                _state.update { it.copy(avatarError = FieldError.TooLong(AvatarValidator.MAX_BYTES)) }
+                _state.update { it.copy(avatarError = AvatarValidationError.TooLarge) }
             }
             AvatarValidationError.UnsupportedType -> {
-                _state.update { it.copy(avatarError = FieldError.InvalidEmail) }
+                _state.update { it.copy(avatarError = AvatarValidationError.UnsupportedType) }
             }
         }
     }

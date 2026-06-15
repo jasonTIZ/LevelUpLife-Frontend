@@ -6,6 +6,7 @@ import java.util.GregorianCalendar
 sealed class AvatarValidationError {
     data object UnsupportedType : AvatarValidationError()
     data object TooLarge : AvatarValidationError()
+    data object PersistFailed : AvatarValidationError()
 }
 
 object AvatarValidator {

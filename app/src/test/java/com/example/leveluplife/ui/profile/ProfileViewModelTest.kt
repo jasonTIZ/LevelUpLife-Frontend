@@ -2,6 +2,7 @@ package com.example.leveluplife.ui.profile
 
 import com.example.leveluplife.data.player.ProfileFetchResult
 import com.example.leveluplife.domain.validation.AvatarValidator
+import com.example.leveluplife.domain.validation.AvatarValidationError
 import com.example.leveluplife.domain.validation.FieldError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -112,7 +113,7 @@ class ProfileViewModelTest {
             sizeBytes = AvatarValidator.MAX_BYTES + 1,
         )
 
-        assertEquals(FieldError.TooLong(AvatarValidator.MAX_BYTES), vm.state.value.avatarError)
+        assertEquals(AvatarValidationError.TooLarge, vm.state.value.avatarError)
         assertNull(vm.state.value.avatarUri)
     }
 

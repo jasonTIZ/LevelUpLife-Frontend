@@ -2,6 +2,7 @@ package com.example.leveluplife.data.network.interceptor
 
 import com.example.leveluplife.data.auth.SessionEvents
 import com.example.leveluplife.data.auth.TokenStore
+import com.example.leveluplife.data.network.ApiRoutes
 import okhttp3.Interceptor
 import okhttp3.Response
 
@@ -24,7 +25,7 @@ class AuthInterceptor(
             chain.request()
         }
         val response = chain.proceed(request)
-        if (response.code == 401 && !request.url.encodedPath.endsWith("/api/auth/login")) {
+        if (response.code == 401 && !ApiRoutes.isLoginRequest(request.url.encodedPath)) {
             tokenStore.clear()
             sessionEvents.notifyExpired()
         }

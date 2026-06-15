@@ -62,6 +62,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.leveluplife.R
+import com.example.leveluplife.domain.validation.AvatarValidationError
 import com.example.leveluplife.domain.validation.FieldError
 import com.example.leveluplife.domain.validation.ProfileValidators
 import com.example.leveluplife.ui.auth.toMessage
@@ -403,7 +404,7 @@ private fun ProfileInfoRow(label: String, value: String) {
 @Composable
 private fun AvatarSection(
     avatarUri: String?,
-    avatarError: FieldError?,
+    avatarError: AvatarValidationError?,
     serverError: String?,
     editable: Boolean,
     onPickAvatar: () -> Unit,
@@ -453,10 +454,7 @@ private fun AvatarSection(
             )
             avatarError?.let {
                 Text(
-                    text = when (it) {
-                        is FieldError.TooLong -> stringResource(R.string.profile_avatar_too_large)
-                        else -> stringResource(R.string.profile_avatar_invalid_type)
-                    },
+                    text = it.toMessage(),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                 )

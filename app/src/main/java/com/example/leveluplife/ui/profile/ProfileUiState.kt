@@ -1,6 +1,7 @@
 package com.example.leveluplife.ui.profile
 
 import com.example.leveluplife.data.player.ProfileField
+import com.example.leveluplife.domain.validation.AvatarValidationError
 import com.example.leveluplife.domain.validation.FieldError
 
 data class ProfileFormSnapshot(
@@ -47,7 +48,7 @@ data class ProfileUiState(
     val userNameError: FieldError? = null,
     val birthdateError: FieldError? = null,
     val bioError: FieldError? = null,
-    val avatarError: FieldError? = null,
+    val avatarError: AvatarValidationError? = null,
     val serverFieldErrors: Map<ProfileFormField, String> = emptyMap(),
     val bannerError: String? = null,
     val profileSaved: Boolean = false,

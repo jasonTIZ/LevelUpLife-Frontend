@@ -10,6 +10,7 @@ import com.example.leveluplife.domain.validation.AvatarValidationError
 fun AvatarValidationError.toMessage(): String = when (this) {
     AvatarValidationError.TooLarge -> stringResource(R.string.profile_avatar_too_large)
     AvatarValidationError.UnsupportedType -> stringResource(R.string.profile_avatar_invalid_type)
+    AvatarValidationError.PersistFailed -> stringResource(R.string.profile_avatar_persist_failed)
 }
 
 @Composable
