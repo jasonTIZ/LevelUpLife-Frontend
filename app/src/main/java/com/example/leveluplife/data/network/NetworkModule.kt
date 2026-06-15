@@ -1,6 +1,7 @@
 package com.example.leveluplife.data.network
 
 import com.example.leveluplife.BuildConfig
+import com.example.leveluplife.data.auth.SessionEvents
 import com.example.leveluplife.data.auth.TokenStore
 import com.example.leveluplife.data.network.interceptor.AuthInterceptor
 import com.example.leveluplife.data.network.interceptor.RetryInterceptor
@@ -24,7 +25,7 @@ object NetworkModule {
     //   RetryInterceptor  – retries transient 5xx / IOException
     //   AuthInterceptor   – re-reads token on every attempt (future-proof for refresh)
     //   HttpLoggingInterceptor – logs the final request including auth header
-    fun provideOkHttp(tokenStore: TokenStore): OkHttpClient {
+    fun provideOkHttp(tokenStore: TokenStore, sessionEvents: SessionEvents): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
             else HttpLoggingInterceptor.Level.NONE
@@ -34,7 +35,7 @@ object NetworkModule {
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
             .addInterceptor(RetryInterceptor())
-            .addInterceptor(AuthInterceptor(tokenStore))
+            .addInterceptor(AuthInterceptor(tokenStore, sessionEvents))
             .addInterceptor(logging)
             .build()
     }
@@ -50,6 +51,8 @@ object NetworkModule {
     fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
 
     fun provideHabitsApi(retrofit: Retrofit): HabitsApi = retrofit.create(HabitsApi::class.java)
+
+    fun providePlayerApi(retrofit: Retrofit): PlayerApi = retrofit.create(PlayerApi::class.java)
 
     fun jsonParser(): Json = json
 }
