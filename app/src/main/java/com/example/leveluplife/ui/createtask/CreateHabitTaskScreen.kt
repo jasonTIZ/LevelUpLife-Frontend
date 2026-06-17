@@ -363,14 +363,41 @@ internal fun HabitTaskFormContent(
         }
 
         FormSection(title = stringResource(R.string.create_task_section_goal)) {
-            LabeledOptionDropdown(
-                label = stringResource(R.string.create_task_field_criteria_type),
-                options = CreateHabitTaskOptions.completionCriteria,
-                selected = form.completionCriteria,
-                error = if (form.showValidationErrors) form.fieldErrors.completionCriteria else null,
-                onSelected = onCompletionCriteriaChange,
-                fieldColors = fieldColors,
-            )
+            if (!showTemplates && form.completionCriteria == "TIMER") {
+                ReadOnlyMetaField(
+                    label = stringResource(R.string.create_task_field_criteria_type),
+                    value = stringResource(R.string.create_task_option_criteria_timer),
+                    fieldColors = fieldColors,
+                )
+                ReadOnlyMetaField(
+                    label = stringResource(R.string.create_task_field_timer_seconds),
+                    value = form.timerSecondsDefined.ifBlank { "—" },
+                    fieldColors = fieldColors,
+                )
+                if (form.showValidationErrors && form.fieldErrors.timerSeconds != null) {
+                    Text(
+                        text = form.fieldErrors.timerSeconds!!.toMessage(),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                if (form.timerPauseAllowed) {
+                    Text(
+                        text = stringResource(R.string.create_task_timer_pause_allowed),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = DarkOnSurfaceVariant,
+                    )
+                }
+            } else {
+                LabeledOptionDropdown(
+                    label = stringResource(R.string.create_task_field_criteria_type),
+                    options = CreateHabitTaskOptions.completionCriteria,
+                    selected = form.completionCriteria,
+                    error = if (form.showValidationErrors) form.fieldErrors.completionCriteria else null,
+                    onSelected = onCompletionCriteriaChange,
+                    fieldColors = fieldColors,
+                )
+            }
 
             if (form.completionCriteria == "REPETITIONS") {
                 Row(
@@ -481,7 +508,13 @@ internal fun HabitTaskFormContent(
                         Text(form.fieldErrors.startDate!!.toMessage())
                     } else {
                         Text(
-                            stringResource(R.string.create_task_start_date_hint),
+                            stringResource(
+                                if (showTemplates) {
+                                    R.string.create_task_start_date_hint
+                                } else {
+                                    R.string.update_task_start_date_hint
+                                },
+                            ),
                             color = DarkOnSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall,
                         )
@@ -655,6 +688,7 @@ private fun TaskPreviewCard(form: HabitTaskFormState, modifier: Modifier = Modif
         repetitions = form.repetitions,
         measurementUnit = form.measurementUnit,
         evidence = form.evidence,
+        timerSecondsDefined = form.timerSecondsDefined,
     )
     val frequencyLine = CreateHabitTaskOptions.resolveLabel(
         CreateHabitTaskOptions.frequencies,

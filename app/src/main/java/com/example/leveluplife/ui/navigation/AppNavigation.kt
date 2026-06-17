@@ -21,6 +21,7 @@ import com.example.leveluplife.ui.createtask.CreateHabitTaskViewModel
 import com.example.leveluplife.ui.habitdetail.HabitDetailScreen
 import com.example.leveluplife.ui.habitdetail.HabitDetailViewModel
 import com.example.leveluplife.ui.habittaskdetail.HabitTaskDetailScreen
+import com.example.leveluplife.ui.habittaskdetail.HabitTaskDetailViewModel
 import com.example.leveluplife.ui.updatetask.UpdateHabitTaskScreen
 import com.example.leveluplife.ui.updatetask.UpdateHabitTaskViewModel
 import com.example.leveluplife.ui.home.HomeScreen
@@ -187,8 +188,12 @@ fun AppNavigation(
             HabitDetailScreen(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },
-                onTaskClick = { taskId ->
-                    navController.navigate(Routes.habitTaskDetail(taskId))
+                onTaskClick = { task ->
+                    navController.navigate(Routes.habitTaskDetail(task.id))
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        Routes.ARG_CREATED_TASK_JSON,
+                        json.encodeToString(HabitTaskDto.serializer(), task),
+                    )
                 },
             )
         }
@@ -280,31 +285,23 @@ fun AppNavigation(
                 Routes.TASK_SUCCESS_CREATED -> R.string.create_task_success_message
                 else -> null
             }
-            if (task != null && task.id == taskId) {
-                HabitTaskDetailScreen(
-                    task = task,
-                    successMessageRes = successMessageRes,
-                    onBack = {
-                        navController.popBackStack(Routes.DASHBOARD, inclusive = false)
-                    },
-                    onDone = {
-                        navController.popBackStack(Routes.DASHBOARD, inclusive = false)
-                    },
-                    onEdit = if (task.isActive) {
-                        { navController.navigate(Routes.editHabitTask(task.id)) }
-                    } else {
-                        null
-                    },
-                )
-            } else {
-                HabitTaskDetailScreen(
-                    task = HabitTaskDto(id = taskId, title = "Task #$taskId"),
-                    successMessageRes = null,
-                    onBack = { navController.popBackStack() },
-                    onDone = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
-                    onEdit = { navController.navigate(Routes.editHabitTask(taskId)) },
-                )
-            }
+            val vm: HabitTaskDetailViewModel = viewModel(
+                factory = HabitTaskDetailViewModel.Factory(
+                    taskId = taskId,
+                    habitTaskRepository = container.habitTaskRepository,
+                    habitRepository = container.habitRepository,
+                    initialTask = task?.takeIf { it.id == taskId },
+                ),
+            )
+            HabitTaskDetailScreen(
+                viewModel = vm,
+                successMessageRes = successMessageRes,
+                onBack = { navController.popBackStack() },
+                onDone = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
+                onEdit = { loadedTask ->
+                    navController.navigate(Routes.editHabitTask(loadedTask.id))
+                },
+            )
         }
     }
 }

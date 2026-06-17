@@ -9,6 +9,7 @@ import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.network.dto.HabitsPageResponse
 import com.example.leveluplife.data.network.dto.PaginationDto
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaDto
+import com.example.leveluplife.domain.validation.HabitTaskFieldError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -90,6 +91,42 @@ class UpdateHabitTaskViewModelTest {
     }
 
     @Test
+    fun `submit without changing original start date allows save even if date is in the past`() = runTest(testDispatcher) {
+        val task = sampleTask(title = "Original", startDate = "2026-05-20")
+        val updated = task.copy(title = "Solo título cambiado")
+        val taskRepo = FakeHabitTaskRepository(task = task, updateResult = Result.success(updated))
+        val vm = UpdateHabitTaskViewModel(42, FakeHabitRepository(), taskRepo)
+
+        advanceUntilIdle()
+
+        vm.onTitleChange("Solo título cambiado")
+        vm.submit()
+
+        advanceUntilIdle()
+
+        assertEquals(1, taskRepo.updateCalls)
+        assertEquals(updated, vm.state.value.updatedTask)
+        assertNull(vm.state.value.form.fieldErrors.startDate)
+    }
+
+    @Test
+    fun `submit with past start date shows validation error`() = runTest(testDispatcher) {
+        val taskRepo = FakeHabitTaskRepository(task = sampleTask())
+        val vm = UpdateHabitTaskViewModel(42, FakeHabitRepository(), taskRepo)
+
+        advanceUntilIdle()
+
+        vm.onStartDateChange("2020-01-01")
+        vm.submit()
+
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value.form.showValidationErrors)
+        assertEquals(HabitTaskFieldError.PastDate, vm.state.value.form.fieldErrors.startDate)
+        assertEquals(0, taskRepo.updateCalls)
+    }
+
+    @Test
     fun `409 conflict shows dialog`() = runTest(testDispatcher) {
         val taskRepo = FakeHabitTaskRepository(
             task = sampleTask(),
@@ -108,7 +145,7 @@ class UpdateHabitTaskViewModelTest {
         assertNull(vm.state.value.updatedTask)
     }
 
-    private fun sampleTask(title: String = "Tarea") = HabitTaskDto(
+    private fun sampleTask(title: String = "Tarea", startDate: String = "2026-05-26") = HabitTaskDto(
         id = 42,
         habitId = 1,
         title = title,
@@ -117,7 +154,7 @@ class UpdateHabitTaskViewModelTest {
         frequency = "WEEKLY",
         periodLength = 1,
         periodUnit = "WEEKS",
-        startDate = "2026-05-26",
+        startDate = startDate,
         completionCriteria = "REPETITIONS",
         repetitionCriteria = RepetitionCriteriaDto(
             repetitions = 3,

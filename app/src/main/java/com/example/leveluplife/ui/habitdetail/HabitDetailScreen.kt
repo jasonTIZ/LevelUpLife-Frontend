@@ -40,9 +40,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaDto
+import com.example.leveluplife.ui.habittaskdetail.HabitTaskLabels
 import com.example.leveluplife.ui.theme.DarkBackground
 import com.example.leveluplife.ui.theme.DarkOnBackground
 import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
@@ -57,7 +60,7 @@ private val OrangeWarn = Color(0xFFF59E0B)
 fun HabitDetailScreen(
     viewModel: HabitDetailViewModel,
     onBack: () -> Unit,
-    onTaskClick: (Int) -> Unit = {},
+    onTaskClick: (HabitTaskDto) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -119,7 +122,7 @@ fun HabitDetailScreen(
                         )
                         Spacer(Modifier.height(12.dp))
                         TextButton(onClick = { viewModel.loadHabit() }) {
-                            Text("Reintentar", color = PurplePrimary)
+                            Text(stringResource(R.string.create_task_retry), color = PurplePrimary)
                         }
                     }
                 }
@@ -136,7 +139,7 @@ fun HabitDetailScreen(
 @Composable
 private fun HabitDetailContent(
     habit: HabitDto,
-    onTaskClick: (Int) -> Unit,
+    onTaskClick: (HabitTaskDto) -> Unit,
 ) {
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
@@ -148,7 +151,7 @@ private fun HabitDetailContent(
             item {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "TAREAS Y CRITERIOS",
+                    text = stringResource(R.string.habit_detail_tasks_section),
                     fontSize = 11.sp,
                     letterSpacing = 2.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -161,7 +164,7 @@ private fun HabitDetailContent(
                 TaskCriteriaCard(
                     taskNumber = index + 1,
                     task = task,
-                    onClick = { onTaskClick(task.id) },
+                    onClick = { onTaskClick(task) },
                 )
             }
         }
@@ -210,7 +213,11 @@ private fun HabitInfoCard(habit: HabitDto) {
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val taskCount = habit.tasks.size
-                val withCriteria = habit.tasks.count { it.repetitionCriteria != null }
+                val withCriteria = habit.tasks.count { task ->
+                    task.repetitionCriteria != null ||
+                        task.timerCriteria != null ||
+                        !task.evidence.isNullOrBlank()
+                }
 
                 Box(
                     modifier = Modifier
@@ -236,7 +243,7 @@ private fun HabitInfoCard(habit: HabitDto) {
                             .padding(horizontal = 10.dp, vertical = 4.dp),
                     ) {
                         Text(
-                            text = "$withCriteria con criterios",
+                            text = stringResource(R.string.habit_detail_with_criteria, withCriteria),
                             fontSize = 12.sp,
                             color = GreenSuccess,
                             fontWeight = FontWeight.Medium,
@@ -254,8 +261,11 @@ private fun TaskCriteriaCard(
     task: HabitTaskDto,
     onClick: () -> Unit = {},
 ) {
-    val criteria = task.repetitionCriteria
-    val label = task.title.takeIf { it.isNotBlank() } ?: "Objetivo $taskNumber"
+    val label = task.title.takeIf { it.isNotBlank() }
+        ?: stringResource(R.string.habit_detail_task_default_title, taskNumber)
+    val criteriaType = HabitTaskLabels.completionCriteria(task.completionCriteria)
+    val goalSummary = HabitTaskLabels.criteriaGoalSummary(task)
+    val frequencyLine = HabitTaskLabels.frequency(task.frequency)
 
     Card(
         shape = RoundedCornerShape(14.dp),
@@ -292,23 +302,28 @@ private fun TaskCriteriaCard(
                     color = DarkOnBackground,
                 )
 
-                if (criteria != null) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(
+                        R.string.habit_detail_task_subtitle,
+                        criteriaType,
+                        goalSummary,
+                        frequencyLine,
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = DarkOnSurfaceVariant,
+                )
+
+                task.repetitionCriteria?.let { criteria ->
                     Spacer(Modifier.height(6.dp))
                     CriteriaRow(criteria)
-                } else {
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = "Sin criterios de repetición",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = DarkOnSurfaceVariant,
-                    )
                 }
             }
 
-            if (criteria?.isActive == true) {
+            if (task.isCompleted) {
                 Icon(
                     Icons.Filled.CheckCircle,
-                    contentDescription = "Activo",
+                    contentDescription = stringResource(R.string.task_detail_status_completed),
                     tint = GreenSuccess,
                     modifier = Modifier.size(20.dp),
                 )
@@ -330,14 +345,14 @@ private fun CriteriaRow(criteria: RepetitionCriteriaDto) {
         )
         if (criteria.isPartialAllowed) {
             CriteriaChip(
-                label = "Admite parcial",
+                label = stringResource(R.string.create_task_partial_allowed),
                 background = OrangeWarn.copy(alpha = 0.15f),
                 textColor = OrangeWarn,
             )
         }
         if (!criteria.isActive) {
             CriteriaChip(
-                label = "Inactivo",
+                label = stringResource(R.string.task_detail_criteria_inactive),
                 background = DarkOnSurfaceVariant.copy(alpha = 0.12f),
                 textColor = DarkOnSurfaceVariant,
             )

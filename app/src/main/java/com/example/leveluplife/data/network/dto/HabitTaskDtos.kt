@@ -1,5 +1,6 @@
 package com.example.leveluplife.data.network.dto
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -8,6 +9,19 @@ data class CreateRepetitionCriteriaRequest(
     val measurementUnit: String,
     val isPartialAllowed: Boolean = false,
     val isActive: Boolean = true,
+)
+
+/** Nombres alineados con CreateTimerCriteriaRequestDto del backend. */
+@Serializable
+data class CreateTimerCriteriaRequest(
+    @SerialName("NUM_SECONDS_DEFINED")
+    val numSecondsDefined: Int,
+    @SerialName("NUM_SECONDS_LONG")
+    val numSecondsLong: Int? = null,
+    @SerialName("TYPE_PAUSE_IS_ALLOWED")
+    val typePauseIsAllowed: Boolean,
+    @SerialName("STATUS_TIMER_CRITERIA_IS_ACTIVE")
+    val statusTimerCriteriaIsActive: Boolean = true,
 )
 
 @Serializable
@@ -27,6 +41,7 @@ data class CreateHabitTaskRequest(
     val completionCriteria: String,
     val evidence: String? = null,
     val repetitionCriteria: CreateRepetitionCriteriaRequest? = null,
+    val timerCriteria: CreateTimerCriteriaRequest? = null,
 )
 
 @Serializable
@@ -51,6 +66,16 @@ data class RepetitionCriteriaDto(
 }
 
 @Serializable
+data class TimerCriteriaDto(
+    val id: Int = 0,
+    val habitTaskId: Int = 0,
+    val numSecondsDefined: Int = 0,
+    val numSecondsLong: Int? = null,
+    val typePauseIsAllowed: Boolean = false,
+    val statusTimerCriteriaIsActive: Boolean = true,
+)
+
+@Serializable
 data class HabitTaskDto(
     val id: Int,
     val habitId: Int = 0,
@@ -69,4 +94,5 @@ data class HabitTaskDto(
     val completionCriteria: String = "REPETITIONS",
     val evidence: String? = null,
     val repetitionCriteria: RepetitionCriteriaDto? = null,
+    val timerCriteria: TimerCriteriaDto? = null,
 )

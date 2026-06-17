@@ -5,6 +5,7 @@ import com.example.leveluplife.ui.createtask.HabitTaskFormState
 
 data class UpdateHabitTaskUiState(
     val form: HabitTaskFormState = HabitTaskFormState(),
+    val originalStartDate: String? = null,
     val isLoading: Boolean = true,
     val loadError: String? = null,
     val isSubmitting: Boolean = false,

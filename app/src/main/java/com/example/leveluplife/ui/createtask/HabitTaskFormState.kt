@@ -2,6 +2,7 @@ package com.example.leveluplife.ui.createtask
 
 import com.example.leveluplife.data.network.dto.CreateHabitTaskRequest
 import com.example.leveluplife.data.network.dto.CreateRepetitionCriteriaRequest
+import com.example.leveluplife.data.network.dto.CreateTimerCriteriaRequest
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.domain.validation.HabitTaskFormErrors
@@ -24,6 +25,9 @@ data class HabitTaskFormState(
     val measurementUnit: String? = "SERIES",
     val evidence: String? = null,
     val isPartialAllowed: Boolean = true,
+    val timerSecondsDefined: String = "",
+    val timerSecondsLong: String = "",
+    val timerPauseAllowed: Boolean = false,
     val selectedTemplateId: String? = null,
     val fieldErrors: HabitTaskFormErrors = HabitTaskFormErrors(),
     val showValidationErrors: Boolean = false,
@@ -38,6 +42,8 @@ data class HabitTaskFormState(
         periodLength = periodLength.trim(),
         startDate = startDate.trim(),
         repetitions = repetitions.trim(),
+        timerSecondsDefined = timerSecondsDefined.trim(),
+        timerSecondsLong = timerSecondsLong.trim(),
     )
 
     fun toFormInput(): HabitTaskFormInput = HabitTaskFormInput(
@@ -54,6 +60,7 @@ data class HabitTaskFormState(
         measurementUnit = measurementUnit,
         evidence = evidence,
         isPartialAllowed = isPartialAllowed,
+        timerSecondsDefined = timerSecondsDefined,
     )
 
     fun toRequest(): CreateHabitTaskRequest? {
@@ -76,6 +83,19 @@ data class HabitTaskFormState(
             else -> null
         }
 
+        val timerCriteria = when (criteria) {
+            "TIMER" -> {
+                val seconds = timerSecondsDefined.toIntOrNull() ?: return null
+                CreateTimerCriteriaRequest(
+                    numSecondsDefined = seconds,
+                    numSecondsLong = timerSecondsLong.toIntOrNull(),
+                    typePauseIsAllowed = timerPauseAllowed,
+                    statusTimerCriteriaIsActive = true,
+                )
+            }
+            else -> null
+        }
+
         if (criteria == "EVIDENCE" && evidence.isNullOrBlank()) return null
 
         return CreateHabitTaskRequest(
@@ -90,6 +110,7 @@ data class HabitTaskFormState(
             completionCriteria = criteria,
             evidence = if (criteria == "EVIDENCE") evidence else null,
             repetitionCriteria = repetitionCriteria,
+            timerCriteria = timerCriteria,
             isActive = true,
         )
     }
@@ -110,6 +131,9 @@ data class HabitTaskFormState(
             measurementUnit = task.repetitionCriteria?.measurementUnit,
             evidence = task.evidence,
             isPartialAllowed = task.repetitionCriteria?.isPartialAllowed ?: false,
+            timerSecondsDefined = task.timerCriteria?.numSecondsDefined?.toString().orEmpty(),
+            timerSecondsLong = task.timerCriteria?.numSecondsLong?.toString().orEmpty(),
+            timerPauseAllowed = task.timerCriteria?.typePauseIsAllowed ?: false,
         )
 
         fun applyTemplate(current: HabitTaskFormState, template: TaskFormTemplate): HabitTaskFormState =
@@ -143,7 +167,7 @@ object HabitTaskFormHandlers {
 
     fun onDescriptionChange(state: HabitTaskFormState, value: String): HabitTaskFormState =
         state.copy(
-            description = TaskInputSanitizer.trimToMax(value, 500),
+            description = TaskInputSanitizer.trimToMax(value, HabitTaskValidators.DESCRIPTION_MAX),
             submitError = null,
         )
 

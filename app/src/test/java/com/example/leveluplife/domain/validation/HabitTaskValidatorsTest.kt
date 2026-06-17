@@ -6,6 +6,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
 
 class HabitTaskValidatorsTest {
 
@@ -35,10 +36,12 @@ class HabitTaskValidatorsTest {
                 completionCriteria = "TIMER",
                 repetitions = "",
                 measurementUnit = null,
+                timerSecondsDefined = "1800",
             ),
         )
         assertNull(errors.repetitions)
         assertNull(errors.measurementUnit)
+        assertNull(errors.timerSeconds)
     }
 
     @Test
@@ -65,11 +68,69 @@ class HabitTaskValidatorsTest {
     }
 
     @Test
+    fun `incomplete start date returns InvalidDate`() {
+        val error = HabitTaskValidators.validateStartDate("2026-05-2")
+        assertEquals(HabitTaskFieldError.InvalidDate, error)
+    }
+
+    @Test
+    fun `past start date returns PastDate`() {
+        val error = HabitTaskValidators.validateStartDate(
+            value = "2020-01-01",
+            options = HabitTaskValidationOptions(today = LocalDate.of(2026, 5, 26)),
+        )
+        assertEquals(HabitTaskFieldError.PastDate, error)
+    }
+
+    @Test
+    fun `preserved start date allows past date on edit`() {
+        val error = HabitTaskValidators.validateStartDate(
+            value = "2020-01-01",
+            options = HabitTaskValidationOptions(
+                today = LocalDate.of(2026, 5, 26),
+                preservedStartDate = "2020-01-01",
+            ),
+        )
+        assertNull(error)
+    }
+
+    @Test
+    fun `changed start date to past returns PastDate even with preserved original`() {
+        val error = HabitTaskValidators.validateStartDate(
+            value = "2021-06-15",
+            options = HabitTaskValidationOptions(
+                today = LocalDate.of(2026, 5, 26),
+                preservedStartDate = "2020-01-01",
+            ),
+        )
+        assertEquals(HabitTaskFieldError.PastDate, error)
+    }
+
+    @Test
+    fun `invalid difficulty returns InvalidOption`() {
+        val errors = HabitTaskValidators.validateForm(
+            validRepetitionsForm().copy(difficulty = "SUPER_HARD"),
+        )
+        assertEquals(HabitTaskFieldError.InvalidOption, errors.difficulty)
+    }
+
+    @Test
     fun `blank period length is required`() {
         val errors = HabitTaskValidators.validateForm(
             validRepetitionsForm().copy(periodLength = ""),
         )
         assertEquals(HabitTaskFieldError.Required, errors.periodLength)
+    }
+
+    @Test
+    fun `TIMER requires timer seconds`() {
+        val errors = HabitTaskValidators.validateForm(
+            validRepetitionsForm().copy(
+                completionCriteria = "TIMER",
+                timerSecondsDefined = "",
+            ),
+        )
+        assertEquals(HabitTaskFieldError.CriteriaRequired, errors.timerSeconds)
     }
 
     private fun validRepetitionsForm() = HabitTaskFormInput(
@@ -86,5 +147,6 @@ class HabitTaskValidatorsTest {
         measurementUnit = "SERIES",
         evidence = null,
         isPartialAllowed = true,
+        timerSecondsDefined = "",
     )
 }

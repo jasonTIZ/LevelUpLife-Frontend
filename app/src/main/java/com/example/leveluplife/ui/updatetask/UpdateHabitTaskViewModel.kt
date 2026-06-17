@@ -7,6 +7,7 @@ import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskConflictFailure
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.habits.HabitTaskValidationFailure
+import com.example.leveluplife.domain.validation.HabitTaskValidationOptions
 import com.example.leveluplife.domain.validation.HabitTaskValidators
 import com.example.leveluplife.ui.createtask.HabitTaskFormHandlers
 import com.example.leveluplife.ui.createtask.HabitTaskFormState
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.time.LocalDate
 
 class UpdateHabitTaskViewModel(
     private val taskId: Int,
@@ -44,6 +46,7 @@ class UpdateHabitTaskViewModel(
                         it.copy(
                             isLoading = false,
                             form = HabitTaskFormState.fromTask(task, habits),
+                            originalStartDate = task.startDate.trim(),
                         )
                     }
                 }
@@ -120,7 +123,14 @@ class UpdateHabitTaskViewModel(
 
     fun submit() {
         val sanitizedForm = _state.value.form.sanitizedForValidation()
-        val errors = HabitTaskValidators.validateForm(sanitizedForm.toFormInput())
+        val validationOptions = HabitTaskValidationOptions(
+            today = LocalDate.now(),
+            preservedStartDate = _state.value.originalStartDate,
+        )
+        val errors = HabitTaskValidators.validateForm(
+            sanitizedForm.toFormInput(),
+            validationOptions,
+        )
         if (errors.hasErrors) {
             _state.update {
                 it.copy(
@@ -153,7 +163,13 @@ class UpdateHabitTaskViewModel(
             _state.update { it.copy(isSubmitting = true, form = it.form.copy(submitError = null)) }
             habitTaskRepository.updateHabitTask(taskId, request)
                 .onSuccess { task ->
-                    _state.update { it.copy(isSubmitting = false, updatedTask = task) }
+                    _state.update {
+                        it.copy(
+                            isSubmitting = false,
+                            updatedTask = task,
+                            originalStartDate = task.startDate.trim(),
+                        )
+                    }
                 }
                 .onFailure { t ->
                     when (t) {
