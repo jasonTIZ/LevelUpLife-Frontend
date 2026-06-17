@@ -20,6 +20,7 @@ fun ProfileError.toMessage(): String = when (this) {
     is ProfileError.NotFound -> stringResource(R.string.profile_load_error)
     is ProfileError.Conflict -> stringResource(R.string.profile_error_conflict)
     is ProfileError.PreconditionFailed -> stringResource(R.string.profile_error_precondition)
+    is ProfileError.RateLimited -> stringResource(R.string.error_rate_limited)
     is ProfileError.Validation -> message.ifBlank { stringResource(R.string.login_error_bad_request) }
     is ProfileError.Server -> stringResource(R.string.login_error_server)
     is ProfileError.Unknown -> stringResource(R.string.login_error_unknown)

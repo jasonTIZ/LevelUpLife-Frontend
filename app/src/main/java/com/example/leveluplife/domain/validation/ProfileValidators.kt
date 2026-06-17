@@ -10,7 +10,7 @@ sealed class AvatarValidationError {
 }
 
 object AvatarValidator {
-    const val MAX_BYTES = 2 * 1024 * 1024 // 2 MB
+    const val MAX_BYTES = 2L * 1024 * 1024 // 2 MB
 
     private val ALLOWED_MIME_TYPES = setOf(
         "image/jpeg",
@@ -89,10 +89,8 @@ object ProfileValidators {
         return null
     }
 
-    fun validateBio(input: String): FieldError? {
-        val sanitized = ProfileInputSanitizer.sanitizeBio(input)
-        return if (sanitized.length > BIO_MAX) FieldError.TooLong(BIO_MAX) else null
-    }
+    fun validateBio(input: String): FieldError? =
+        if (input.length > BIO_MAX) FieldError.TooLong(BIO_MAX) else null
 
     fun validateAll(values: ProfileFormValues): Map<ProfileFieldKey, FieldError> {
         val sanitized = ProfileInputSanitizer.sanitizeProfile(values)

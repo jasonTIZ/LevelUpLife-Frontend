@@ -225,13 +225,13 @@ class ProfileViewModel(
                 birthdate = validated.birthdate.ifBlank { null },
                 userName = validated.userName,
             ).onSuccess { profile ->
-                applyProfile(
-                    profile.copy(
-                        avatarUri = validated.pendingAvatarUri ?: validated.avatarUri,
-                        bio = validated.bio,
-                    ),
-                    profileCache.currentEtag().orEmpty(),
+                val mergedProfile = profile.copy(
+                    avatarUri = validated.pendingAvatarUri ?: validated.avatarUri,
+                    bio = validated.bio,
                 )
+                val currentEtag = profileCache.currentEtag().orEmpty()
+                profileCache.update(mergedProfile, currentEtag)
+                applyProfile(mergedProfile, currentEtag)
                 _state.update {
                     it.copy(
                         isSaving = false,
@@ -374,6 +374,7 @@ class ProfileViewModel(
             is ProfileError.Network -> "network"
             is ProfileError.Conflict -> "conflict"
             is ProfileError.PreconditionFailed -> "precondition_failed"
+            is ProfileError.RateLimited -> "rate_limited"
             is ProfileError.Validation -> error.message
             is ProfileError -> error.message
             else -> throwable.message ?: "unknown"
