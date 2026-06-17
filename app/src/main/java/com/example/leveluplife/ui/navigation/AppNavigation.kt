@@ -2,6 +2,7 @@ package com.example.leveluplife.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -13,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.leveluplife.AppContainer
 import com.example.leveluplife.R
+import com.example.leveluplife.data.auth.SessionEvent
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
@@ -27,6 +29,7 @@ import com.example.leveluplife.ui.profile.ProfileScreen
 import com.example.leveluplife.ui.profile.ProfileViewModel
 import com.example.leveluplife.ui.settings.SettingsScreen
 import com.example.leveluplife.ui.settings.SettingsViewModel
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 object Routes {
@@ -62,18 +65,33 @@ fun AppNavigation(
     }
 
     val sessionExpiredMessage = stringResource(R.string.login_session_expired_redirect)
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(container.sessionEvents, sessionExpiredMessage) {
-        container.sessionEvents.expired.collect {
-            container.authRepository.logout()
-            navController.navigate(Routes.LOGIN) {
-                popUpTo(Routes.DASHBOARD) { inclusive = true }
-                launchSingleTop = true
-            }
-            runCatching {
-                navController.getBackStackEntry(Routes.LOGIN)
-                    .savedStateHandle
-                    .set(Routes.ARG_SESSION_EXPIRED_MESSAGE, sessionExpiredMessage)
+        container.sessionEvents.events.collect { event ->
+            when (event) {
+                SessionEvent.SESSION_EXPIRED -> {
+                    container.profileCache.clear()
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.DASHBOARD) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                    runCatching {
+                        navController.getBackStackEntry(Routes.LOGIN)
+                            .savedStateHandle
+                            .set(Routes.ARG_SESSION_EXPIRED_MESSAGE, sessionExpiredMessage)
+                    }
+                }
+                SessionEvent.SESSION_LOGOUT -> {
+                    container.profileCache.clear()
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.DASHBOARD) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+                SessionEvent.SESSION_LOGIN_SUCCESS,
+                SessionEvent.SESSION_FORBIDDEN,
+                -> Unit
             }
         }
     }
@@ -141,10 +159,8 @@ fun AppNavigation(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },
                 onLogout = {
-                    container.authRepository.logout()
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.DASHBOARD) { inclusive = true }
-                        launchSingleTop = true
+                    scope.launch {
+                        container.authRepository.logout()
                     }
                 },
             )

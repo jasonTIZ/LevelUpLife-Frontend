@@ -64,6 +64,7 @@ class AppContainer(applicationContext: Context) {
         DefaultAuthRepository(
             api = authApi,
             tokenStore = tokenStore,
+            sessionEvents = sessionEvents,
             json = NetworkModule.jsonParser(),
         )
     }

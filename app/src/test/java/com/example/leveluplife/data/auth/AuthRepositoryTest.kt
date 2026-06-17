@@ -20,12 +20,14 @@ class AuthRepositoryTest {
 
     private val mockServer = MockWebServer()
     private lateinit var store: FakeTokenStore
+    private lateinit var sessionEvents: SessionEvents
     private lateinit var repo: AuthRepository
 
     @Before
     fun setUp() {
         mockServer.start()
         store = FakeTokenStore()
+        sessionEvents = SessionEvents()
         val json = NetworkModule.jsonParser()
         val retrofit = Retrofit.Builder()
             .baseUrl(mockServer.url("/"))
@@ -34,6 +36,7 @@ class AuthRepositoryTest {
         repo = DefaultAuthRepository(
             api = retrofit.create(AuthApi::class.java),
             tokenStore = store,
+            sessionEvents = sessionEvents,
             json = json,
         )
     }
@@ -41,10 +44,6 @@ class AuthRepositoryTest {
     @After
     fun tearDown() = mockServer.shutdown()
 
-    // Scenario: Tokens stored securely
-    // Given login returns tokens
-    // When client stores them
-    // Then tokens are saved using secure storage APIs and not in plain localStorage
     @Test
     fun `login exitoso persiste el access token en el TokenStore seguro`() = runTest {
         mockServer.enqueue(loginOkResponse("tok-abc"))
@@ -55,6 +54,15 @@ class AuthRepositoryTest {
         assertEquals(1, store.saveCallCount)
         assertEquals("tok-abc", store.accessToken())
         assertTrue(repo.isLoggedIn())
+    }
+
+    @Test
+    fun `login exitoso emite SESSION_LOGIN_SUCCESS`() = runTest {
+        mockServer.enqueue(loginOkResponse("tok-abc"))
+
+        repo.login("user@test.com", "pass")
+
+        assertEquals(1, sessionEvents.recordedEvents().count { it == SessionEvent.SESSION_LOGIN_SUCCESS })
     }
 
     @Test
@@ -74,31 +82,57 @@ class AuthRepositoryTest {
         assertFalse(repo.isLoggedIn())
     }
 
-    // Scenario: Tokens cleared on logout
-    // Given logout initiated
-    // When logout completes
-    // Then secure storage is cleared of tokens and session data
     @Test
-    fun `logout limpia todos los tokens y la sesión del almacenamiento seguro`() = runTest {
+    fun `logout llama al endpoint y limpia tokens y emite SESSION_LOGOUT`() = runTest {
         mockServer.enqueue(loginOkResponse("tok-abc"))
         repo.login("user@test.com", "pass")
-        assertTrue("precondición: debe estar logueado antes del logout", repo.isLoggedIn())
+        sessionEvents.clearRecordedEvents()
+        mockServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody("""{"success":true,"message":"Sesión cerrada correctamente."}"""),
+        )
 
         repo.logout()
 
+        mockServer.takeRequest()
+        val logoutRequest = mockServer.takeRequest()
+        assertEquals("POST", logoutRequest.method)
+        assertTrue(logoutRequest.path!!.endsWith("/api/auth/logout"))
         assertEquals(1, store.clearCallCount)
         assertNull(store.accessToken())
         assertNull(store.refreshToken())
         assertFalse(repo.isLoggedIn())
+        assertEquals(1, sessionEvents.recordedEvents().count { it == SessionEvent.SESSION_LOGOUT })
     }
 
     @Test
-    fun `logout sin sesión previa no falla y el almacenamiento queda limpio`() {
+    fun `logout sin sesión previa limpia almacenamiento y emite SESSION_LOGOUT`() = runTest {
+        mockServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody("""{"success":true,"message":"Sesión cerrada correctamente."}"""),
+        )
+
         repo.logout()
 
         assertEquals(1, store.clearCallCount)
         assertNull(store.accessToken())
         assertFalse(repo.isLoggedIn())
+    }
+
+    @Test
+    fun `clearLocalSession limpia tokens sin llamar al API`() = runTest {
+        mockServer.enqueue(loginOkResponse("tok-abc"))
+        repo.login("user@test.com", "pass")
+
+        repo.clearLocalSession()
+
+        assertEquals(1, store.clearCallCount)
+        assertFalse(repo.isLoggedIn())
+        assertEquals(1, mockServer.requestCount)
     }
 
     @Test

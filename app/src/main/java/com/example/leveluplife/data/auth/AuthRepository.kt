@@ -9,13 +9,15 @@ import kotlinx.serialization.json.Json
 interface AuthRepository {
     suspend fun login(email: String, password: String): Result<AuthSession>
     fun isLoggedIn(): Boolean
-    fun logout()
+    suspend fun logout()
+    fun clearLocalSession()
     fun currentTokens(): Pair<String?, String?>
 }
 
 class DefaultAuthRepository(
     private val api: AuthApi,
     private val tokenStore: TokenStore,
+    private val sessionEvents: SessionEvents,
     private val json: Json,
 ) : AuthRepository {
 
@@ -26,8 +28,6 @@ class DefaultAuthRepository(
                 ?: return Result.failure(AuthErrorException(AuthError.Unknown("empty_body")))
             val data = body.data
                 ?: return Result.failure(AuthErrorException(AuthError.Unknown("missing_data")))
-            // El backend solo devuelve el JWT; sacamos el id del claim `sub`
-            // y caemos en el username como fallback si el token no se pudiera decodificar.
             val userId = JwtUtils.extractSub(data.token) ?: data.userName
             val session = AuthSession(
                 accessToken = data.token,
@@ -35,6 +35,7 @@ class DefaultAuthRepository(
                 user = AuthUser.fromData(data, id = userId),
             )
             tokenStore.saveTokens(session.accessToken, session.refreshToken, userId)
+            sessionEvents.notifyLoginSuccess()
             Result.success(session)
         } else {
             val raw = runCatching { response.errorBody()?.string() }.getOrNull()
@@ -46,7 +47,13 @@ class DefaultAuthRepository(
 
     override fun isLoggedIn(): Boolean = tokenStore.hasSession()
 
-    override fun logout() = tokenStore.clear()
+    override suspend fun logout() {
+        runCatching { api.logout() }
+        clearLocalSession()
+        sessionEvents.notifyLogout()
+    }
+
+    override fun clearLocalSession() = tokenStore.clear()
 
     override fun currentTokens(): Pair<String?, String?> =
         tokenStore.accessToken() to tokenStore.refreshToken()

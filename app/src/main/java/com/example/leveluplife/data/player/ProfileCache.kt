@@ -22,6 +22,7 @@ interface ProfileCache {
     suspend fun loadPersisted()
     suspend fun update(profile: PlayerProfile, etag: String? = null)
     suspend fun updateLocalExtras(avatarUri: String?, bio: String)
+    suspend fun clear()
     fun currentEtag(): String?
 }
 
@@ -79,6 +80,12 @@ class DefaultProfileCache(
     }
 
     override fun currentEtag(): String? = etag
+
+    override suspend fun clear() {
+        etag = null
+        _profile.value = null
+        dataStore.edit { it.clear() }
+    }
 
     private companion object {
         val KEY_PLAYER_ID = stringPreferencesKey("player_id")

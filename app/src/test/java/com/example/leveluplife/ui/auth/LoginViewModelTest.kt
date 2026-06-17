@@ -173,7 +173,13 @@ class LoginViewModelTest {
         }
 
         override fun isLoggedIn(): Boolean = !access.isNullOrBlank()
-        override fun logout() {
+
+        override suspend fun logout() {
+            access = null
+            refresh = null
+        }
+
+        override fun clearLocalSession() {
             access = null
             refresh = null
         }

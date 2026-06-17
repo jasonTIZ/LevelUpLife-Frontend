@@ -14,6 +14,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.leveluplife.AppContainer
 import com.example.leveluplife.R
+import kotlinx.coroutines.launch
 
 @Composable
 fun DashboardScreen(
@@ -29,6 +31,7 @@ fun DashboardScreen(
     modifier: Modifier = Modifier,
 ) {
     val tokens = remember { container.authRepository.currentTokens() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(modifier = modifier.fillMaxSize()) { padding ->
         Column(
@@ -61,8 +64,10 @@ fun DashboardScreen(
             Spacer(Modifier.height(32.dp))
             Button(
                 onClick = {
-                    container.authRepository.logout()
-                    onLoggedOut()
+                    scope.launch {
+                        container.authRepository.logout()
+                        onLoggedOut()
+                    }
                 },
                 shape = RoundedCornerShape(28.dp),
                 modifier = Modifier

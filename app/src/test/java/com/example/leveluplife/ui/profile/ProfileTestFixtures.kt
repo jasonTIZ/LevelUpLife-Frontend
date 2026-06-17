@@ -68,6 +68,11 @@ class FakeProfileCache(
     }
 
     override fun currentEtag(): String? = etag
+
+    override suspend fun clear() {
+        etag = null
+        _profile.value = null
+    }
 }
 
 fun sampleProfile() = PlayerProfile(

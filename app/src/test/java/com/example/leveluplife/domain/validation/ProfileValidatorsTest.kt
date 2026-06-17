@@ -16,7 +16,7 @@ class AvatarValidatorTest {
     fun `file too large fails`() {
         assertEquals(
             AvatarValidationError.TooLarge,
-            AvatarValidator.validate("image/png", AvatarValidator.MAX_BYTES + 1),
+            AvatarValidator.validate("image/png", AvatarValidator.MAX_BYTES + 1L),
         )
     }
 

@@ -1,10 +1,10 @@
 package com.example.leveluplife.data.network.interceptor
 
 import com.example.leveluplife.data.auth.FakeTokenStore
+import com.example.leveluplife.data.auth.SessionEvent
 import com.example.leveluplife.data.auth.SessionEvents
 import com.example.leveluplife.data.network.ApiRoutes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -15,6 +15,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -24,6 +25,9 @@ class AuthInterceptorTest {
     private val store = FakeTokenStore()
     private val sessionEvents = SessionEvents()
 
+    @Before
+    fun setUp() = mockServer.start()
+
     @After
     fun tearDown() = mockServer.shutdown()
 
@@ -31,10 +35,6 @@ class AuthInterceptorTest {
         .addInterceptor(AuthInterceptor(store, sessionEvents))
         .build()
 
-    // Scenario: Authorization header attached
-    // Given user logged in
-    // When client sends request
-    // Then Authorization: Bearer <token> is included
     @Test
     fun `petición autenticada incluye header Authorization Bearer con el token activo`() {
         store.saveTokens("my-access-token", null)
@@ -57,53 +57,38 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `respuesta 401 en endpoint autenticado limpia el token y emite sesión expirada`() = runTest {
+    fun `respuesta 401 en endpoint autenticado limpia el token y emite sesión expirada`() {
         store.saveTokens("expired-token", null)
         mockServer.enqueue(MockResponse().setResponseCode(401))
-        val events = mutableListOf<Unit>()
-        val job = launch { sessionEvents.expired.collect { events.add(Unit) } }
 
         client().newCall(Request.Builder().url(mockServer.url("/api/resource")).build())
             .execute().close()
 
-        testScheduler.advanceUntilIdle()
-        job.cancel()
-
         assertNull(store.accessToken())
         assertEquals(1, store.clearCallCount)
-        assertEquals(1, events.size)
+        assertEquals(1, sessionEvents.recordedEvents().count { it == SessionEvent.SESSION_EXPIRED })
     }
 
     @Test
     fun `respuesta 401 en login no emite sesión expirada`() = runTest {
         store.saveTokens("expired-token", null)
         mockServer.enqueue(MockResponse().setResponseCode(401))
-        val events = mutableListOf<Unit>()
-        val job = launch { sessionEvents.expired.collect { events.add(Unit) } }
 
         client().newCall(Request.Builder().url(mockServer.url("/api/auth/login")).build())
             .execute().close()
 
-        testScheduler.advanceUntilIdle()
-        job.cancel()
-
-        assertTrue(events.isEmpty())
+        assertTrue(sessionEvents.recordedEvents().isEmpty())
     }
 
     @Test
     fun `respuesta 401 en login con path PascalCase no emite sesión expirada`() = runTest {
         store.saveTokens("expired-token", null)
         mockServer.enqueue(MockResponse().setResponseCode(401))
-        val events = mutableListOf<Unit>()
-        val job = launch { sessionEvents.expired.collect { events.add(Unit) } }
 
         client().newCall(Request.Builder().url(mockServer.url("/api/Auth/Login")).build())
             .execute().close()
 
-        testScheduler.advanceUntilIdle()
-        job.cancel()
-
-        assertTrue(events.isEmpty())
+        assertTrue(sessionEvents.recordedEvents().isEmpty())
     }
 
     @Test
@@ -123,5 +108,35 @@ class AuthInterceptorTest {
 
         assertEquals("valid-token", store.accessToken())
         assertEquals(0, store.clearCallCount)
+    }
+
+    @Test
+    fun `respuesta 403 mantiene sesión y emite SESSION_FORBIDDEN`() {
+        store.saveTokens("valid-token", null)
+        mockServer.enqueue(MockResponse().setResponseCode(403))
+
+        client().newCall(Request.Builder().url(mockServer.url("/api/streaks/protect")).build())
+            .execute().close()
+
+        assertEquals("valid-token", store.accessToken())
+        assertEquals(0, store.clearCallCount)
+        assertEquals(1, sessionEvents.recordedEvents().count { it == SessionEvent.SESSION_FORBIDDEN })
+    }
+
+    @Test
+    fun `respuesta 401 en logout no emite sesión expirada`() {
+        store.saveTokens("expired-token", null)
+        mockServer.enqueue(MockResponse().setResponseCode(401))
+
+        client().newCall(Request.Builder().url(mockServer.url("/api/auth/logout")).build())
+            .execute().close()
+
+        assertTrue(sessionEvents.recordedEvents().isEmpty())
+    }
+
+    @Test
+    fun `ApiRoutes reconoce logout como exento de expiración de sesión`() {
+        assertTrue(ApiRoutes.isAuthExemptRequest("/api/auth/logout"))
+        assertTrue(ApiRoutes.isAuthExemptRequest("/api/Auth/Logout"))
     }
 }
