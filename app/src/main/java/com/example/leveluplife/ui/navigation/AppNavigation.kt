@@ -123,6 +123,7 @@ fun AppNavigation(
             )
             RegisterScreen(
                 viewModel = vm,
+                themeController = container.themeController,
                 onRegisteredAndLoggedIn = {
                     navController.navigate(Routes.DASHBOARD) {
                         popUpTo(Routes.LOGIN) { inclusive = true }

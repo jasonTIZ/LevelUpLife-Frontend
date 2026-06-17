@@ -38,12 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitTaskDto
-import com.example.leveluplife.ui.theme.DarkBackground
-import com.example.leveluplife.ui.theme.DarkOnBackground
-import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
-import com.example.leveluplife.ui.theme.DarkSurfaceVariant
-import com.example.leveluplife.ui.theme.PurplePrimary
-import com.example.leveluplife.ui.theme.PurplePrimaryContainer
 
 private val GreenSuccess = Color(0xFF4CAF50)
 private val OrangeWarn = Color(0xFFF59E0B)
@@ -67,7 +61,7 @@ fun HabitTaskDetailScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = DarkBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(
@@ -85,14 +79,14 @@ fun HabitTaskDetailScreen(
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.create_task_back),
-                        tint = DarkOnBackground,
+                        tint = MaterialTheme.colorScheme.onBackground,
                     )
                 }
                 Text(
                     text = stringResource(R.string.task_detail_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = DarkOnBackground,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f),
                 )
                 if (task.isActive) {
@@ -113,7 +107,7 @@ fun HabitTaskDetailScreen(
             ) {
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
@@ -121,14 +115,14 @@ fun HabitTaskDetailScreen(
                             text = task.title,
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = DarkOnBackground,
+                            color = MaterialTheme.colorScheme.onBackground,
                         )
                         if (!task.description.isNullOrBlank()) {
                             Spacer(Modifier.height(8.dp))
                             Text(
                                 text = task.description,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = DarkOnBackground,
+                                color = MaterialTheme.colorScheme.onBackground,
                             )
                         }
                         Spacer(Modifier.height(12.dp))
@@ -140,7 +134,7 @@ fun HabitTaskDetailScreen(
                                 task.startDate,
                             ),
                             style = MaterialTheme.typography.bodySmall,
-                            color = DarkOnSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -150,27 +144,27 @@ fun HabitTaskDetailScreen(
                     fontSize = 11.sp,
                     letterSpacing = 2.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = DarkOnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 Card(
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = task.completionCriteria,
                             fontWeight = FontWeight.SemiBold,
-                            color = DarkOnBackground,
+                            color = MaterialTheme.colorScheme.onBackground,
                         )
                         task.repetitionCriteria?.let { criteria ->
                             Spacer(Modifier.height(8.dp))
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 CriteriaChip(
                                     label = criteria.toReadableSummary(),
-                                    background = PurplePrimaryContainer,
-                                    textColor = PurplePrimary,
+                                    background = MaterialTheme.colorScheme.primaryContainer,
+                                    textColor = MaterialTheme.colorScheme.primary,
                                 )
                                 if (criteria.isPartialAllowed) {
                                     CriteriaChip(
@@ -185,8 +179,8 @@ fun HabitTaskDetailScreen(
                             Spacer(Modifier.height(8.dp))
                             CriteriaChip(
                                 label = task.evidence,
-                                background = PurplePrimaryContainer,
-                                textColor = PurplePrimary,
+                                background = MaterialTheme.colorScheme.primaryContainer,
+                                textColor = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
@@ -198,7 +192,7 @@ fun HabitTaskDetailScreen(
                     onClick = onDone,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(stringResource(R.string.task_detail_back_home), color = PurplePrimary)
+                    Text(stringResource(R.string.task_detail_back_home), color = MaterialTheme.colorScheme.primary)
                 }
             }
         }

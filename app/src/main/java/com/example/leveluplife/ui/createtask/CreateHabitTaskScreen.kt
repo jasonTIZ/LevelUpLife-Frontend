@@ -67,15 +67,6 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.domain.validation.HabitTaskFieldError
-import com.example.leveluplife.ui.theme.DarkBackground
-import com.example.leveluplife.ui.theme.DarkOnBackground
-import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
-import com.example.leveluplife.ui.theme.DarkSurface
-import com.example.leveluplife.ui.theme.DarkSurfaceVariant
-import com.example.leveluplife.ui.theme.PurpleAccentSoft
-import com.example.leveluplife.ui.theme.PurplePrimary
-import com.example.leveluplife.ui.theme.PurplePrimaryContainer
-import com.example.leveluplife.ui.theme.PurpleSecondary
 
 object CreateHabitTaskTestTags {
     const val SUBMIT_BUTTON = "create_task_submit_button"
@@ -104,7 +95,7 @@ fun CreateHabitTaskScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = DarkBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (!state.isLoadingHabits && state.habitsLoadError == null) {
                 CreateTaskBottomBar(
@@ -122,7 +113,7 @@ fun CreateHabitTaskScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator(color = PurplePrimary, modifier = Modifier.size(44.dp))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, modifier = Modifier.size(44.dp))
             }
 
             state.habitsLoadError != null -> Box(
@@ -132,10 +123,10 @@ fun CreateHabitTaskScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(state.habitsLoadError ?: "", color = DarkOnSurfaceVariant)
+                    Text(state.habitsLoadError ?: "", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(12.dp))
                     TextButton(onClick = viewModel::loadHabits) {
-                        Text(stringResource(R.string.create_task_retry), color = PurplePrimary)
+                        Text(stringResource(R.string.create_task_retry), color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -171,7 +162,7 @@ private fun CreateTaskBottomBar(
     onSubmit: () -> Unit,
 ) {
     Surface(
-        color = DarkSurface,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp,
         tonalElevation = 2.dp,
     ) {
@@ -191,10 +182,10 @@ private fun CreateTaskBottomBar(
                     .testTag(CreateHabitTaskTestTags.SUBMIT_BUTTON),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = PurplePrimary,
+                    containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White,
-                    disabledContainerColor = DarkSurfaceVariant,
-                    disabledContentColor = DarkOnSurfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
             ) {
                 if (isSubmitting) {
@@ -228,7 +219,7 @@ private fun CreateHabitTaskHeader(onBack: () -> Unit) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(R.string.create_task_back),
-                tint = DarkOnBackground,
+                tint = MaterialTheme.colorScheme.onBackground,
             )
         }
         Column(modifier = Modifier.padding(top = 8.dp, end = ScreenHorizontalPadding)) {
@@ -236,13 +227,13 @@ private fun CreateHabitTaskHeader(onBack: () -> Unit) {
                 text = stringResource(R.string.create_task_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = DarkOnBackground,
+                color = MaterialTheme.colorScheme.onBackground,
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = stringResource(R.string.create_task_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
-                color = DarkOnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -272,15 +263,15 @@ private fun CreateHabitTaskForm(
 ) {
     val scroll = rememberScrollState()
     val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = PurplePrimary,
-        unfocusedBorderColor = DarkSurfaceVariant,
-        focusedContainerColor = DarkBackground,
-        unfocusedContainerColor = DarkBackground,
-        focusedTextColor = DarkOnBackground,
-        unfocusedTextColor = DarkOnBackground,
-        focusedLabelColor = PurpleSecondary,
-        unfocusedLabelColor = DarkOnSurfaceVariant,
-        cursorColor = PurplePrimary,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+        focusedContainerColor = MaterialTheme.colorScheme.background,
+        unfocusedContainerColor = MaterialTheme.colorScheme.background,
+        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+        focusedLabelColor = MaterialTheme.colorScheme.secondary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        cursorColor = MaterialTheme.colorScheme.primary,
     )
 
     Column(
@@ -462,7 +453,7 @@ private fun CreateHabitTaskForm(
                 } else {
                     Text(
                         stringResource(R.string.create_task_start_date_hint),
-                        color = DarkOnSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -477,7 +468,7 @@ private fun CreateHabitTaskForm(
                 text = stringResource(R.string.create_task_section_preview),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
-                color = DarkOnBackground,
+                color = MaterialTheme.colorScheme.onBackground,
             )
             TaskPreviewCard(
                 state = state,
@@ -503,7 +494,7 @@ private fun QuickTemplatesRow(
             text = stringResource(R.string.create_task_templates_label),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
-            color = PurpleSecondary,
+            color = MaterialTheme.colorScheme.secondary,
         )
         Row(
             modifier = Modifier
@@ -529,8 +520,8 @@ private fun TemplateChip(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val borderColor = if (selected) PurplePrimary else DarkSurfaceVariant
-    val backgroundColor = if (selected) PurpleAccentSoft else DarkSurface
+    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val backgroundColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
@@ -542,7 +533,7 @@ private fun TemplateChip(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (selected) PurplePrimary else DarkOnBackground,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -559,13 +550,13 @@ private fun FormSection(
             text = title,
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
-            color = DarkOnBackground,
+            color = MaterialTheme.colorScheme.onBackground,
         )
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = DarkSurface),
-            border = BorderStroke(1.dp, DarkSurfaceVariant),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         ) {
             Column(
@@ -606,7 +597,7 @@ private fun PartialAllowedRow(
     ) {
         Text(
             text = stringResource(R.string.create_task_partial_allowed),
-            color = DarkOnBackground,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f).padding(end = 8.dp),
         )
@@ -615,9 +606,9 @@ private fun PartialAllowedRow(
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = PurplePrimary,
-                uncheckedThumbColor = DarkOnSurfaceVariant,
-                uncheckedTrackColor = DarkSurfaceVariant,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
             ),
         )
     }
@@ -645,8 +636,8 @@ private fun TaskPreviewCard(state: CreateHabitTaskUiState, modifier: Modifier = 
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
-        border = BorderStroke(1.dp, PurplePrimary.copy(alpha = 0.35f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -656,7 +647,7 @@ private fun TaskPreviewCard(state: CreateHabitTaskUiState, modifier: Modifier = 
                 text = habitTitle,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = PurpleSecondary,
+                color = MaterialTheme.colorScheme.secondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -664,12 +655,12 @@ private fun TaskPreviewCard(state: CreateHabitTaskUiState, modifier: Modifier = 
                 text = taskTitle,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = DarkOnBackground,
+                color = MaterialTheme.colorScheme.onBackground,
             )
             Text(
                 text = "\"$description\"",
                 style = MaterialTheme.typography.bodyMedium,
-                color = DarkOnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -677,18 +668,18 @@ private fun TaskPreviewCard(state: CreateHabitTaskUiState, modifier: Modifier = 
             Spacer(Modifier.height(4.dp))
 
             PreviewInfoRow(
-                icon = { Icon(Icons.Outlined.Flag, contentDescription = null, tint = PurplePrimary) },
+                icon = { Icon(Icons.Outlined.Flag, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 label = stringResource(R.string.create_task_preview_label_goal),
                 value = goalLine,
             )
             PreviewInfoRow(
-                icon = { Icon(Icons.Outlined.Repeat, contentDescription = null, tint = PurplePrimary) },
+                icon = { Icon(Icons.Outlined.Repeat, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 label = stringResource(R.string.create_task_preview_label_frequency),
                 value = frequencyLine,
             )
             PreviewInfoRow(
                 icon = {
-                    Icon(Icons.Outlined.CalendarToday, contentDescription = null, tint = PurplePrimary)
+                    Icon(Icons.Outlined.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
                 label = stringResource(R.string.create_task_preview_label_start),
                 value = startLine,
@@ -702,13 +693,13 @@ private fun TaskPreviewCard(state: CreateHabitTaskUiState, modifier: Modifier = 
                     Icon(
                         Icons.Outlined.TaskAlt,
                         contentDescription = null,
-                        tint = PurpleSecondary,
+                        tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(18.dp),
                     )
                     Text(
                         text = stringResource(R.string.create_task_preview_partial_allowed),
                         style = MaterialTheme.typography.bodySmall,
-                        color = PurpleSecondary,
+                        color = MaterialTheme.colorScheme.secondary,
                     )
                 }
             }
@@ -734,13 +725,13 @@ private fun PreviewInfoRow(
             Text(
                 text = "$label:",
                 style = MaterialTheme.typography.labelMedium,
-                color = DarkOnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
-                color = DarkOnBackground,
+                color = MaterialTheme.colorScheme.onBackground,
             )
         }
     }
@@ -829,15 +820,15 @@ private fun ErrorBanner(message: String, onDismiss: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(PurplePrimaryContainer, RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(Icons.Outlined.ErrorOutline, contentDescription = null, tint = PurplePrimary)
+        Icon(Icons.Outlined.ErrorOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.width(8.dp))
-        Text(message, color = DarkOnBackground, modifier = Modifier.weight(1f))
+        Text(message, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
         TextButton(onClick = onDismiss) {
-            Text(stringResource(R.string.login_dismiss), color = PurplePrimary)
+            Text(stringResource(R.string.login_dismiss), color = MaterialTheme.colorScheme.primary)
         }
     }
 }

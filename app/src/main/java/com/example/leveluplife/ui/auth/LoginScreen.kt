@@ -89,9 +89,11 @@ fun LoginScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
 
-    LaunchedEffect(state.loggedInUser) {
+    LaunchedEffect(state.loggedInUser, systemDark) {
         if (state.loggedInUser != null) {
+            themeController.lockCurrentAppearance(systemDark)
             onLoggedIn()
             viewModel.consumeLoggedIn()
         }

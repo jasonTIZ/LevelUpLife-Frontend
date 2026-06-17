@@ -77,6 +77,7 @@ import com.example.leveluplife.ui.components.LulLogo
 import com.example.leveluplife.ui.components.LulPrimaryButton
 import com.example.leveluplife.ui.components.LulScreenHeaderLabels
 import com.example.leveluplife.ui.components.PasswordStrengthIndicator
+import com.example.leveluplife.ui.theme.ThemeController
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -95,14 +96,17 @@ private val DefaultBirthdateMillis: Long =
 @Composable
 fun RegisterScreen(
     viewModel: RegisterViewModel,
+    themeController: ThemeController,
     onRegisteredAndLoggedIn: () -> Unit,
     onNavigateToLogin: (String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
+    val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
 
-    LaunchedEffect(state.loggedInUser) {
+    LaunchedEffect(state.loggedInUser, systemDark) {
         if (state.loggedInUser != null) {
+            themeController.lockCurrentAppearance(systemDark)
             onRegisteredAndLoggedIn()
             viewModel.consumeLoggedIn()
         }
