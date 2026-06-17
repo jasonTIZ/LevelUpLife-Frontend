@@ -103,6 +103,16 @@
     <string name="create_task_error_evidence_required">Selecciona un tipo de evidencia</string>
     <string name="create_task_success_message">¡Tarea creada correctamente!</string>
 
+    <string name="update_task_title">Editar tarea</string>
+    <string name="update_task_subtitle">Actualizá los requisitos de la tarea</string>
+    <string name="update_task_submit">Guardar cambios</string>
+    <string name="update_task_success">¡Tarea actualizada correctamente!</string>
+    <string name="update_task_edit">Editar</string>
+    <string name="update_task_conflict_title">Conflicto al guardar</string>
+    <string name="update_task_conflict_message">La tarea cambió en otro lugar. Recargá los datos para ver la versión más reciente e intentá de nuevo.</string>
+    <string name="update_task_conflict_reload">Recargar</string>
+    <string name="update_task_conflict_dismiss">Cancelar</string>
+
     <!-- Task detail -->
     <string name="task_detail_title">Detalle de la tarea</string>
     <string name="task_detail_meta">%1$s · %2$s · inicio %3$s</string>

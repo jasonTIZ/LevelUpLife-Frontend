@@ -1,6 +1,7 @@
 package com.example.leveluplife.ui.habitdetail
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,6 +57,7 @@ private val OrangeWarn = Color(0xFFF59E0B)
 fun HabitDetailScreen(
     viewModel: HabitDetailViewModel,
     onBack: () -> Unit,
+    onTaskClick: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -122,14 +124,20 @@ fun HabitDetailScreen(
                     }
                 }
 
-                state.habit != null -> HabitDetailContent(habit = requireNotNull(state.habit))
+                state.habit != null -> HabitDetailContent(
+                    habit = requireNotNull(state.habit),
+                    onTaskClick = onTaskClick,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun HabitDetailContent(habit: HabitDto) {
+private fun HabitDetailContent(
+    habit: HabitDto,
+    onTaskClick: (Int) -> Unit,
+) {
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -150,7 +158,11 @@ private fun HabitDetailContent(habit: HabitDto) {
             }
 
             itemsIndexed(habit.tasks) { index, task ->
-                TaskCriteriaCard(taskNumber = index + 1, task = task)
+                TaskCriteriaCard(
+                    taskNumber = index + 1,
+                    task = task,
+                    onClick = { onTaskClick(task.id) },
+                )
             }
         }
 
@@ -240,6 +252,7 @@ private fun HabitInfoCard(habit: HabitDto) {
 private fun TaskCriteriaCard(
     taskNumber: Int,
     task: HabitTaskDto,
+    onClick: () -> Unit = {},
 ) {
     val criteria = task.repetitionCriteria
     val label = task.title.takeIf { it.isNotBlank() } ?: "Objetivo $taskNumber"
@@ -247,7 +260,9 @@ private fun TaskCriteriaCard(
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

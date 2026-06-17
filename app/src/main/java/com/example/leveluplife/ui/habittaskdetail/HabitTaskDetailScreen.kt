@@ -25,7 +25,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.annotation.StringRes
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -51,16 +53,17 @@ private val OrangeWarn = Color(0xFFF59E0B)
 @Composable
 fun HabitTaskDetailScreen(
     task: HabitTaskDto,
-    showConfirmation: Boolean,
+    @StringRes successMessageRes: Int? = null,
     onBack: () -> Unit,
     onDone: () -> Unit,
+    onEdit: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val confirmationMessage = stringResource(R.string.create_task_success_message)
+    val confirmationMessage = successMessageRes?.let { stringResource(it) }
 
-    LaunchedEffect(showConfirmation) {
-        if (showConfirmation) {
+    LaunchedEffect(successMessageRes) {
+        if (confirmationMessage != null) {
             snackbarHostState.showSnackbar(confirmationMessage)
         }
     }
@@ -102,6 +105,14 @@ fun HabitTaskDetailScreen(
                         tint = GreenSuccess,
                         modifier = Modifier.size(22.dp),
                     )
+                }
+                if (onEdit != null) {
+                    TextButton(onClick = onEdit) {
+                        Text(
+                            text = stringResource(R.string.update_task_edit),
+                            color = PurplePrimary,
+                        )
+                    }
                 }
             }
 

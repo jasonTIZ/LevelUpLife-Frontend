@@ -1,70 +1,61 @@
-package com.example.leveluplife.ui.createtask
+package com.example.leveluplife.ui.updatetask
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.leveluplife.data.habits.HabitRepository
+import com.example.leveluplife.data.habits.HabitTaskConflictFailure
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.habits.HabitTaskValidationFailure
 import com.example.leveluplife.domain.validation.HabitTaskValidators
+import com.example.leveluplife.ui.createtask.HabitTaskFormHandlers
+import com.example.leveluplife.ui.createtask.HabitTaskFormState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
-import java.time.LocalDate
 
-class CreateHabitTaskViewModel(
+class UpdateHabitTaskViewModel(
+    private val taskId: Int,
     private val habitRepository: HabitRepository,
     private val habitTaskRepository: HabitTaskRepository,
-    preselectedHabitId: Int?,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(
-        CreateHabitTaskUiState(
-            form = HabitTaskFormState(
-                selectedHabitId = preselectedHabitId?.takeIf { it > 0 },
-                startDate = LocalDate.now().toString(),
-            ),
-        ),
-    )
-    val state: StateFlow<CreateHabitTaskUiState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(UpdateHabitTaskUiState())
+    val state: StateFlow<UpdateHabitTaskUiState> = _state.asStateFlow()
 
     init {
-        loadHabits()
+        loadTask()
     }
 
-    fun loadHabits() {
+    fun loadTask() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoadingHabits = true, habitsLoadError = null) }
-            habitRepository.getActiveHabits(page = 1)
-                .onSuccess { response ->
-                    val habits = response.habits.orEmpty()
-                    _state.update { current ->
-                        val selected = current.form.selectedHabitId ?: habits.firstOrNull()?.id
-                        current.copy(
-                            isLoadingHabits = false,
-                            form = current.form.copy(
-                                habits = habits,
-                                selectedHabitId = selected,
-                            ),
+            _state.update { it.copy(isLoading = true, loadError = null, showConflictDialog = false) }
+
+            val habitsResult = habitRepository.getActiveHabits(page = 1)
+            val taskResult = habitTaskRepository.getHabitTask(taskId)
+
+            val habits = habitsResult.getOrNull()?.habits.orEmpty()
+            taskResult
+                .onSuccess { task ->
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            form = HabitTaskFormState.fromTask(task, habits),
                         )
                     }
                 }
                 .onFailure { t ->
                     _state.update {
                         it.copy(
-                            isLoadingHabits = false,
-                            habitsLoadError = mapNetworkMessage(t),
+                            isLoading = false,
+                            loadError = mapNetworkMessage(t),
                         )
                     }
                 }
         }
-    }
-
-    fun onHabitSelected(habitId: Int) {
-        _state.update { it.copy(form = HabitTaskFormHandlers.onHabitSelected(it.form, habitId)) }
     }
 
     fun onTitleChange(value: String) {
@@ -115,16 +106,16 @@ class CreateHabitTaskViewModel(
         _state.update { it.copy(form = it.form.copy(isPartialAllowed = value)) }
     }
 
-    fun applyTemplate(template: TaskFormTemplate) {
-        _state.update { it.copy(form = HabitTaskFormState.applyTemplate(it.form, template)) }
-    }
-
     fun dismissSubmitError() {
         _state.update { it.copy(form = it.form.copy(submitError = null)) }
     }
 
-    fun consumeCreatedTask() {
-        _state.update { it.copy(createdTask = null) }
+    fun dismissConflictDialog() {
+        _state.update { it.copy(showConflictDialog = false) }
+    }
+
+    fun consumeUpdatedTask() {
+        _state.update { it.copy(updatedTask = null) }
     }
 
     fun submit() {
@@ -160,9 +151,9 @@ class CreateHabitTaskViewModel(
 
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, form = it.form.copy(submitError = null)) }
-            habitTaskRepository.createHabitTask(request)
+            habitTaskRepository.updateHabitTask(taskId, request)
                 .onSuccess { task ->
-                    _state.update { it.copy(isSubmitting = false, createdTask = task) }
+                    _state.update { it.copy(isSubmitting = false, updatedTask = task) }
                 }
                 .onFailure { t ->
                     when (t) {
@@ -174,6 +165,13 @@ class CreateHabitTaskViewModel(
                                     showValidationErrors = true,
                                     submitError = null,
                                 ),
+                            )
+                        }
+                        is HabitTaskConflictFailure -> _state.update {
+                            it.copy(
+                                isSubmitting = false,
+                                showConflictDialog = true,
+                                form = it.form.copy(submitError = null),
                             )
                         }
                         else -> _state.update {
@@ -194,22 +192,18 @@ class CreateHabitTaskViewModel(
 
     private fun mapSubmitError(t: Throwable): String = when (t) {
         is IOException -> "Sin conexión. Revisa tu red e intenta de nuevo."
-        else -> t.message ?: "No se pudo crear la tarea."
+        else -> t.message ?: "No se pudo actualizar la tarea."
     }
 
     class Factory(
+        private val taskId: Int,
         private val habitRepository: HabitRepository,
         private val habitTaskRepository: HabitTaskRepository,
-        private val preselectedHabitId: Int?,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            require(modelClass.isAssignableFrom(CreateHabitTaskViewModel::class.java))
-            return CreateHabitTaskViewModel(
-                habitRepository,
-                habitTaskRepository,
-                preselectedHabitId,
-            ) as T
+            require(modelClass.isAssignableFrom(UpdateHabitTaskViewModel::class.java))
+            return UpdateHabitTaskViewModel(taskId, habitRepository, habitTaskRepository) as T
         }
     }
 }
