@@ -6,6 +6,8 @@ sealed class FieldError {
     object InvalidEmail : FieldError()
     object InvalidBirthdate : FieldError()
     object InvalidCharacters : FieldError()
+    object PasswordMismatch : FieldError()
+    object SameAsName : FieldError()
     data class TooShort(val min: Int) : FieldError()
     data class TooLong(val max: Int) : FieldError()
 }

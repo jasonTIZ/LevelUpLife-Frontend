@@ -31,10 +31,39 @@
     <string name="field_invalid_username_or_email">Ingresa un email o usuario válido</string>
     <string name="field_min_length">Mínimo %1$d caracteres</string>
     <string name="field_max_length">Máximo %1$d caracteres</string>
+    <string name="field_password_mismatch">Las contraseñas no coinciden</string>
+    <string name="field_username_same_as_name">El usuario debe ser distinto al nombre</string>
+
+    <!-- Registro -->
+    <string name="register_title">Crea tu cuenta</string>
+    <string name="register_subtitle">Comienza tu aventura en Level Up Life</string>
+    <string name="register_name_placeholder">Nombre</string>
+    <string name="register_last_name_placeholder">Apellido</string>
+    <string name="register_email_placeholder">Email</string>
+    <string name="register_birthdate_placeholder">Fecha de nacimiento</string>
+    <string name="register_username_placeholder">Nombre de usuario</string>
+    <string name="register_password_placeholder">Contraseña</string>
+    <string name="register_confirm_password_placeholder">Confirmar contraseña</string>
+    <string name="register_class_placeholder">Clase de personaje</string>
+    <string name="register_class_warrior">Guerrero</string>
+    <string name="register_submit">REGISTRARME</string>
+    <string name="register_next">SIGUIENTE</string>
+    <string name="register_back">ATRÁS</string>
+    <string name="register_step2_title">Tu cuenta</string>
+    <string name="register_step2_subtitle">Usuario, email y contraseña</string>
+    <string name="register_has_account">¿YA TIENES CUENTA?</string>
+    <string name="register_login_cta">INICIA SESIÓN</string>
+    <string name="register_date_picker_confirm">Aceptar</string>
+    <string name="register_password_strength_weak">Contraseña débil</string>
+    <string name="register_password_strength_fair">Contraseña aceptable</string>
+    <string name="register_password_strength_strong">Contraseña fuerte</string>
+    <string name="register_error_duplicate_account">Esa cuenta ya existe</string>
+    <string name="register_success_login_required">Usuario registrado exitosamente.</string>
 
     <!-- Accesibilidad -->
     <string name="cd_show_password">Mostrar contraseña</string>
     <string name="cd_hide_password">Ocultar contraseña</string>
+    <string name="cd_open_date_picker">Abrir calendario</string>
     <string name="cd_switch_to_dark">Cambiar a modo oscuro</string>
     <string name="cd_switch_to_light">Cambiar a modo claro</string>
 

@@ -172,6 +172,17 @@ class LoginViewModelTest {
             return r
         }
 
+        override suspend fun register(
+            name: String,
+            lastName: String,
+            email: String,
+            birthdate: String,
+            userName: String,
+            password: String,
+            classId: Int,
+        ): Result<com.example.leveluplife.data.auth.RegisterOutcome> =
+            Result.failure(IllegalStateException("not configured"))
+
         override fun isLoggedIn(): Boolean = !access.isNullOrBlank()
         override fun logout() {
             access = null
