@@ -1,0 +1,67 @@
+package com.example.leveluplife.ui.createtask
+
+data class TaskFormTemplate(
+    val id: String,
+    val label: String,
+    val title: String,
+    val description: String,
+    val difficulty: String,
+    val frequency: String,
+    val periodLength: String,
+    val periodUnit: String,
+    val completionCriteria: String,
+    val repetitions: String,
+    val measurementUnit: String?,
+    val evidence: String?,
+    val isPartialAllowed: Boolean,
+)
+
+object TaskFormTemplates {
+    val all = listOf(
+        TaskFormTemplate(
+            id = "strength_series",
+            label = "💪 Fuerza · 3 series",
+            title = "Rutina de fuerza",
+            description = "Entrenamiento de pesas enfocado en fuerza e hipertrofia.",
+            difficulty = "MEDIUM",
+            frequency = "WEEKLY",
+            periodLength = "1",
+            periodUnit = "WEEKS",
+            completionCriteria = "REPETITIONS",
+            repetitions = "3",
+            measurementUnit = "SERIES",
+            evidence = null,
+            isPartialAllowed = true,
+        ),
+        TaskFormTemplate(
+            id = "cardio_km",
+            label = "🏃 Cardio · 5 km",
+            title = "Carrera semanal",
+            description = "Objetivo de distancia para mejorar resistencia.",
+            difficulty = "HARD",
+            frequency = "WEEKLY",
+            periodLength = "1",
+            periodUnit = "WEEKS",
+            completionCriteria = "REPETITIONS",
+            repetitions = "5",
+            measurementUnit = "KMS",
+            evidence = null,
+            isPartialAllowed = false,
+        ),
+        TaskFormTemplate(
+            id = "photo_evidence",
+            label = "📸 Evidencia · foto",
+            title = "Registro con foto",
+            description = "Sube una foto como evidencia de completar la tarea.",
+            difficulty = "EASY",
+            frequency = "DAILY",
+            periodLength = "1",
+            periodUnit = "DAYS",
+            completionCriteria = "EVIDENCE",
+            repetitions = "",
+            measurementUnit = null,
+            evidence = "PHOTO",
+            isPartialAllowed = false,
+        ),
+    )
+}

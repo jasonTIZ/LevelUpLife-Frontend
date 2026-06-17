@@ -16,9 +16,6 @@ data class HabitDto(
 )
 
 @Serializable
-data class HabitTaskDto(val id: Int)
-
-@Serializable
 data class PaginationDto(
     val currentPage: Int,
     val pageSize: Int,

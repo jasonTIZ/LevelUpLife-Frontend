@@ -1,6 +1,7 @@
 package com.example.leveluplife.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,6 +64,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.leveluplife.data.network.dto.HabitDto
+import com.example.leveluplife.data.player.ProfileCache
 import com.example.leveluplife.ui.theme.DarkBackground
 import com.example.leveluplife.ui.theme.DarkOnBackground
 import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
@@ -77,11 +79,16 @@ private val OrangeFire = Color(0xFFF59E0B)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onLoggedOut: () -> Unit,
+    profileCache: ProfileCache,
+    onOpenProfile: () -> Unit,
+    onOpenSettings: () -> Unit = {},
     onOpenCategories: () -> Unit = {},
+    onHabitClick: (habitId: Int) -> Unit = {},
+    onCreateTask: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
+    val cachedProfile by profileCache.profile.collectAsState()
     val listState = rememberLazyListState()
 
     val shouldLoadMore by remember {
@@ -101,7 +108,7 @@ fun HomeScreen(
         containerColor = DarkBackground,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {},
+                onClick = onCreateTask,
                 containerColor = PurplePrimary,
                 contentColor = Color.White,
                 shape = CircleShape,
@@ -109,7 +116,7 @@ fun HomeScreen(
                 Icon(Icons.Filled.Add, contentDescription = "Agregar misión")
             }
         },
-        bottomBar = { HomeBottomBar() },
+        bottomBar = { HomeBottomBar(onOpenSettings = onOpenSettings) },
     ) { innerPadding ->
         LazyColumn(
             state = listState,
@@ -122,7 +129,11 @@ fun HomeScreen(
             ),
         ) {
             item {
-                HomeHeader(onLoggedOut = onLoggedOut, onOpenCategories = onOpenCategories)
+                HomeHeader(
+                    onOpenProfile = onOpenProfile,
+                    displayName = cachedProfile?.userName,
+                    onOpenCategories = onOpenCategories,
+                )
                 Spacer(Modifier.height(10.dp))
                 StatsRow()
                 Spacer(Modifier.height(20.dp))
@@ -187,7 +198,10 @@ fun HomeScreen(
 
                 else -> {
                     items(state.habits, key = { it.id }) { habit ->
-                        HabitCard(habit = habit)
+                        HabitCard(
+                            habit = habit,
+                            onClick = { onHabitClick(habit.id) },
+                        )
                         Spacer(Modifier.height(10.dp))
                     }
                     if (state.isLoadingMore) {
@@ -212,31 +226,44 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeHeader(onLoggedOut: () -> Unit, onOpenCategories: () -> Unit) {
+private fun HomeHeader(
+    onOpenProfile: () -> Unit,
+    displayName: String?,
+    onOpenCategories: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    SpanStyle(
-                        color = OrangeFire,
-                        fontStyle = FontStyle.Italic,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-                ) { append("LEVEL UP ") }
-                withStyle(
-                    SpanStyle(
-                        color = PurplePrimary,
-                        fontStyle = FontStyle.Italic,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-                ) { append("LIFE") }
-            },
-            fontSize = 22.sp,
-        )
+        Column {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            color = OrangeFire,
+                            fontStyle = FontStyle.Italic,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
+                    ) { append("LEVEL UP ") }
+                    withStyle(
+                        SpanStyle(
+                            color = PurplePrimary,
+                            fontStyle = FontStyle.Italic,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
+                    ) { append("LIFE") }
+                },
+                fontSize = 22.sp,
+            )
+            if (!displayName.isNullOrBlank()) {
+                Text(
+                    text = displayName,
+                    color = DarkOnSurfaceVariant,
+                    fontSize = 12.sp,
+                )
+            }
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             IconButton(
                 onClick = onOpenCategories,
@@ -247,12 +274,12 @@ private fun HomeHeader(onLoggedOut: () -> Unit, onOpenCategories: () -> Unit) {
                 Icon(Icons.Filled.Category, contentDescription = "Categorías", tint = DarkOnBackground)
             }
             IconButton(
-                onClick = onLoggedOut,
+                onClick = onOpenProfile,
                 modifier = Modifier
                     .background(DarkSurfaceVariant, RoundedCornerShape(14.dp))
                     .size(46.dp),
             ) {
-                Icon(Icons.Filled.Person, contentDescription = "Perfil / Cerrar sesión", tint = DarkOnBackground)
+                Icon(Icons.Filled.Person, contentDescription = "Perfil", tint = DarkOnBackground)
             }
         }
     }
@@ -405,11 +432,16 @@ private fun CalendarWeekCard() {
 }
 
 @Composable
-private fun HabitCard(habit: HabitDto) {
+private fun HabitCard(
+    habit: HabitDto,
+    onClick: () -> Unit,
+) {
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -453,15 +485,20 @@ private fun HabitCard(habit: HabitDto) {
     }
 }
 
-private data class NavItem(val label: String, val icon: ImageVector, val selected: Boolean)
+private data class NavItem(
+    val label: String,
+    val icon: ImageVector,
+    val selected: Boolean,
+    val onClick: () -> Unit = {},
+)
 
 @Composable
-private fun HomeBottomBar() {
+private fun HomeBottomBar(onOpenSettings: () -> Unit) {
     val items = listOf(
-        NavItem("INICIO", Icons.Filled.Home, true),
-        NavItem("COACH", Icons.Filled.Chat, false),
-        NavItem("TIENDA", Icons.Filled.ShoppingBag, false),
-        NavItem("AJUSTES", Icons.Filled.Settings, false),
+        NavItem("INICIO", Icons.Filled.Home, true, onClick = {}),
+        NavItem("COACH", Icons.Filled.Chat, false, onClick = {}),
+        NavItem("TIENDA", Icons.Filled.ShoppingBag, false, onClick = {}),
+        NavItem("AJUSTES", Icons.Filled.Settings, false, onClick = onOpenSettings),
     )
     NavigationBar(
         containerColor = DarkSurface,
@@ -470,7 +507,7 @@ private fun HomeBottomBar() {
         items.forEach { item ->
             NavigationBarItem(
                 selected = item.selected,
-                onClick = {},
+                onClick = item.onClick,
                 icon = { Icon(item.icon, contentDescription = item.label) },
                 label = {
                     Text(
