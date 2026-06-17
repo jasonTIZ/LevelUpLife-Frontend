@@ -50,6 +50,7 @@ object NetworkModule {
     fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
 
     fun provideDisciplineApi(retrofit: Retrofit): DisciplineApi = retrofit.create(DisciplineApi::class.java)
+    fun provideHabitsApi(retrofit: Retrofit): HabitsApi = retrofit.create(HabitsApi::class.java)
 
     fun jsonParser(): Json = json
 }

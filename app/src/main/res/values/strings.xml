@@ -11,6 +11,7 @@
     <string name="login_register_cta">REGÍSTRATE</string>
     <string name="login_retry">Reintentar</string>
     <string name="login_dismiss">Cerrar</string>
+    <string name="error_dialog_title">Error</string>
 
     <!-- Login: errores -->
     <string name="login_error_invalid_credentials">Usuario/email o contraseña incorrectos</string>

@@ -34,7 +34,7 @@ class DefaultAuthRepository(
                 refreshToken = null,
                 user = AuthUser.fromData(data, id = userId),
             )
-            tokenStore.saveTokens(session.accessToken, session.refreshToken)
+            tokenStore.saveTokens(session.accessToken, session.refreshToken, userId)
             Result.success(session)
         } else {
             val raw = runCatching { response.errorBody()?.string() }.getOrNull()
