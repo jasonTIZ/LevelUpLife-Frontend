@@ -12,6 +12,8 @@ fun HabitTaskFieldError.toMessage(): String = when (this) {
     is HabitTaskFieldError.TooLong -> stringResource(R.string.field_max_length, max)
     HabitTaskFieldError.InvalidNumber -> stringResource(R.string.create_task_error_invalid_number)
     HabitTaskFieldError.InvalidDate -> stringResource(R.string.create_task_error_invalid_date)
+    HabitTaskFieldError.PastDate -> stringResource(R.string.create_task_error_past_date)
+    HabitTaskFieldError.InvalidOption -> stringResource(R.string.create_task_error_invalid_option)
     HabitTaskFieldError.CriteriaRequired -> stringResource(R.string.create_task_error_criteria_required)
     HabitTaskFieldError.EvidenceRequired -> stringResource(R.string.create_task_error_evidence_required)
 }

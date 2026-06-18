@@ -14,6 +14,7 @@ object AuthErrorMapper {
             400 -> AuthError.BadRequest(message)
             401 -> AuthError.InvalidCredentials(message)
             423 -> AuthError.AccountLocked(message)
+            429 -> AuthError.RateLimited(message)
             in 500..599 -> AuthError.Server(message)
             else -> AuthError.Unknown(message ?: "HTTP $code")
         }

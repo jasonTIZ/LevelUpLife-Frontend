@@ -39,6 +39,7 @@ fun AuthError.toMessage(): String = when (this) {
     is AuthError.AccountLocked -> stringResource(id = R.string.login_error_account_locked)
     is AuthError.BadRequest -> message?.takeIf { it.isNotBlank() }
         ?: stringResource(id = R.string.login_error_bad_request)
+    is AuthError.RateLimited -> stringResource(id = R.string.error_rate_limited)
     is AuthError.Server -> stringResource(id = R.string.login_error_server)
     is AuthError.Network -> stringResource(id = R.string.login_error_network)
     is AuthError.Unknown -> stringResource(id = R.string.login_error_unknown)

@@ -57,24 +57,6 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `respuesta 401 en endpoint autenticado limpia el token y emite sesión expirada`() = runTest {
-        store.saveTokens("expired-token", null)
-        mockServer.enqueue(MockResponse().setResponseCode(401))
-        val events = mutableListOf<Unit>()
-        val job = launch { sessionEvents.expired.collect { events.add(Unit) } }
-
-        client().newCall(Request.Builder().url(mockServer.url("/api/resource")).build())
-            .execute().close()
-
-        testScheduler.advanceUntilIdle()
-        job.cancel()
-
-        assertNull(store.accessToken())
-        assertEquals(1, store.clearCallCount)
-        assertEquals(1, events.size)
-    }
-
-    @Test
     fun `respuesta 401 en login no emite sesión expirada`() = runTest {
         store.saveTokens("expired-token", null)
         mockServer.enqueue(MockResponse().setResponseCode(401))

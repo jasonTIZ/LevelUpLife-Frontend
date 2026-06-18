@@ -10,6 +10,7 @@ sealed class AuthError(open val message: String? = null) {
         override val message: String? = null,
         val field: RegisterFieldKey? = null,
     ) : AuthError(message)
+    data class RateLimited(override val message: String? = null) : AuthError(message)
     data class Server(override val message: String? = null) : AuthError(message)
     data class Network(override val message: String? = null) : AuthError(message)
     data class Unknown(override val message: String? = null) : AuthError(message)

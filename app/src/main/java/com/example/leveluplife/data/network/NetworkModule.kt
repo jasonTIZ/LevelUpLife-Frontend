@@ -52,6 +52,9 @@ object NetworkModule {
 
     fun provideHabitsApi(retrofit: Retrofit): HabitsApi = retrofit.create(HabitsApi::class.java)
 
+    fun provideHabitCategoriesApi(retrofit: Retrofit): HabitCategoriesApi =
+        retrofit.create(HabitCategoriesApi::class.java)
+
     fun provideHabitTasksApi(retrofit: Retrofit): HabitTasksApi =
         retrofit.create(HabitTasksApi::class.java)
 

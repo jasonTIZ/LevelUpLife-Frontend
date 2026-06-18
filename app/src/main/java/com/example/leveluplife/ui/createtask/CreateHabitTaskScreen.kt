@@ -98,9 +98,10 @@ fun CreateHabitTaskScreen(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (!state.isLoadingHabits && state.habitsLoadError == null) {
-                CreateTaskBottomBar(
+                HabitTaskFormBottomBar(
                     isSubmitting = state.isSubmitting,
                     enabled = !state.isSubmitting,
+                    submitLabelRes = R.string.create_task_submit,
                     onSubmit = viewModel::submit,
                 )
             }
@@ -131,10 +132,12 @@ fun CreateHabitTaskScreen(
                 }
             }
 
-            else -> CreateHabitTaskForm(
-                state = state,
+            else -> HabitTaskFormContent(
+                form = state.form,
                 contentPadding = innerPadding,
                 onBack = onBack,
+                showTemplates = true,
+                showHabitPicker = true,
                 onHabitSelected = viewModel::onHabitSelected,
                 onTitleChange = viewModel::onTitleChange,
                 onDescriptionChange = viewModel::onDescriptionChange,
@@ -156,9 +159,10 @@ fun CreateHabitTaskScreen(
 }
 
 @Composable
-private fun CreateTaskBottomBar(
+internal fun HabitTaskFormBottomBar(
     isSubmitting: Boolean,
     enabled: Boolean,
+    submitLabelRes: Int,
     onSubmit: () -> Unit,
 ) {
     Surface(
@@ -196,7 +200,7 @@ private fun CreateTaskBottomBar(
                     )
                 } else {
                     Text(
-                        text = stringResource(R.string.create_task_submit),
+                        text = stringResource(submitLabelRes),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -207,7 +211,7 @@ private fun CreateTaskBottomBar(
 }
 
 @Composable
-private fun CreateHabitTaskHeader(onBack: () -> Unit) {
+private fun CreateHabitTaskHeader(onBack: () -> Unit, isEditMode: Boolean = false) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top,
@@ -224,14 +228,18 @@ private fun CreateHabitTaskHeader(onBack: () -> Unit) {
         }
         Column(modifier = Modifier.padding(top = 8.dp, end = ScreenHorizontalPadding)) {
             Text(
-                text = stringResource(R.string.create_task_title),
+                text = stringResource(
+                    if (isEditMode) R.string.update_task_title else R.string.create_task_title,
+                ),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = stringResource(R.string.create_task_subtitle),
+                text = stringResource(
+                    if (isEditMode) R.string.update_task_subtitle else R.string.create_task_subtitle,
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -241,10 +249,12 @@ private fun CreateHabitTaskHeader(onBack: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CreateHabitTaskForm(
-    state: CreateHabitTaskUiState,
+internal fun HabitTaskFormContent(
+    form: HabitTaskFormState,
     contentPadding: PaddingValues,
     onBack: () -> Unit,
+    showTemplates: Boolean,
+    showHabitPicker: Boolean,
     onHabitSelected: (Int) -> Unit,
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
@@ -283,23 +293,33 @@ private fun CreateHabitTaskForm(
             .padding(bottom = contentPadding.calculateBottomPadding() + 88.dp),
         verticalArrangement = Arrangement.spacedBy(SectionSpacing),
     ) {
-        CreateHabitTaskHeader(onBack = onBack)
+        CreateHabitTaskHeader(onBack = onBack, isEditMode = !showTemplates)
 
-        QuickTemplatesRow(
-            selectedTemplateId = state.selectedTemplateId,
-            onApplyTemplate = onApplyTemplate,
-        )
+        if (showTemplates) {
+            QuickTemplatesRow(
+                selectedTemplateId = form.selectedTemplateId,
+                onApplyTemplate = onApplyTemplate,
+            )
+        }
 
         FormSection(title = stringResource(R.string.create_task_section_basic)) {
-            HabitDropdown(
-                habits = state.habits,
-                selectedHabit = state.selectedHabit,
-                error = if (state.showValidationErrors) state.fieldErrors.habitId else null,
-                onSelected = onHabitSelected,
-                fieldColors = fieldColors,
-            )
+            if (showHabitPicker) {
+                HabitDropdown(
+                    habits = form.habits,
+                    selectedHabit = form.selectedHabit,
+                    error = if (form.showValidationErrors) form.fieldErrors.habitId else null,
+                    onSelected = onHabitSelected,
+                    fieldColors = fieldColors,
+                )
+            } else {
+                ReadOnlyMetaField(
+                    label = stringResource(R.string.create_task_field_habit),
+                    value = form.selectedHabit?.title?.ifBlank { "—" } ?: "—",
+                    fieldColors = fieldColors,
+                )
+            }
 
-            val categoryLabel = state.selectedHabit?.categoryName?.takeIf { it.isNotBlank() }
+            val categoryLabel = form.selectedHabit?.categoryName?.takeIf { it.isNotBlank() }
                 ?: stringResource(R.string.create_task_category_unknown)
             ReadOnlyMetaField(
                 label = stringResource(R.string.create_task_field_category),
@@ -308,14 +328,14 @@ private fun CreateHabitTaskForm(
             )
 
             OutlinedTextField(
-                value = state.title,
+                value = form.title,
                 onValueChange = onTitleChange,
                 label = { Text(stringResource(R.string.create_task_field_title)) },
                 modifier = Modifier.fillMaxWidth(),
-                isError = state.showValidationErrors && state.fieldErrors.title != null,
+                isError = form.showValidationErrors && form.fieldErrors.title != null,
                 supportingText = {
-                    if (state.showValidationErrors && state.fieldErrors.title != null) {
-                        Text(state.fieldErrors.title!!.toMessage())
+                    if (form.showValidationErrors && form.fieldErrors.title != null) {
+                        Text(form.fieldErrors.title!!.toMessage())
                     }
                 },
                 colors = fieldColors,
@@ -323,7 +343,7 @@ private fun CreateHabitTaskForm(
             )
 
             OutlinedTextField(
-                value = state.description,
+                value = form.description,
                 onValueChange = onDescriptionChange,
                 label = { Text(stringResource(R.string.create_task_field_description)) },
                 modifier = Modifier.fillMaxWidth(),
@@ -334,32 +354,59 @@ private fun CreateHabitTaskForm(
         }
 
         FormSection(title = stringResource(R.string.create_task_section_goal)) {
-            LabeledOptionDropdown(
-                label = stringResource(R.string.create_task_field_criteria_type),
-                options = CreateHabitTaskOptions.completionCriteria,
-                selected = state.completionCriteria,
-                error = if (state.showValidationErrors) state.fieldErrors.completionCriteria else null,
-                onSelected = onCompletionCriteriaChange,
-                fieldColors = fieldColors,
-            )
+            if (!showTemplates && form.completionCriteria == "TIMER") {
+                ReadOnlyMetaField(
+                    label = stringResource(R.string.create_task_field_criteria_type),
+                    value = stringResource(R.string.create_task_option_criteria_timer),
+                    fieldColors = fieldColors,
+                )
+                ReadOnlyMetaField(
+                    label = stringResource(R.string.create_task_field_timer_seconds),
+                    value = form.timerSecondsDefined.ifBlank { "—" },
+                    fieldColors = fieldColors,
+                )
+                if (form.showValidationErrors && form.fieldErrors.timerSeconds != null) {
+                    Text(
+                        text = form.fieldErrors.timerSeconds!!.toMessage(),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                if (form.timerPauseAllowed) {
+                    Text(
+                        text = stringResource(R.string.create_task_timer_pause_allowed),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else {
+                LabeledOptionDropdown(
+                    label = stringResource(R.string.create_task_field_criteria_type),
+                    options = CreateHabitTaskOptions.completionCriteria,
+                    selected = form.completionCriteria,
+                    error = if (form.showValidationErrors) form.fieldErrors.completionCriteria else null,
+                    onSelected = onCompletionCriteriaChange,
+                    fieldColors = fieldColors,
+                )
+            }
 
-            if (state.completionCriteria == "REPETITIONS") {
+            if (form.completionCriteria == "REPETITIONS") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(FieldSpacing),
                 ) {
                     OutlinedTextField(
-                        value = state.repetitions,
+                        value = form.repetitions,
                         onValueChange = onRepetitionsChange,
                         label = { Text(stringResource(R.string.create_task_field_repetitions)) },
                         modifier = Modifier.weight(1f),
-                        isError = state.showValidationErrors &&
-                            (state.fieldErrors.repetitions != null ||
-                                state.fieldErrors.measurementUnit != null),
+                        isError = form.showValidationErrors &&
+                            (form.fieldErrors.repetitions != null ||
+                                form.fieldErrors.measurementUnit != null),
                         supportingText = {
-                            val err = state.fieldErrors.repetitions
-                                ?: state.fieldErrors.measurementUnit
-                            if (state.showValidationErrors && err != null) Text(err.toMessage())
+                            val err = form.fieldErrors.repetitions
+                                ?: form.fieldErrors.measurementUnit
+                            if (form.showValidationErrors && err != null) Text(err.toMessage())
                         },
                         colors = fieldColors,
                         singleLine = true,
@@ -367,7 +414,7 @@ private fun CreateHabitTaskForm(
                     LabeledOptionDropdown(
                         label = stringResource(R.string.create_task_field_unit),
                         options = CreateHabitTaskOptions.measurementUnits,
-                        selected = state.measurementUnit,
+                        selected = form.measurementUnit,
                         error = null,
                         onSelected = onMeasurementUnitChange,
                         fieldColors = fieldColors,
@@ -376,17 +423,17 @@ private fun CreateHabitTaskForm(
                 }
 
                 PartialAllowedRow(
-                    checked = state.isPartialAllowed,
+                    checked = form.isPartialAllowed,
                     onCheckedChange = onPartialAllowedChange,
                 )
             }
 
-            if (state.completionCriteria == "EVIDENCE") {
+            if (form.completionCriteria == "EVIDENCE") {
                 LabeledOptionDropdown(
                     label = stringResource(R.string.create_task_field_evidence),
                     options = CreateHabitTaskOptions.evidenceTypes,
-                    selected = state.evidence,
-                    error = if (state.showValidationErrors) state.fieldErrors.evidence else null,
+                    selected = form.evidence,
+                    error = if (form.showValidationErrors) form.fieldErrors.evidence else null,
                     onSelected = onEvidenceChange,
                     fieldColors = fieldColors,
                 )
@@ -397,8 +444,8 @@ private fun CreateHabitTaskForm(
             LabeledOptionDropdown(
                 label = stringResource(R.string.create_task_field_difficulty),
                 options = CreateHabitTaskOptions.difficulties,
-                selected = state.difficulty,
-                error = if (state.showValidationErrors) state.fieldErrors.difficulty else null,
+                selected = form.difficulty,
+                error = if (form.showValidationErrors) form.fieldErrors.difficulty else null,
                 onSelected = onDifficultyChange,
                 fieldColors = fieldColors,
             )
@@ -406,8 +453,8 @@ private fun CreateHabitTaskForm(
             LabeledOptionDropdown(
                 label = stringResource(R.string.create_task_field_frequency),
                 options = CreateHabitTaskOptions.frequencies,
-                selected = state.frequency,
-                error = if (state.showValidationErrors) state.fieldErrors.frequency else null,
+                selected = form.frequency,
+                error = if (form.showValidationErrors) form.fieldErrors.frequency else null,
                 onSelected = onFrequencyChange,
                 fieldColors = fieldColors,
             )
@@ -417,14 +464,14 @@ private fun CreateHabitTaskForm(
                 horizontalArrangement = Arrangement.spacedBy(FieldSpacing),
             ) {
                 OutlinedTextField(
-                    value = state.periodLength,
+                    value = form.periodLength,
                     onValueChange = onPeriodLengthChange,
                     label = { Text(stringResource(R.string.create_task_field_period_length)) },
                     modifier = Modifier.weight(1f),
-                    isError = state.showValidationErrors && state.fieldErrors.periodLength != null,
+                    isError = form.showValidationErrors && form.fieldErrors.periodLength != null,
                     supportingText = {
-                        if (state.showValidationErrors && state.fieldErrors.periodLength != null) {
-                            Text(state.fieldErrors.periodLength!!.toMessage())
+                        if (form.showValidationErrors && form.fieldErrors.periodLength != null) {
+                            Text(form.fieldErrors.periodLength!!.toMessage())
                         }
                     },
                     colors = fieldColors,
@@ -433,8 +480,8 @@ private fun CreateHabitTaskForm(
                 LabeledOptionDropdown(
                     label = stringResource(R.string.create_task_field_period_unit),
                     options = CreateHabitTaskOptions.periodUnits,
-                    selected = state.periodUnit,
-                    error = if (state.showValidationErrors) state.fieldErrors.periodUnit else null,
+                    selected = form.periodUnit,
+                    error = if (form.showValidationErrors) form.fieldErrors.periodUnit else null,
                     onSelected = onPeriodUnitChange,
                     fieldColors = fieldColors,
                     modifier = Modifier.weight(1f),
@@ -442,22 +489,28 @@ private fun CreateHabitTaskForm(
             }
 
             OutlinedTextField(
-                value = state.startDate,
+                value = form.startDate,
                 onValueChange = onStartDateChange,
                 label = { Text(stringResource(R.string.create_task_field_start_date)) },
                 modifier = Modifier.fillMaxWidth(),
-                isError = state.showValidationErrors && state.fieldErrors.startDate != null,
-            supportingText = {
-                if (state.showValidationErrors && state.fieldErrors.startDate != null) {
-                    Text(state.fieldErrors.startDate!!.toMessage())
-                } else {
-                    Text(
-                        stringResource(R.string.create_task_start_date_hint),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            },
+                isError = form.showValidationErrors && form.fieldErrors.startDate != null,
+                supportingText = {
+                    if (form.showValidationErrors && form.fieldErrors.startDate != null) {
+                        Text(form.fieldErrors.startDate!!.toMessage())
+                    } else {
+                        Text(
+                            stringResource(
+                                if (showTemplates) {
+                                    R.string.create_task_start_date_hint
+                                } else {
+                                    R.string.update_task_start_date_hint
+                                },
+                            ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                },
                 colors = fieldColors,
                 singleLine = true,
             )
@@ -471,13 +524,13 @@ private fun CreateHabitTaskForm(
                 color = MaterialTheme.colorScheme.onBackground,
             )
             TaskPreviewCard(
-                state = state,
+                form = form,
                 modifier = Modifier.testTag(CreateHabitTaskTestTags.PREVIEW_CARD),
             )
         }
 
-        if (state.submitError != null) {
-            ErrorBanner(message = state.submitError ?: "", onDismiss = onDismissError)
+        if (form.submitError != null) {
+            ErrorBanner(message = form.submitError ?: "", onDismiss = onDismissError)
         }
 
         Spacer(Modifier.height(8.dp))
@@ -615,23 +668,24 @@ private fun PartialAllowedRow(
 }
 
 @Composable
-private fun TaskPreviewCard(state: CreateHabitTaskUiState, modifier: Modifier = Modifier) {
-    val habitTitle = state.selectedHabit?.title?.ifBlank { "—" } ?: "—"
-    val taskTitle = state.title.ifBlank { "—" }
-    val description = state.description.ifBlank {
+private fun TaskPreviewCard(form: HabitTaskFormState, modifier: Modifier = Modifier) {
+    val habitTitle = form.selectedHabit?.title?.ifBlank { "—" } ?: "—"
+    val taskTitle = form.title.ifBlank { "—" }
+    val description = form.description.ifBlank {
         stringResource(R.string.create_task_preview_no_description)
     }
     val goalLine = CreateHabitTaskOptions.previewGoalLine(
-        completionCriteria = state.completionCriteria,
-        repetitions = state.repetitions,
-        measurementUnit = state.measurementUnit,
-        evidence = state.evidence,
+        completionCriteria = form.completionCriteria,
+        repetitions = form.repetitions,
+        measurementUnit = form.measurementUnit,
+        evidence = form.evidence,
+        timerSecondsDefined = form.timerSecondsDefined,
     )
     val frequencyLine = CreateHabitTaskOptions.resolveLabel(
         CreateHabitTaskOptions.frequencies,
-        state.frequency,
+        form.frequency,
     ).ifBlank { "—" }
-    val startLine = CreateHabitTaskOptions.formatStartDate(state.startDate)
+    val startLine = CreateHabitTaskOptions.formatStartDate(form.startDate)
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -685,7 +739,7 @@ private fun TaskPreviewCard(state: CreateHabitTaskUiState, modifier: Modifier = 
                 value = startLine,
             )
 
-            if (state.completionCriteria == "REPETITIONS" && state.isPartialAllowed) {
+            if (form.completionCriteria == "REPETITIONS" && form.isPartialAllowed) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),

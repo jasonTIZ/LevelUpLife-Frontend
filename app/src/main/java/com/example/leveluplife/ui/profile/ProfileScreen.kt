@@ -518,5 +518,6 @@ private fun mapBannerMessage(key: String): String = when (key) {
     "network" -> stringResource(R.string.profile_error_network)
     "conflict" -> stringResource(R.string.profile_error_conflict)
     "precondition_failed" -> stringResource(R.string.profile_error_precondition)
+    "rate_limited" -> stringResource(R.string.error_rate_limited)
     else -> key.ifBlank { stringResource(R.string.login_error_unknown) }
 }

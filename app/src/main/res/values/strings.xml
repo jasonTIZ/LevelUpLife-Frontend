@@ -13,6 +13,9 @@
     <string name="login_dismiss">Cerrar</string>
     <string name="error_dialog_title">Error</string>
 
+    <!-- Errores globales -->
+    <string name="error_rate_limited">Demasiadas solicitudes. Intentá de nuevo en un momento.</string>
+
     <!-- Login: errores -->
     <string name="login_error_invalid_credentials">Usuario/email o contraseña incorrectos</string>
     <string name="login_error_session_expired">Tu sesión expiró. Iniciá sesión de nuevo.</string>
@@ -97,7 +100,8 @@
     <string name="create_task_field_period_length">Duración</string>
     <string name="create_task_field_period_unit">Periodo</string>
     <string name="create_task_field_start_date">Fecha de inicio</string>
-    <string name="create_task_start_date_hint">Formato AAAA-MM-DD · ej. 2026-05-26</string>
+    <string name="create_task_start_date_hint">Formato AAAA-MM-DD · hoy o una fecha futura</string>
+    <string name="update_task_start_date_hint">Si no la cambiás, se mantiene la fecha original. Al modificarla, elegí hoy o una fecha futura.</string>
     <string name="create_task_partial_allowed">Permitir progreso parcial</string>
     <string name="create_task_preview_title">Vista previa</string>
     <string name="create_task_preview_no_description">Sin descripción</string>
@@ -108,6 +112,8 @@
     <string name="create_task_category_unknown">Sin categoría</string>
     <string name="create_task_option_criteria_repetitions">Repeticiones</string>
     <string name="create_task_option_criteria_timer">Cronómetro</string>
+    <string name="create_task_field_timer_seconds">Duración (segundos)</string>
+    <string name="create_task_timer_pause_allowed">Pausas permitidas</string>
     <string name="create_task_option_criteria_evidence">Evidencia</string>
     <string name="create_task_option_unit_reps">Repeticiones</string>
     <string name="create_task_option_unit_series">Series</string>
@@ -128,15 +134,60 @@
     <string name="create_task_option_period_months">Meses</string>
     <string name="create_task_error_invalid_number">Valor numérico inválido</string>
     <string name="create_task_error_invalid_date">Fecha inválida. Usá el formato AAAA-MM-DD</string>
+    <string name="create_task_error_past_date">La fecha de inicio no puede ser anterior a hoy</string>
+    <string name="create_task_error_invalid_option">Selección inválida</string>
     <string name="create_task_error_criteria_required">Completa los criterios de repetición</string>
     <string name="create_task_error_evidence_required">Selecciona un tipo de evidencia</string>
     <string name="create_task_success_message">¡Tarea creada correctamente!</string>
 
+    <string name="update_task_title">Editar tarea</string>
+    <string name="update_task_subtitle">Actualizá los requisitos de la tarea</string>
+    <string name="update_task_submit">Guardar cambios</string>
+    <string name="update_task_success">¡Tarea actualizada correctamente!</string>
+    <string name="update_task_edit">Editar</string>
+    <string name="update_task_conflict_title">Conflicto al guardar</string>
+    <string name="update_task_conflict_message">La tarea cambió en otro lugar. Recargá los datos para ver la versión más reciente e intentá de nuevo.</string>
+    <string name="update_task_conflict_reload">Recargar</string>
+    <string name="update_task_conflict_dismiss">Cancelar</string>
+
     <!-- Task detail -->
     <string name="task_detail_title">Detalle de la tarea</string>
     <string name="task_detail_meta">%1$s · %2$s · inicio %3$s</string>
+    <string name="task_detail_planning_section">PLANIFICACIÓN</string>
     <string name="task_detail_criteria_section">CRITERIOS</string>
+    <string name="task_detail_criteria_goal">Meta</string>
+    <string name="task_detail_criteria_missing">Sin detalle configurado</string>
+    <string name="task_detail_criteria_inactive">Criterio inactivo</string>
+    <string name="task_detail_plan_duration">Duración del plan</string>
+    <string name="task_detail_period_value">%1$d %2$s</string>
+    <string name="task_detail_xp">Experiencia</string>
+    <string name="task_detail_xp_value">%1$d XP</string>
+    <string name="task_detail_week_days">Días de la semana</string>
+    <string name="weekday_mon">Lun</string>
+    <string name="weekday_tue">Mar</string>
+    <string name="weekday_wed">Mié</string>
+    <string name="weekday_thu">Jue</string>
+    <string name="weekday_fri">Vie</string>
+    <string name="weekday_sat">Sáb</string>
+    <string name="weekday_sun">Dom</string>
+    <string name="period_unit_day">día</string>
+    <string name="period_unit_days">días</string>
+    <string name="period_unit_week">semana</string>
+    <string name="period_unit_weeks">semanas</string>
+    <string name="period_unit_month">mes</string>
+    <string name="period_unit_months">meses</string>
+    <string name="task_detail_status_active">Activa</string>
+    <string name="task_detail_status_inactive">Inactiva</string>
+    <string name="task_detail_status_completed">Completada</string>
+    <string name="task_detail_untitled">Tarea sin título</string>
+    <string name="task_detail_timer_with_pause">%1$s (pausas permitidas)</string>
+    <string name="task_detail_timer_no_pause">%1$s (sin pausas)</string>
     <string name="task_detail_back_home">Volver al inicio</string>
+
+    <string name="habit_detail_task_subtitle">%1$s · %2$s · %3$s</string>
+    <string name="habit_detail_task_default_title">Tarea %1$d</string>
+    <string name="habit_detail_tasks_section">TAREAS Y CRITERIOS</string>
+    <string name="habit_detail_with_criteria">%1$d con criterios</string>
 
     <!-- Settings / deactivate account -->
     <string name="settings_title">Ajustes</string>

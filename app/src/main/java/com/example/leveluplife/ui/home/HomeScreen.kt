@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -74,6 +75,7 @@ fun HomeScreen(
     profileCache: ProfileCache,
     onOpenProfile: () -> Unit,
     onOpenSettings: () -> Unit = {},
+    onOpenCategories: () -> Unit = {},
     onHabitClick: (habitId: Int) -> Unit = {},
     onCreateTask: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -120,7 +122,11 @@ fun HomeScreen(
             ),
         ) {
             item {
-                HomeHeader(onOpenProfile = onOpenProfile, displayName = cachedProfile?.userName)
+                HomeHeader(
+                    onOpenProfile = onOpenProfile,
+                    displayName = cachedProfile?.userName,
+                    onOpenCategories = onOpenCategories,
+                )
                 Spacer(Modifier.height(10.dp))
                 StatsRow()
                 Spacer(Modifier.height(20.dp))
@@ -213,7 +219,11 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeHeader(onOpenProfile: () -> Unit, displayName: String?) {
+private fun HomeHeader(
+    onOpenProfile: () -> Unit,
+    displayName: String?,
+    onOpenCategories: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -247,13 +257,23 @@ private fun HomeHeader(onOpenProfile: () -> Unit, displayName: String?) {
                 )
             }
         }
-        IconButton(
-            onClick = onOpenProfile,
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
-                .size(46.dp),
-        ) {
-            Icon(Icons.Filled.Person, contentDescription = "Perfil", tint = MaterialTheme.colorScheme.onBackground)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            IconButton(
+                onClick = onOpenCategories,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
+                    .size(46.dp),
+            ) {
+                Icon(Icons.Filled.Category, contentDescription = "Categorías", tint = MaterialTheme.colorScheme.onBackground)
+            }
+            IconButton(
+                onClick = onOpenProfile,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
+                    .size(46.dp),
+            ) {
+                Icon(Icons.Filled.Person, contentDescription = "Perfil", tint = MaterialTheme.colorScheme.onBackground)
+            }
         }
     }
 }

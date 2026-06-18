@@ -59,6 +59,7 @@ object CreateHabitTaskOptions {
         repetitions: String,
         measurementUnit: String?,
         evidence: String?,
+        timerSecondsDefined: String = "",
     ): String = when (completionCriteria) {
         "REPETITIONS" -> {
             val count = repetitions.ifBlank { "—" }
@@ -66,6 +67,10 @@ object CreateHabitTaskOptions {
             "$count $unit"
         }
         "EVIDENCE" -> resolveLabel(evidenceTypes, evidence).ifBlank { "—" }
+        "TIMER" -> {
+            val seconds = timerSecondsDefined.ifBlank { "—" }
+            if (seconds == "—") "—" else "$seconds s"
+        }
         else -> "—"
     }
 }
