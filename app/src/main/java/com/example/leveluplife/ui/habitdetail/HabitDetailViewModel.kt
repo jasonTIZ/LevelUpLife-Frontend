@@ -37,6 +37,10 @@ class HabitDetailViewModel(
         }
     }
 
+    fun onShowInactiveTasksChange(value: Boolean) {
+        _state.update { it.copy(showInactiveTasks = value) }
+    }
+
     class Factory(
         private val habitRepository: HabitRepository,
         private val habitId: Int,

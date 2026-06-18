@@ -1,6 +1,7 @@
 package com.example.leveluplife.ui.habitdetail
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +19,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,18 +27,26 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaDto
@@ -56,13 +64,25 @@ private val OrangeWarn = Color(0xFFF59E0B)
 fun HabitDetailScreen(
     viewModel: HabitDetailViewModel,
     onBack: () -> Unit,
+    onTaskClick: (HabitTaskDto) -> Unit,
+    infoMessage: String? = null,
+    onInfoMessageShown: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(infoMessage) {
+        val message = infoMessage?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+        viewModel.loadHabit()
+        snackbarHostState.showSnackbar(message)
+        onInfoMessageShown()
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = DarkBackground,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -78,12 +98,12 @@ fun HabitDetailScreen(
                 IconButton(onClick = onBack) {
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Regresar",
+                        contentDescription = stringResource(R.string.create_task_back),
                         tint = DarkOnBackground,
                     )
                 }
                 Text(
-                    text = state.habit?.title ?: "Detalle del hábito",
+                    text = state.habit?.title ?: stringResource(R.string.habit_detail_default_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = DarkOnBackground,
@@ -116,41 +136,82 @@ fun HabitDetailScreen(
                             modifier = Modifier.padding(horizontal = 32.dp),
                         )
                         Spacer(Modifier.height(12.dp))
-                        TextButton(onClick = { viewModel.loadHabit() }) {
-                            Text("Reintentar", color = PurplePrimary)
+                        TextButton(onClick = viewModel::loadHabit) {
+                            Text(stringResource(R.string.create_task_retry), color = PurplePrimary)
                         }
                     }
                 }
 
-                state.habit != null -> HabitDetailContent(habit = requireNotNull(state.habit))
+                state.habit != null -> HabitDetailContent(
+                    habit = requireNotNull(state.habit),
+                    showInactiveTasks = state.showInactiveTasks,
+                    onShowInactiveTasksChange = viewModel::onShowInactiveTasksChange,
+                    onTaskClick = onTaskClick,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun HabitDetailContent(habit: HabitDto) {
+private fun HabitDetailContent(
+    habit: HabitDto,
+    showInactiveTasks: Boolean,
+    onShowInactiveTasksChange: (Boolean) -> Unit,
+    onTaskClick: (HabitTaskDto) -> Unit,
+) {
+    val activeTasks = habit.tasks.filter { it.isActive }
+    val inactiveTasks = habit.tasks.filter { !it.isActive }
+
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { HabitInfoCard(habit) }
+        item { HabitInfoCard(habit = habit, activeTaskCount = activeTasks.size) }
 
-        if (habit.tasks.isNotEmpty()) {
+        if (inactiveTasks.isNotEmpty()) {
             item {
-                Spacer(Modifier.height(4.dp))
+                InactiveTasksToggleRow(
+                    inactiveCount = inactiveTasks.size,
+                    checked = showInactiveTasks,
+                    onCheckedChange = onShowInactiveTasksChange,
+                )
+            }
+        }
+
+        if (activeTasks.isNotEmpty()) {
+            item {
+                SectionTitle(stringResource(R.string.habit_detail_tasks_section))
+            }
+            itemsIndexed(activeTasks) { index, task ->
+                TaskCriteriaCard(
+                    taskNumber = index + 1,
+                    task = task,
+                    onClick = { onTaskClick(task) },
+                )
+            }
+        } else if (!showInactiveTasks) {
+            item {
                 Text(
-                    text = "TAREAS Y CRITERIOS",
-                    fontSize = 11.sp,
-                    letterSpacing = 2.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    text = stringResource(R.string.habit_detail_no_active_tasks),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = DarkOnSurfaceVariant,
                 )
-                Spacer(Modifier.height(4.dp))
             }
+        }
 
-            itemsIndexed(habit.tasks) { index, task ->
-                TaskCriteriaCard(taskNumber = index + 1, task = task)
+        if (showInactiveTasks && inactiveTasks.isNotEmpty()) {
+            item {
+                Spacer(Modifier.height(4.dp))
+                SectionTitle(stringResource(R.string.habit_detail_inactive_tasks_section))
+            }
+            itemsIndexed(inactiveTasks) { index, task ->
+                TaskCriteriaCard(
+                    taskNumber = index + 1,
+                    task = task,
+                    onClick = { onTaskClick(task) },
+                    isInactive = true,
+                )
             }
         }
 
@@ -159,7 +220,63 @@ private fun HabitDetailContent(habit: HabitDto) {
 }
 
 @Composable
-private fun HabitInfoCard(habit: HabitDto) {
+private fun SectionTitle(text: String) {
+    Spacer(Modifier.height(4.dp))
+    Text(
+        text = text,
+        fontSize = 11.sp,
+        letterSpacing = 2.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = DarkOnSurfaceVariant,
+    )
+    Spacer(Modifier.height(4.dp))
+}
+
+@Composable
+private fun InactiveTasksToggleRow(
+    inactiveCount: Int,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onCheckedChange(!checked) }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.habit_detail_show_inactive_tasks),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = DarkOnBackground,
+                )
+                Text(
+                    text = stringResource(R.string.habit_detail_inactive_tasks_count, inactiveCount),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = DarkOnSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = PurplePrimary,
+                    checkedTrackColor = PurplePrimaryContainer,
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun HabitInfoCard(habit: HabitDto, activeTaskCount: Int) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
@@ -197,8 +314,9 @@ private fun HabitInfoCard(habit: HabitDto) {
 
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                val taskCount = habit.tasks.size
-                val withCriteria = habit.tasks.count { it.repetitionCriteria != null }
+                val withCriteria = habit.tasks
+                    .filter { it.isActive }
+                    .count { it.repetitionCriteria != null }
 
                 Box(
                     modifier = Modifier
@@ -206,7 +324,10 @@ private fun HabitInfoCard(habit: HabitDto) {
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                 ) {
                     Text(
-                        text = "$taskCount ${if (taskCount == 1) "tarea" else "tareas"}",
+                        text = stringResource(
+                            R.string.habit_detail_active_tasks_count,
+                            activeTaskCount,
+                        ),
                         fontSize = 12.sp,
                         color = PurplePrimary,
                         fontWeight = FontWeight.Medium,
@@ -224,7 +345,7 @@ private fun HabitInfoCard(habit: HabitDto) {
                             .padding(horizontal = 10.dp, vertical = 4.dp),
                     ) {
                         Text(
-                            text = "$withCriteria con criterios",
+                            text = stringResource(R.string.habit_detail_with_criteria_count, withCriteria),
                             fontSize = 12.sp,
                             color = GreenSuccess,
                             fontWeight = FontWeight.Medium,
@@ -240,14 +361,25 @@ private fun HabitInfoCard(habit: HabitDto) {
 private fun TaskCriteriaCard(
     taskNumber: Int,
     task: HabitTaskDto,
+    onClick: () -> Unit,
+    isInactive: Boolean = false,
 ) {
     val criteria = task.repetitionCriteria
-    val label = task.title.takeIf { it.isNotBlank() } ?: "Objetivo $taskNumber"
+    val label = task.title.takeIf { it.isNotBlank() }
+        ?: stringResource(R.string.habit_detail_task_default_title, taskNumber)
 
     Card(
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
-        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isInactive) {
+                DarkSurfaceVariant.copy(alpha = 0.65f)
+            } else {
+                DarkSurfaceVariant
+            },
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -274,29 +406,29 @@ private fun TaskCriteriaCard(
                     text = label,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = DarkOnBackground,
+                    color = if (isInactive) DarkOnSurfaceVariant else DarkOnBackground,
                 )
 
-                if (criteria != null) {
-                    Spacer(Modifier.height(6.dp))
-                    CriteriaRow(criteria)
-                } else {
+                if (isInactive) {
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "Sin criterios de repetición",
+                        text = stringResource(R.string.task_detail_status_inactive),
                         style = MaterialTheme.typography.bodySmall,
                         color = DarkOnSurfaceVariant,
                     )
                 }
-            }
 
-            if (criteria?.isActive == true) {
-                Icon(
-                    Icons.Filled.CheckCircle,
-                    contentDescription = "Activo",
-                    tint = GreenSuccess,
-                    modifier = Modifier.size(20.dp),
-                )
+                if (criteria != null) {
+                    Spacer(Modifier.height(6.dp))
+                    CriteriaRow(criteria)
+                } else if (!isInactive) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.habit_detail_no_repetition_criteria),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = DarkOnSurfaceVariant,
+                    )
+                }
             }
         }
     }
@@ -315,14 +447,14 @@ private fun CriteriaRow(criteria: RepetitionCriteriaDto) {
         )
         if (criteria.isPartialAllowed) {
             CriteriaChip(
-                label = "Admite parcial",
+                label = stringResource(R.string.create_task_partial_allowed),
                 background = OrangeWarn.copy(alpha = 0.15f),
                 textColor = OrangeWarn,
             )
         }
         if (!criteria.isActive) {
             CriteriaChip(
-                label = "Inactivo",
+                label = stringResource(R.string.task_detail_status_inactive),
                 background = DarkOnSurfaceVariant.copy(alpha = 0.12f),
                 textColor = DarkOnSurfaceVariant,
             )

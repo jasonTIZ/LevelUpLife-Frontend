@@ -21,6 +21,7 @@ import com.example.leveluplife.ui.createtask.CreateHabitTaskViewModel
 import com.example.leveluplife.ui.habitdetail.HabitDetailScreen
 import com.example.leveluplife.ui.habitdetail.HabitDetailViewModel
 import com.example.leveluplife.ui.habittaskdetail.HabitTaskDetailScreen
+import com.example.leveluplife.ui.habittaskdetail.HabitTaskDetailViewModel
 import com.example.leveluplife.ui.home.HomeScreen
 import com.example.leveluplife.ui.home.HomeViewModel
 import com.example.leveluplife.ui.profile.ProfileScreen
@@ -44,6 +45,7 @@ object Routes {
 
     const val ARG_CREATED_TASK_JSON = "created_task_json"
     const val ARG_SHOW_CONFIRMATION = "show_confirmation"
+    const val ARG_TASK_DEACTIVATED_MESSAGE = "task_deactivated_message"
     const val ARG_DEACTIVATION_MESSAGE = "deactivation_message"
     const val ARG_SESSION_EXPIRED_MESSAGE = "session_expired_message"
 }
@@ -174,12 +176,21 @@ fun AppNavigation(
             arguments = listOf(navArgument("habitId") { type = NavType.IntType }),
         ) { backStackEntry ->
             val habitId = backStackEntry.arguments?.getInt("habitId") ?: return@composable
+            val infoMessage = backStackEntry.savedStateHandle
+                .get<String>(Routes.ARG_TASK_DEACTIVATED_MESSAGE)
             val vm: HabitDetailViewModel = viewModel(
                 factory = HabitDetailViewModel.Factory(container.habitRepository, habitId),
             )
             HabitDetailScreen(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },
+                onTaskClick = { task ->
+                    navController.navigate(Routes.habitTaskDetail(task.id))
+                },
+                infoMessage = infoMessage,
+                onInfoMessageShown = {
+                    backStackEntry.savedStateHandle.remove<String>(Routes.ARG_TASK_DEACTIVATED_MESSAGE)
+                },
             )
         }
         composable(
@@ -223,28 +234,30 @@ fun AppNavigation(
                 ?: navController.previousBackStackEntry
                     ?.savedStateHandle
                     ?.get<String>(Routes.ARG_CREATED_TASK_JSON)
-            val task = taskJson?.let {
+            val initialTask = taskJson?.let {
                 runCatching { json.decodeFromString(HabitTaskDto.serializer(), it) }.getOrNull()
-            }
-            if (task != null && task.id == taskId) {
-                HabitTaskDetailScreen(
-                    task = task,
-                    showConfirmation = true,
-                    onBack = {
-                        navController.popBackStack(Routes.DASHBOARD, inclusive = false)
-                    },
-                    onDone = {
-                        navController.popBackStack(Routes.DASHBOARD, inclusive = false)
-                    },
-                )
-            } else {
-                HabitTaskDetailScreen(
-                    task = HabitTaskDto(id = taskId, title = "Task #$taskId"),
-                    showConfirmation = false,
-                    onBack = { navController.popBackStack() },
-                    onDone = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
-                )
-            }
+            }?.takeIf { it.id == taskId }
+            val vm: HabitTaskDetailViewModel = viewModel(
+                factory = HabitTaskDetailViewModel.Factory(
+                    taskId = taskId,
+                    habitTaskRepository = container.habitTaskRepository,
+                    initialTask = initialTask,
+                ),
+            )
+            HabitTaskDetailScreen(
+                viewModel = vm,
+                showConfirmation = initialTask != null,
+                onBack = { navController.popBackStack() },
+                onDone = {
+                    navController.popBackStack(Routes.DASHBOARD, inclusive = false)
+                },
+                onTaskDeactivated = { message ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(Routes.ARG_TASK_DEACTIVATED_MESSAGE, message)
+                    navController.popBackStack()
+                },
+            )
         }
     }
 }

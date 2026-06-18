@@ -51,6 +51,11 @@ data class RepetitionCriteriaDto(
 }
 
 @Serializable
+data class DeactivateHabitTaskResponse(
+    val message: String = "",
+)
+
+@Serializable
 data class HabitTaskDto(
     val id: Int,
     val habitId: Int = 0,

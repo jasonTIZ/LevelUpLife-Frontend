@@ -6,4 +6,5 @@ data class HabitDetailUiState(
     val habit: HabitDto? = null,
     val isLoading: Boolean = true,
     val error: String? = null,
+    val showInactiveTasks: Boolean = false,
 )
