@@ -45,10 +45,11 @@ object HabitTaskApiErrorParser {
         }
 
         val fieldErrors = mapServerErrors(errorsNode)
-        val summary = if (fieldErrors.hasErrors) {
-            "Revisa los campos marcados."
-        } else {
-            root["title"]?.asStringOrNull() ?: "Datos inválidos."
+        val firstMessage = firstErrorMessage(errorsNode)
+        val summary = when {
+            fieldErrors.hasErrors -> "Revisa los campos marcados."
+            firstMessage != null -> firstMessage
+            else -> root["title"]?.asStringOrNull() ?: "Datos inválidos."
         }
         return ParsedApiError(summary = summary, fieldErrors = fieldErrors)
     }
@@ -92,8 +93,20 @@ object HabitTaskApiErrorParser {
                 "measurementUnit",
             ),
             evidence = mapField("evidence", "Evidence"),
+            timerSeconds = mapField(
+                "timerCriteria",
+                "TimerCriteria",
+                "timerCriteria.numSecondsDefined",
+                "TimerCriteria.NUM_SECONDS_DEFINED",
+                "TimerCriteria.NumSecondsDefined",
+            ),
         )
     }
+
+    private fun firstErrorMessage(errors: JsonObject): String? =
+        errors.values
+            .flatMap { it.toMessageList() }
+            .firstOrNull { it.isNotBlank() }
 
     private fun JsonElement.toMessageList(): List<String> = when (this) {
         is JsonArray -> mapNotNull { (it as? JsonPrimitive)?.asStringOrNull() }

@@ -37,6 +37,9 @@ object ProfileErrorMapper {
             412 -> ProfileError.PreconditionFailed(
                 envelope?.details ?: "Profile was modified elsewhere. Reload and try again.",
             )
+            429 -> ProfileError.RateLimited(
+                envelope?.details ?: "Too many requests. Try again later.",
+            )
             in 500..599 -> ProfileError.Server(
                 envelope?.details ?: "Server error. Try again later.",
             )

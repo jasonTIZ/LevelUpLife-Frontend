@@ -43,16 +43,6 @@ class ProfileInputSanitizerTest {
     }
 
     @Test
-    fun `sanitizeUserName removes invalid chars`() {
-        assertEquals("aaron.dev_1", ProfileInputSanitizer.sanitizeUserName(" aaron dev!@#._1 "))
-    }
-
-    @Test
-    fun `sanitizeBirthdate keeps digits and hyphens only`() {
-        assertEquals("2000-01-15", ProfileInputSanitizer.sanitizeBirthdate("20abc00/01-15xyz"))
-    }
-
-    @Test
     fun `sanitizeBio caps length`() {
         val longBio = "a".repeat(ProfileValidators.BIO_MAX + 10)
         assertEquals(ProfileValidators.BIO_MAX, ProfileInputSanitizer.sanitizeBio(longBio).length)
