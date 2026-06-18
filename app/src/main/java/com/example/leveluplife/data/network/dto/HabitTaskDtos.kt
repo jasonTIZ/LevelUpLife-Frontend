@@ -11,7 +11,7 @@ data class CreateRepetitionCriteriaRequest(
     val isActive: Boolean = true,
 )
 
-/** Nombres alineados con CreateTimerCriteriaRequestDto del backend. */
+/** Names aligned with the backend CreateTimerCriteriaRequestDto. */
 @Serializable
 data class CreateTimerCriteriaRequest(
     @SerialName("NUM_SECONDS_DEFINED")

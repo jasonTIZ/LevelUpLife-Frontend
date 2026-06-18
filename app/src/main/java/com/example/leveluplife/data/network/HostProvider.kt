@@ -7,11 +7,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
 /**
- * Resuelve el host base del backend tomando en cuenta:
- *  1. Override runtime (DataStore debug) si se ha definido en builds debug.
- *  2. BuildConfig.API_HOST (default `localhost:5147` o el valor de local.properties).
- *  3. Si el host efectivo apunta a `localhost` y se ejecuta en emulador,
- *     se reemplaza automáticamente por `10.0.2.2` (IP del host del emulador).
+ * Resolves the backend base host taking into account:
+ *  1. Runtime override (DataStore debug) when set in debug builds.
+ *  2. BuildConfig.API_HOST (default `localhost:5147` or the local.properties value).
+ *  3. When the effective host points to `localhost` on an emulator,
+ *     it is automatically replaced with `10.0.2.2` (the emulator host IP).
  */
 class HostProvider(
     private val debugPrefs: DebugApiPreferences,
@@ -33,8 +33,8 @@ class HostProvider(
     }
 
     /**
-     * En emulador, `localhost` y las IPs LAN del PC (p. ej. 192.168.x.x) no alcanzan
-     * el backend del host; hay que usar el alias `10.0.2.2` conservando el puerto.
+     * On the emulator, `localhost` and the PC LAN IPs (e.g. 192.168.x.x) cannot
+     * reach the host backend; use the `10.0.2.2` alias while preserving the port.
      */
     private fun resolveHostForDevice(configuredHost: String): String {
         if (!isProbablyEmulator()) return configuredHost

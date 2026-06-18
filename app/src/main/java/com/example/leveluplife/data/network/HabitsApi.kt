@@ -14,7 +14,7 @@ interface HabitsApi {
         @Query("pageSize") pageSize: Int,
     ): Response<HabitsPageResponse>
 
-    /** Detalle del hábito con tasks[] (repetitionCriteria, timerCriteria). Requiere JWT. */
+    /** Habit detail with tasks[] (repetitionCriteria, timerCriteria). Requires JWT. */
     @GET("api/Habits/{id}")
     suspend fun getHabitById(@Path("id") id: Int): Response<HabitDto>
 }
