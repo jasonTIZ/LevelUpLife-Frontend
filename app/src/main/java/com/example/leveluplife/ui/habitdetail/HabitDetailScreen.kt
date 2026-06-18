@@ -56,6 +56,7 @@ private val OrangeWarn = Color(0xFFF59E0B)
 fun HabitDetailScreen(
     viewModel: HabitDetailViewModel,
     onBack: () -> Unit,
+    onTaskClick: (HabitTaskDto) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -122,14 +123,17 @@ fun HabitDetailScreen(
                     }
                 }
 
-                state.habit != null -> HabitDetailContent(habit = requireNotNull(state.habit))
+                state.habit != null -> HabitDetailContent(
+                    habit = requireNotNull(state.habit),
+                    onTaskClick = onTaskClick,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun HabitDetailContent(habit: HabitDto) {
+private fun HabitDetailContent(habit: HabitDto, onTaskClick: (HabitTaskDto) -> Unit) {
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -150,7 +154,11 @@ private fun HabitDetailContent(habit: HabitDto) {
             }
 
             itemsIndexed(habit.tasks) { index, task ->
-                TaskCriteriaCard(taskNumber = index + 1, task = task)
+                TaskCriteriaCard(
+                    taskNumber = index + 1,
+                    task = task,
+                    onClick = { onTaskClick(task) },
+                )
             }
         }
 
@@ -240,11 +248,13 @@ private fun HabitInfoCard(habit: HabitDto) {
 private fun TaskCriteriaCard(
     taskNumber: Int,
     task: HabitTaskDto,
+    onClick: () -> Unit,
 ) {
     val criteria = task.repetitionCriteria
     val label = task.title.takeIf { it.isNotBlank() } ?: "Objetivo $taskNumber"
 
     Card(
+        onClick = onClick,
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
         modifier = Modifier.fillMaxWidth(),

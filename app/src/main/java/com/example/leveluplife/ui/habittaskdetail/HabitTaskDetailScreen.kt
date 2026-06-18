@@ -54,6 +54,7 @@ fun HabitTaskDetailScreen(
     showConfirmation: Boolean,
     onBack: () -> Unit,
     onDone: () -> Unit,
+    onViewEvidences: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -193,6 +194,13 @@ fun HabitTaskDetailScreen(
                 }
 
                 Spacer(Modifier.weight(1f))
+
+                androidx.compose.material3.TextButton(
+                    onClick = onViewEvidences,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.evidence_gallery_view_button), color = PurplePrimary)
+                }
 
                 androidx.compose.material3.TextButton(
                     onClick = onDone,
