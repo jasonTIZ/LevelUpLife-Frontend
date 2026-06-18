@@ -1,6 +1,8 @@
 package com.example.leveluplife
 
 import android.content.Context
+import android.util.Log
+import com.example.leveluplife.BuildConfig
 import com.example.leveluplife.data.auth.AuthRepository
 import com.example.leveluplife.data.auth.DefaultAuthRepository
 import com.example.leveluplife.data.auth.EncryptedTokenStore
@@ -37,6 +39,10 @@ import kotlinx.coroutines.Dispatchers
 class AppContainer(applicationContext: Context) {
 
     private val appContext = applicationContext.applicationContext
+
+    companion object {
+        private const val TAG = "LevelUpLife"
+    }
     private val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     val themePreferences: ThemePreferences = ThemePreferences(appContext)
@@ -50,7 +56,11 @@ class AppContainer(applicationContext: Context) {
 
     private val okHttp = NetworkModule.provideOkHttp(tokenStore, sessionEvents)
     private val retrofit by lazy {
-        NetworkModule.provideRetrofit(okHttp, hostProvider.resolveBaseUrl())
+        val baseUrl = hostProvider.resolveBaseUrl()
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "API base URL: $baseUrl (BuildConfig host=${BuildConfig.API_HOST})")
+        }
+        NetworkModule.provideRetrofit(okHttp, baseUrl)
     }
     private val authApi: AuthApi by lazy { NetworkModule.provideAuthApi(retrofit) }
     private val habitsApi: HabitsApi by lazy { NetworkModule.provideHabitsApi(retrofit) }
