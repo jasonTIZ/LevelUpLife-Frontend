@@ -264,7 +264,7 @@ class RegisterViewModel(
                 email = current.email,
                 birthdate = current.birthdate,
                 userName = current.userName,
-                password = current.password,
+                password = current.password.trim(),
                 classId = current.classId!!,
             )
             result

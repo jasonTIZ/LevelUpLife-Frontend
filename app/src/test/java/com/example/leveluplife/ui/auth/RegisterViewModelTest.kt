@@ -56,6 +56,21 @@ class RegisterViewModelTest {
     }
 
     @Test
+    fun `submit con contrasena corta con espacios al final muestra TooShort`() = runTest(testDispatcher) {
+        val fake = FakeRegisterAuthRepository()
+        val vm = RegisterViewModel(fake)
+
+        fillValidForm(vm)
+        vm.onPasswordChange("abc   ")
+        vm.onConfirmPasswordChange("abc   ")
+        vm.onSubmit()
+        advanceUntilIdle()
+
+        assertEquals(FieldError.TooShort(6), vm.state.value.passwordError)
+        assertEquals(0, fake.registerCalls)
+    }
+
+    @Test
     fun `submit con contrasenas distintas muestra PasswordMismatch`() = runTest(testDispatcher) {
         val fake = FakeRegisterAuthRepository()
         val vm = RegisterViewModel(fake)

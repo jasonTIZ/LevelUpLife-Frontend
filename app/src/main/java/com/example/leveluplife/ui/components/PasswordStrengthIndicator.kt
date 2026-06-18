@@ -25,13 +25,14 @@ enum class PasswordStrength {
 }
 
 fun evaluatePasswordStrength(password: String): PasswordStrength {
-    if (password.isEmpty()) return PasswordStrength.EMPTY
+    val normalized = password.trim()
+    if (normalized.isEmpty()) return PasswordStrength.EMPTY
     var score = 0
-    if (password.length >= 6) score++
-    if (password.length >= 10) score++
-    if (password.any { it.isUpperCase() }) score++
-    if (password.any { it.isDigit() }) score++
-    if (password.any { !it.isLetterOrDigit() }) score++
+    if (normalized.length >= 6) score++
+    if (normalized.length >= 10) score++
+    if (normalized.any { it.isUpperCase() }) score++
+    if (normalized.any { it.isDigit() }) score++
+    if (normalized.any { !it.isLetterOrDigit() }) score++
     return when {
         score <= 2 -> PasswordStrength.WEAK
         score <= 3 -> PasswordStrength.FAIR

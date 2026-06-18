@@ -63,18 +63,21 @@ object RegistrationValidators {
     }
 
     fun validatePassword(input: String): FieldError? {
+        val normalized = input.trim()
         return when {
-            input.isEmpty() -> FieldError.Required
-            input.length < PASSWORD_MIN -> FieldError.TooShort(PASSWORD_MIN)
-            input.length > PASSWORD_MAX -> FieldError.TooLong(PASSWORD_MAX)
+            normalized.isEmpty() -> FieldError.Required
+            normalized.length < PASSWORD_MIN -> FieldError.TooShort(PASSWORD_MIN)
+            normalized.length > PASSWORD_MAX -> FieldError.TooLong(PASSWORD_MAX)
             else -> null
         }
     }
 
     fun validateConfirmPassword(password: String, confirmPassword: String): FieldError? {
+        val normalizedPassword = password.trim()
+        val normalizedConfirm = confirmPassword.trim()
         return when {
-            confirmPassword.isEmpty() -> FieldError.Required
-            confirmPassword != password -> FieldError.PasswordMismatch
+            normalizedConfirm.isEmpty() -> FieldError.Required
+            normalizedConfirm != normalizedPassword -> FieldError.PasswordMismatch
             else -> null
         }
     }
