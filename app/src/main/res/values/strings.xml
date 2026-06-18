@@ -13,6 +13,9 @@
     <string name="login_dismiss">Cerrar</string>
     <string name="error_dialog_title">Error</string>
 
+    <!-- Errores globales -->
+    <string name="error_rate_limited">Demasiadas solicitudes. Intentá de nuevo en un momento.</string>
+
     <!-- Login: errores -->
     <string name="login_error_invalid_credentials">Usuario/email o contraseña incorrectos</string>
     <string name="login_error_session_expired">Tu sesión expiró. Iniciá sesión de nuevo.</string>
