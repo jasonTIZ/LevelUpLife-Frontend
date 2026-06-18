@@ -16,6 +16,8 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
+import com.example.leveluplife.ui.categories.CategoriesScreen
+import com.example.leveluplife.ui.categories.CategoriesViewModel
 import com.example.leveluplife.ui.createtask.CreateHabitTaskScreen
 import com.example.leveluplife.ui.createtask.CreateHabitTaskViewModel
 import com.example.leveluplife.ui.habitdetail.HabitDetailScreen
@@ -32,6 +34,7 @@ import kotlinx.serialization.json.Json
 object Routes {
     const val LOGIN = "login"
     const val DASHBOARD = "dashboard"
+    const val CATEGORIES = "categories"
     const val PROFILE = "profile"
     const val SETTINGS = "settings"
     const val HABIT_DETAIL = "habit_detail/{habitId}"
@@ -121,6 +124,9 @@ fun AppNavigation(
                 onOpenSettings = {
                     navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 },
+                onOpenCategories = {
+                    navController.navigate(Routes.CATEGORIES) { launchSingleTop = true }
+                },
                 onHabitClick = { habitId ->
                     navController.navigate(Routes.habitDetail(habitId))
                 },
@@ -146,6 +152,18 @@ fun AppNavigation(
                         popUpTo(Routes.DASHBOARD) { inclusive = true }
                         launchSingleTop = true
                     }
+                },
+            )
+        }
+        composable(Routes.CATEGORIES) {
+            val vm: CategoriesViewModel = viewModel(
+                factory = CategoriesViewModel.Factory(container.habitCategoryRepository),
+            )
+            CategoriesScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onCategoryClick = {
+                    // Navegación al detalle de categoría: fuera de alcance de esta tarea.
                 },
             )
         }
