@@ -22,6 +22,7 @@ interface ProfileCache {
     suspend fun loadPersisted()
     suspend fun update(profile: PlayerProfile, etag: String? = null)
     suspend fun updateLocalExtras(avatarUri: String?, bio: String)
+    suspend fun updateLevel(level: Int)
     fun currentEtag(): String?
 }
 
@@ -76,6 +77,12 @@ class DefaultProfileCache(
     override suspend fun updateLocalExtras(avatarUri: String?, bio: String) {
         val current = _profile.value ?: return
         update(current.copy(avatarUri = avatarUri, bio = bio))
+    }
+
+    override suspend fun updateLevel(level: Int) {
+        val current = _profile.value ?: return
+        if (current.level == level) return
+        update(current.copy(level = level))
     }
 
     override fun currentEtag(): String? = etag

@@ -67,6 +67,11 @@ class FakeProfileCache(
         _profile.value = current.copy(avatarUri = avatarUri, bio = bio)
     }
 
+    override suspend fun updateLevel(level: Int) {
+        val current = _profile.value ?: return
+        _profile.value = current.copy(level = level)
+    }
+
     override fun currentEtag(): String? = etag
 }
 

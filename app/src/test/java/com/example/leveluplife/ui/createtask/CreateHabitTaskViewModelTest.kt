@@ -138,5 +138,14 @@ class CreateHabitTaskViewModelTest {
             createCalls++
             return result
         }
+
+        override suspend fun getHabitTask(taskId: Int): Result<HabitTaskDto> =
+            Result.failure(UnsupportedOperationException())
+
+        override suspend fun completeHabitTask(
+            taskId: Int,
+            completedAt: java.time.Instant,
+        ): Result<com.example.leveluplife.data.network.dto.CompleteHabitTaskResponse> =
+            Result.failure(UnsupportedOperationException())
     }
 }

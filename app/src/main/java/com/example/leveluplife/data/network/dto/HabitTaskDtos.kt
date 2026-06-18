@@ -3,6 +3,18 @@ package com.example.leveluplife.data.network.dto
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class CompleteHabitTaskRequest(
+    val completedAt: String,
+)
+
+@Serializable
+data class CompleteHabitTaskResponse(
+    val xpEarned: Int = 0,
+    val newLevel: Int = 1,
+    val streakUpdated: Boolean = false,
+)
+
+@Serializable
 data class CreateRepetitionCriteriaRequest(
     val repetitions: Int,
     val measurementUnit: String,

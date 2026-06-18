@@ -111,6 +111,24 @@
     <string name="task_detail_meta">%1$s · %2$s · inicio %3$s</string>
     <string name="task_detail_criteria_section">CRITERIOS</string>
     <string name="task_detail_back_home">Volver al inicio</string>
+    <string name="task_detail_untitled">Tarea sin título</string>
+    <string name="task_detail_status_completed">Completada</string>
+    <string name="task_detail_xp_value">%1$d XP</string>
+
+    <!-- Complete habit task -->
+    <string name="complete_task_button">Completar tarea</string>
+    <string name="complete_task_already_completed">Esta tarea ya fue completada.</string>
+    <string name="complete_task_reward_title">¡Buen trabajo!</string>
+    <string name="complete_task_reward_subtitle">Cada hábito completado te acerca a una mejor versión de ti.</string>
+    <string name="complete_task_reward_task_label">HAS COMPLETADO</string>
+    <string name="complete_task_xp_earned">+%1$d XP</string>
+    <string name="complete_task_current_level">Nivel actual: %1$d</string>
+    <string name="complete_task_progress_hint">El detalle de XP hacia el siguiente nivel lo define el backend.</string>
+    <string name="complete_task_streak_updated">¡Racha actualizada!</string>
+    <string name="complete_task_reward_continue">Continuar</string>
+    <string name="complete_task_level_up_title">¡SUBISTE DE NIVEL!</string>
+    <string name="complete_task_level_up_transition">Nivel %1$d → %2$d</string>
+    <string name="complete_task_level_up_message">Cada hábito completado te acerca a una mejor versión de ti mismo.</string>
 
     <!-- Settings / deactivate account -->
     <string name="settings_title">Ajustes</string>

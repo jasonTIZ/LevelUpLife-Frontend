@@ -23,6 +23,7 @@ import com.example.leveluplife.ui.createtask.CreateHabitTaskViewModel
 import com.example.leveluplife.ui.habitdetail.HabitDetailScreen
 import com.example.leveluplife.ui.habitdetail.HabitDetailViewModel
 import com.example.leveluplife.ui.habittaskdetail.HabitTaskDetailScreen
+import com.example.leveluplife.ui.habittaskdetail.HabitTaskDetailViewModel
 import com.example.leveluplife.ui.home.HomeScreen
 import com.example.leveluplife.ui.home.HomeViewModel
 import com.example.leveluplife.ui.profile.ProfileScreen
@@ -241,28 +242,25 @@ fun AppNavigation(
                 ?: navController.previousBackStackEntry
                     ?.savedStateHandle
                     ?.get<String>(Routes.ARG_CREATED_TASK_JSON)
-            val task = taskJson?.let {
+            val initialTask = taskJson?.let {
                 runCatching { json.decodeFromString(HabitTaskDto.serializer(), it) }.getOrNull()
-            }
-            if (task != null && task.id == taskId) {
-                HabitTaskDetailScreen(
-                    task = task,
-                    showConfirmation = true,
-                    onBack = {
-                        navController.popBackStack(Routes.DASHBOARD, inclusive = false)
-                    },
-                    onDone = {
-                        navController.popBackStack(Routes.DASHBOARD, inclusive = false)
-                    },
-                )
-            } else {
-                HabitTaskDetailScreen(
-                    task = HabitTaskDto(id = taskId, title = "Task #$taskId"),
-                    showConfirmation = false,
-                    onBack = { navController.popBackStack() },
-                    onDone = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
-                )
-            }
+            }?.takeIf { it.id == taskId }
+            val vm: HabitTaskDetailViewModel = viewModel(
+                factory = HabitTaskDetailViewModel.Factory(
+                    taskId = taskId,
+                    habitTaskRepository = container.habitTaskRepository,
+                    profileCache = container.profileCache,
+                    initialTask = initialTask,
+                ),
+            )
+            HabitTaskDetailScreen(
+                viewModel = vm,
+                showConfirmation = initialTask != null,
+                onBack = { navController.popBackStack() },
+                onDone = {
+                    navController.popBackStack(Routes.DASHBOARD, inclusive = false)
+                },
+            )
         }
     }
 }
