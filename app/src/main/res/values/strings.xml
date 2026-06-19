@@ -141,6 +141,16 @@
     <string name="create_task_error_evidence_required">Selecciona un tipo de evidencia</string>
     <string name="create_task_success_message">¡Tarea creada correctamente!</string>
 
+    <!-- Evidence gallery -->
+    <string name="evidence_gallery_title">Evidencias</string>
+    <string name="evidence_gallery_empty">No hay evidencias para esta tarea</string>
+    <string name="evidence_gallery_error_not_found">Tarea no encontrada</string>
+    <string name="evidence_gallery_error_generic">No se pudieron cargar las evidencias</string>
+    <string name="evidence_gallery_retry">Reintentar</string>
+    <string name="evidence_gallery_uploaded_on">Subido el %1$s</string>
+    <string name="evidence_gallery_view_button">Ver evidencias</string>
+
+
     <string name="update_task_title">Editar tarea</string>
     <string name="update_task_subtitle">Actualizá los requisitos de la tarea</string>
     <string name="update_task_submit">Guardar cambios</string>
