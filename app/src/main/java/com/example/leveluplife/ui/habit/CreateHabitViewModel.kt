@@ -8,7 +8,9 @@ import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
 import com.example.leveluplife.data.network.dto.CreateHabitTaskRequestDto
 import com.example.leveluplife.data.network.dto.MeasurementUnit
+import com.example.leveluplife.data.network.dto.CreateTimerCriteriaRequest
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaRequestDto
+import com.example.leveluplife.domain.validation.HabitTaskValidators
 import com.example.leveluplife.data.network.dto.TaskCompletionCriteria
 import com.example.leveluplife.data.network.dto.TaskDifficulty
 import com.example.leveluplife.data.network.dto.TaskEvidence
@@ -129,6 +131,15 @@ class CreateHabitViewModel(
     fun onTaskPartialAllowedChange(index: Int, value: Boolean) =
         updateTaskForm(index) { it.copy(isPartialAllowed = value) }
 
+    fun onTaskTimerSecondsDefinedChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onTimerSecondsDefinedChange(it, value) }
+
+    fun onTaskTimerSecondsLongChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onTimerSecondsLongChange(it, value) }
+
+    fun onTaskTimerPauseAllowedChange(index: Int, value: Boolean) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onTimerPauseAllowedChange(it, value) }
+
     fun applyTaskTemplate(index: Int, template: TaskFormTemplate) =
         updateTaskForm(index) { HabitTaskFormState.applyTemplate(it, template) }
 
@@ -183,6 +194,15 @@ class CreateHabitViewModel(
         if (task.completionCriteria == "EVIDENCE" && task.evidence.isNullOrBlank()) {
             return "Tipo de evidencia requerido"
         }
+        if (task.completionCriteria == "TIMER") {
+            val input = task.toFormInput()
+            if (HabitTaskValidators.validateTimerSeconds(input) != null) {
+                return "Duración inválida (1 a ${HabitTaskValidators.TIMER_SECONDS_MAX} segundos)"
+            }
+            if (HabitTaskValidators.validateTimerLong(input) != null) {
+                return "El umbral largo debe superar la duración base"
+            }
+        }
         return null
     }
 
@@ -209,6 +229,15 @@ class CreateHabitViewModel(
                         measurementUnit = MeasurementUnit.valueOf(task.measurementUnit ?: "SERIES"),
                         isPartialAllowed = task.isPartialAllowed,
                         isActive = true,
+                    )
+                } else null,
+                timerCriteria = if (criteria == TaskCompletionCriteria.TIMER) {
+                    // Safe to parse directly: validateTask() gates invalid durations before build.
+                    CreateTimerCriteriaRequest(
+                        numSecondsDefined = task.timerSecondsDefined.trim().toInt(),
+                        numSecondsLong = task.timerSecondsLong.trim().toIntOrNull(),
+                        typePauseIsAllowed = task.timerPauseAllowed,
+                        statusTimerCriteriaIsActive = true,
                     )
                 } else null,
                 xpValue = null,

@@ -115,6 +115,18 @@ class CreateHabitTaskViewModel(
         _state.update { it.copy(form = it.form.copy(isPartialAllowed = value)) }
     }
 
+    fun onTimerSecondsDefinedChange(value: String) {
+        _state.update { it.copy(form = HabitTaskFormHandlers.onTimerSecondsDefinedChange(it.form, value)) }
+    }
+
+    fun onTimerSecondsLongChange(value: String) {
+        _state.update { it.copy(form = HabitTaskFormHandlers.onTimerSecondsLongChange(it.form, value)) }
+    }
+
+    fun onTimerPauseAllowedChange(value: Boolean) {
+        _state.update { it.copy(form = HabitTaskFormHandlers.onTimerPauseAllowedChange(it.form, value)) }
+    }
+
     fun applyTemplate(template: TaskFormTemplate) {
         _state.update { it.copy(form = HabitTaskFormState.applyTemplate(it.form, template)) }
     }
