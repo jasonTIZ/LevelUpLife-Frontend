@@ -87,7 +87,7 @@ class FakeProfileCache(
         _profile.value = current.copy(avatarUri = avatarUri, bio = bio)
     }
 
-    override suspend fun clearMemory() {
+    override fun clearMemory() {
         _profile.value = null
         etag = null
     }

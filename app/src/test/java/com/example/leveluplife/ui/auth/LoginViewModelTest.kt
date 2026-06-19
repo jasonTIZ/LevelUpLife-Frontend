@@ -5,6 +5,11 @@ import com.example.leveluplife.data.auth.AuthRepository
 import com.example.leveluplife.data.auth.AuthSession
 import com.example.leveluplife.data.auth.AuthUser
 import com.example.leveluplife.data.error.AuthError
+import com.example.leveluplife.data.habits.HabitRepository
+import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
+import com.example.leveluplife.data.network.dto.CreateHabitResponseDto
+import com.example.leveluplife.data.network.dto.HabitDto
+import com.example.leveluplife.data.network.dto.HabitsPageResponse
 import com.example.leveluplife.domain.validation.FieldError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -40,7 +45,7 @@ class LoginViewModelTest {
     @Test
     fun `password change elimina espacios al escribir`() = runTest(testDispatcher) {
         val fake = FakeAuthRepository()
-        val vm = LoginViewModel(fake)
+        val vm = LoginViewModel(fake, FakeHabitRepository())
 
         vm.onPasswordChange("123 456")
         assertEquals("123456", vm.state.value.password)
@@ -49,7 +54,7 @@ class LoginViewModelTest {
     @Test
     fun `submit con identificador invalido no llama al repositorio y muestra error de campo`() = runTest(testDispatcher) {
         val fake = FakeAuthRepository()
-        val vm = LoginViewModel(fake)
+        val vm = LoginViewModel(fake, FakeHabitRepository())
 
         vm.onEmailChange("bad email!")
         vm.onPasswordChange("123456")
@@ -67,7 +72,7 @@ class LoginViewModelTest {
     @Test
     fun `submit con password vacia muestra Required y no llama repositorio`() = runTest(testDispatcher) {
         val fake = FakeAuthRepository()
-        val vm = LoginViewModel(fake)
+        val vm = LoginViewModel(fake, FakeHabitRepository())
 
         vm.onEmailChange("darwin@levelup.life")
         vm.onPasswordChange("")
@@ -87,14 +92,14 @@ class LoginViewModelTest {
             accessToken = "access-123",
             refreshToken = "refresh-456",
             user = AuthUser(
-                id = "u1",
+                id = "1",
                 userName = "Darwin",
                 level = 5,
                 className = "Warrior",
             ),
         )
         val fake = FakeAuthRepository(result = Result.success(session))
-        val vm = LoginViewModel(fake)
+        val vm = LoginViewModel(fake, FakeHabitRepository())
 
         vm.onEmailChange("darwin@levelup.life")
         vm.onPasswordChange("123456")
@@ -119,7 +124,7 @@ class LoginViewModelTest {
         val fake = FakeAuthRepository(
             result = Result.failure(AuthErrorException(AuthError.InvalidCredentials())),
         )
-        val vm = LoginViewModel(fake)
+        val vm = LoginViewModel(fake, FakeHabitRepository())
 
         vm.onEmailChange("darwin@levelup.life")
         vm.onPasswordChange("123456")
@@ -138,7 +143,7 @@ class LoginViewModelTest {
     fun `submit con error de red muestra banner Network y permite reintentar`() = runTest(testDispatcher) {
         val networkResult = Result.failure<AuthSession>(AuthErrorException(AuthError.Network()))
         val fake = FakeAuthRepository(result = networkResult)
-        val vm = LoginViewModel(fake)
+        val vm = LoginViewModel(fake, FakeHabitRepository())
 
         vm.onEmailChange("darwin@levelup.life")
         vm.onPasswordChange("123456")
@@ -151,7 +156,7 @@ class LoginViewModelTest {
             AuthSession(
                 accessToken = "ok",
                 refreshToken = null,
-                user = AuthUser(id = "u", userName = "name", level = 1, className = "Warrior"),
+                user = AuthUser(id = "1", userName = "name", level = 1, className = "Warrior"),
             ),
         )
         vm.onSubmit()
@@ -193,11 +198,41 @@ class LoginViewModelTest {
             Result.failure(IllegalStateException("not configured"))
 
         override fun isLoggedIn(): Boolean = !access.isNullOrBlank()
-        override fun logout() {
+
+        override suspend fun logout() {
+            access = null
+            refresh = null
+        }
+
+        override suspend fun clearSessionAfterAccountDeactivation(message: String?) {
+            access = null
+            refresh = null
+        }
+
+        override fun clearLocalSession() {
             access = null
             refresh = null
         }
 
         override fun currentTokens(): Pair<String?, String?> = access to refresh
+    }
+
+    private class FakeHabitRepository : HabitRepository {
+        private var currentUserId = 1
+
+        override suspend fun getActiveHabits(page: Int, pageSize: Int): Result<HabitsPageResponse> =
+            Result.failure(IllegalStateException("not configured"))
+
+        override suspend fun createHabit(request: CreateHabitRequestDto): Result<CreateHabitResponseDto> =
+            Result.failure(IllegalStateException("not configured"))
+
+        override suspend fun getHabitById(id: Int): Result<HabitDto> =
+            Result.failure(IllegalStateException("not configured"))
+
+        override fun setCurrentUserId(userId: Int) {
+            currentUserId = userId
+        }
+
+        override fun getCurrentUserId(): Int = currentUserId
     }
 }

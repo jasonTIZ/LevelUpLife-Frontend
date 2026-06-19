@@ -23,7 +23,7 @@ interface ProfileCache {
     suspend fun update(profile: PlayerProfile, etag: String? = null)
     suspend fun updateLocalExtras(avatarUri: String?, bio: String)
     /** Clears in-memory state only; per-user disk cache is kept for the same account on re-login. */
-    suspend fun clearMemory()
+    fun clearMemory()
     /** Wipes all persisted profile entries (tests / account reset). */
     suspend fun clear()
     fun currentEtag(): String?
@@ -63,7 +63,7 @@ class DefaultProfileCache(
         update(current.copy(avatarUri = avatarUri, bio = bio))
     }
 
-    override suspend fun clearMemory() {
+    override fun clearMemory() {
         etag = null
         _profile.value = null
     }

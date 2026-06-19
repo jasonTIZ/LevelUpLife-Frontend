@@ -112,7 +112,7 @@ class ProfileViewModelTest {
         vm.onAvatarSelected(
             uri = "content://image/1",
             mimeType = "image/jpeg",
-            sizeBytes = AvatarValidator.MAX_BYTES + 1,
+            sizeBytes = AvatarValidator.MAX_BYTES + 1L,
         )
 
         assertEquals(AvatarValidationError.TooLarge, vm.state.value.avatarError)

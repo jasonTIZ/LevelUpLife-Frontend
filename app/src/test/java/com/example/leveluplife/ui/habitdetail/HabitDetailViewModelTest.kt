@@ -1,6 +1,8 @@
 package com.example.leveluplife.ui.habitdetail
 
 import com.example.leveluplife.data.habits.HabitRepository
+import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
+import com.example.leveluplife.data.network.dto.CreateHabitResponseDto
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.network.dto.HabitsPageResponse
@@ -68,5 +70,12 @@ class HabitDetailViewModelTest {
             Result.success(HabitsPageResponse(success = true, habits = emptyList(), pagination = PaginationDto(1, 10, 1, 0)))
 
         override suspend fun getHabitById(id: Int): Result<HabitDto> = habitDetail
+
+        override suspend fun createHabit(request: CreateHabitRequestDto): Result<CreateHabitResponseDto> =
+            Result.failure(UnsupportedOperationException())
+
+        override fun setCurrentUserId(userId: Int) = Unit
+
+        override fun getCurrentUserId(): Int = 1
     }
 }
