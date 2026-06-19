@@ -150,13 +150,6 @@
     <string name="evidence_gallery_uploaded_on">Subido el %1$s</string>
     <string name="evidence_gallery_view_button">Ver evidencias</string>
 
-    <!-- Evidence upload -->
-    <string name="evidence_upload_button">Subir evidencia</string>
-    <string name="evidence_upload_success">Evidencia subida correctamente</string>
-    <string name="evidence_upload_error_generic">No se pudo subir la evidencia. Intentá de nuevo.</string>
-    <string name="evidence_upload_error_invalid">Datos inválidos. Verificá el archivo seleccionado.</string>
-    <string name="evidence_upload_error_file">No se pudo leer el archivo seleccionado.</string>
-
 
     <string name="update_task_title">Editar tarea</string>
     <string name="update_task_subtitle">Actualizá los requisitos de la tarea</string>
