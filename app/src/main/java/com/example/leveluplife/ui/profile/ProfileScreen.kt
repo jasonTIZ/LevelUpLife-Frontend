@@ -68,12 +68,7 @@ import com.example.leveluplife.domain.validation.ProfileValidators
 import com.example.leveluplife.ui.auth.toMessage
 import com.example.leveluplife.ui.components.LulErrorAlertDialog
 import com.example.leveluplife.ui.components.LulPrimaryButton
-import com.example.leveluplife.ui.theme.DarkBackground
-import com.example.leveluplife.ui.theme.DarkOnBackground
-import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
-import com.example.leveluplife.ui.theme.DarkSurface
-import com.example.leveluplife.ui.theme.DarkSurfaceVariant
-import com.example.leveluplife.ui.theme.PurplePrimary
+import com.example.leveluplife.ui.components.showLulSnackbar
 
 object ProfileTestTags {
     const val SCREEN = "profile_screen"
@@ -113,7 +108,7 @@ fun ProfileScreen(
 
     LaunchedEffect(state.profileSaved, successMessage) {
         if (state.profileSaved) {
-            snackbarHostState.showSnackbar(successMessage)
+            snackbarHostState.showLulSnackbar(successMessage)
             viewModel.consumeSavedEvent()
         }
     }
@@ -122,7 +117,7 @@ fun ProfileScreen(
         modifier = modifier
             .fillMaxSize()
             .testTag(ProfileTestTags.SCREEN),
-        containerColor = DarkBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         if (state.isLoading) {
@@ -132,7 +127,7 @@ fun ProfileScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator(color = PurplePrimary)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
             return@Scaffold
         }
@@ -155,14 +150,14 @@ fun ProfileScreen(
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.profile_back),
-                        tint = DarkOnBackground,
+                        tint = MaterialTheme.colorScheme.onBackground,
                     )
                 }
                 Text(
                     text = stringResource(R.string.profile_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = DarkOnBackground,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
             }
 
@@ -173,7 +168,7 @@ fun ProfileScreen(
                     stringResource(R.string.profile_subtitle)
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = DarkOnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             AvatarSection(
@@ -191,11 +186,11 @@ fun ProfileScreen(
             if (state.className.isNotBlank()) {
                 Text(
                     text = stringResource(R.string.profile_class_label) + ": ${state.className}",
-                    color = DarkOnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
                     text = stringResource(R.string.profile_level_label, state.level),
-                    color = DarkOnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -216,7 +211,7 @@ fun ProfileScreen(
                     .align(Alignment.CenterHorizontally)
                     .testTag(ProfileTestTags.LOGOUT_BUTTON),
             ) {
-                Text(stringResource(R.string.profile_logout), color = PurplePrimary)
+                Text(stringResource(R.string.profile_logout), color = MaterialTheme.colorScheme.primary)
             }
 
             Spacer(Modifier.height(24.dp))
@@ -237,7 +232,7 @@ fun ProfileScreen(
                     },
                     modifier = Modifier.testTag(ProfileTestTags.LOGOUT_CONFIRM_BUTTON),
                 ) {
-                    Text(stringResource(R.string.profile_logout_confirm), color = PurplePrimary)
+                    Text(stringResource(R.string.profile_logout_confirm), color = MaterialTheme.colorScheme.primary)
                 }
             },
             dismissButton = {
@@ -353,7 +348,7 @@ private fun ColumnScope.ProfileEditForm(
             .align(Alignment.CenterHorizontally)
             .testTag(ProfileTestTags.CANCEL_BUTTON),
     ) {
-        Text(stringResource(R.string.profile_cancel_edit), color = PurplePrimary)
+        Text(stringResource(R.string.profile_cancel_edit), color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -363,7 +358,7 @@ private fun ProfileViewCard(state: ProfileUiState) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -391,12 +386,12 @@ private fun ProfileInfoRow(label: String, value: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = DarkOnSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge,
-            color = DarkOnBackground,
+            color = MaterialTheme.colorScheme.onBackground,
         )
     }
 }
@@ -418,7 +413,7 @@ private fun AvatarSection(
             modifier = Modifier
                 .size(96.dp)
                 .clip(CircleShape)
-                .background(DarkSurfaceVariant),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center,
         ) {
             if (avatarUri != null) {
@@ -435,7 +430,7 @@ private fun AvatarSection(
                 Icon(
                     Icons.Filled.Person,
                     contentDescription = stringResource(R.string.cd_profile_avatar),
-                    tint = DarkOnBackground,
+                    tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(48.dp),
                 )
             }
@@ -450,7 +445,7 @@ private fun AvatarSection(
             Text(
                 text = stringResource(R.string.profile_avatar_hint),
                 style = MaterialTheme.typography.bodySmall,
-                color = DarkOnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             avatarError?.let {
                 Text(
@@ -484,11 +479,11 @@ private fun ProfileTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
     val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = PurplePrimary,
-        unfocusedBorderColor = DarkSurfaceVariant,
-        focusedTextColor = DarkOnBackground,
-        unfocusedTextColor = DarkOnBackground,
-        cursorColor = PurplePrimary,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+        cursorColor = MaterialTheme.colorScheme.primary,
     )
     OutlinedTextField(
         value = value,

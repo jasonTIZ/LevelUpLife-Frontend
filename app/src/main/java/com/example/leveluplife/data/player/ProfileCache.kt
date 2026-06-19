@@ -6,7 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.Flow
+import com.example.leveluplife.data.auth.TokenStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,12 +23,25 @@ interface ProfileCache {
     suspend fun update(profile: PlayerProfile, etag: String? = null)
     suspend fun updateLocalExtras(avatarUri: String?, bio: String)
     suspend fun updateLevel(level: Int)
+    suspend fun updateGameplayProgress(
+        level: Int,
+        totalExperiencePoints: Int,
+        experiencePointsInCurrentLevel: Int,
+        experiencePointsRequiredForNextLevel: Int,
+        levelProgressPercent: Double,
+        daysStreak: Int? = null,
+    )
+    /** Clears in-memory state only; per-user disk cache is kept for the same account on re-login. */
+    fun clearMemory()
+    /** Wipes all persisted profile entries (tests / account reset). */
+    suspend fun clear()
     fun currentEtag(): String?
 }
 
 class DefaultProfileCache(
     context: Context,
     private val avatarStorage: ProfileAvatarStorage,
+    private val tokenStore: TokenStore,
 ) : ProfileCache {
     private val dataStore = context.applicationContext.profileDataStore
     private val _profile = MutableStateFlow<PlayerProfile?>(null)
@@ -37,40 +50,20 @@ class DefaultProfileCache(
     private var etag: String? = null
 
     override suspend fun loadPersisted() {
+        val scopeId = sessionScopeId() ?: return
         val prefs = dataStore.data.first()
-        val userName = prefs[KEY_USER_NAME] ?: return
-        _profile.value = PlayerProfile(
-            playerUserId = prefs[KEY_PLAYER_ID].orEmpty(),
-            userName = userName,
-            level = prefs[KEY_LEVEL]?.toIntOrNull() ?: 1,
-            classId = prefs[KEY_CLASS_ID]?.toIntOrNull() ?: 0,
-            className = prefs[KEY_CLASS_NAME].orEmpty(),
-            name = prefs[KEY_NAME].orEmpty(),
-            lastName = prefs[KEY_LAST_NAME].orEmpty(),
-            email = prefs[KEY_EMAIL].orEmpty(),
-            birthdate = prefs[KEY_BIRTHDATE],
-            avatarUri = avatarStorage.resolveDisplayUri(prefs[KEY_AVATAR_URI]),
-            bio = prefs[KEY_BIO].orEmpty(),
-        )
-        etag = prefs[KEY_ETAG]
+        migrateLegacyPrefsIfNeeded(prefs, scopeId)
+        val loaded = readScopedProfile(dataStore.data.first(), scopeId) ?: return
+        _profile.value = loaded.profile
+        etag = loaded.etag
     }
 
     override suspend fun update(profile: PlayerProfile, etag: String?) {
+        val scopeId = sessionScopeId() ?: profile.playerUserId.takeIf { it.isNotBlank() } ?: return
         if (etag != null) this.etag = etag
         _profile.update { profile }
         dataStore.edit { prefs ->
-            prefs[KEY_PLAYER_ID] = profile.playerUserId
-            prefs[KEY_USER_NAME] = profile.userName
-            prefs[KEY_LEVEL] = profile.level.toString()
-            prefs[KEY_CLASS_ID] = profile.classId.toString()
-            prefs[KEY_CLASS_NAME] = profile.className
-            prefs[KEY_NAME] = profile.name
-            prefs[KEY_LAST_NAME] = profile.lastName
-            prefs[KEY_EMAIL] = profile.email
-            profile.birthdate?.let { prefs[KEY_BIRTHDATE] = it } ?: prefs.remove(KEY_BIRTHDATE)
-            profile.avatarUri?.let { prefs[KEY_AVATAR_URI] = it } ?: prefs.remove(KEY_AVATAR_URI)
-            prefs[KEY_BIO] = profile.bio
-            this.etag?.let { prefs[KEY_ETAG] = it }
+            writeScopedProfile(prefs, scopeId, profile, etag ?: this.etag)
         }
     }
 
@@ -85,20 +78,168 @@ class DefaultProfileCache(
         update(current.copy(level = level))
     }
 
+    override suspend fun updateGameplayProgress(
+        level: Int,
+        totalExperiencePoints: Int,
+        experiencePointsInCurrentLevel: Int,
+        experiencePointsRequiredForNextLevel: Int,
+        levelProgressPercent: Double,
+        daysStreak: Int?,
+    ) {
+        val current = _profile.value ?: return
+        update(
+            current.copy(
+                level = level,
+                totalExperiencePoints = totalExperiencePoints,
+                experiencePointsInCurrentLevel = experiencePointsInCurrentLevel,
+                experiencePointsRequiredForNextLevel = experiencePointsRequiredForNextLevel,
+                levelProgressPercent = levelProgressPercent,
+                daysStreak = daysStreak ?: current.daysStreak,
+            ),
+        )
+    }
+
+    override fun clearMemory() {
+        etag = null
+        _profile.value = null
+    }
+
+    override suspend fun clear() {
+        clearMemory()
+        dataStore.edit { it.clear() }
+    }
+
     override fun currentEtag(): String? = etag
 
+    private fun sessionScopeId(): String? = tokenStore.userId()?.takeIf { it.isNotBlank() }
+
+    private data class ScopedProfileSnapshot(
+        val profile: PlayerProfile,
+        val etag: String?,
+    )
+
+    private fun readScopedProfile(prefs: Preferences, userId: String): ScopedProfileSnapshot? {
+        val userName = prefs[scopedKey(userId, Suffix.USER_NAME)] ?: return null
+        return ScopedProfileSnapshot(
+            profile = PlayerProfile(
+                playerUserId = prefs[scopedKey(userId, Suffix.PLAYER_ID)].orEmpty().ifBlank { userId },
+                userName = userName,
+                level = prefs[scopedKey(userId, Suffix.LEVEL)]?.toIntOrNull() ?: 1,
+                classId = prefs[scopedKey(userId, Suffix.CLASS_ID)]?.toIntOrNull() ?: 0,
+                className = prefs[scopedKey(userId, Suffix.CLASS_NAME)].orEmpty(),
+                name = prefs[scopedKey(userId, Suffix.NAME)].orEmpty(),
+                lastName = prefs[scopedKey(userId, Suffix.LAST_NAME)].orEmpty(),
+                email = prefs[scopedKey(userId, Suffix.EMAIL)].orEmpty(),
+                birthdate = prefs[scopedKey(userId, Suffix.BIRTHDATE)],
+                avatarUri = avatarStorage.resolveDisplayUri(prefs[scopedKey(userId, Suffix.AVATAR_URI)]),
+                bio = prefs[scopedKey(userId, Suffix.BIO)].orEmpty(),
+                totalExperiencePoints = prefs[scopedKey(userId, Suffix.TOTAL_XP)]?.toIntOrNull() ?: 0,
+                experiencePointsInCurrentLevel = prefs[scopedKey(userId, Suffix.XP_IN_LEVEL)]?.toIntOrNull() ?: 0,
+                experiencePointsRequiredForNextLevel = prefs[scopedKey(userId, Suffix.XP_REQUIRED)]?.toIntOrNull() ?: 0,
+                levelProgressPercent = prefs[scopedKey(userId, Suffix.LEVEL_PROGRESS)]?.toDoubleOrNull() ?: 0.0,
+                daysStreak = prefs[scopedKey(userId, Suffix.DAYS_STREAK)]?.toIntOrNull() ?: 0,
+            ),
+            etag = prefs[scopedKey(userId, Suffix.ETAG)],
+        )
+    }
+
+    private fun writeScopedProfile(
+        prefs: androidx.datastore.preferences.core.MutablePreferences,
+        userId: String,
+        profile: PlayerProfile,
+        etag: String?,
+    ) {
+        prefs[scopedKey(userId, Suffix.PLAYER_ID)] = profile.playerUserId
+        prefs[scopedKey(userId, Suffix.USER_NAME)] = profile.userName
+        prefs[scopedKey(userId, Suffix.LEVEL)] = profile.level.toString()
+        prefs[scopedKey(userId, Suffix.CLASS_ID)] = profile.classId.toString()
+        prefs[scopedKey(userId, Suffix.CLASS_NAME)] = profile.className
+        prefs[scopedKey(userId, Suffix.NAME)] = profile.name
+        prefs[scopedKey(userId, Suffix.LAST_NAME)] = profile.lastName
+        prefs[scopedKey(userId, Suffix.EMAIL)] = profile.email
+        profile.birthdate?.let { prefs[scopedKey(userId, Suffix.BIRTHDATE)] = it }
+            ?: prefs.remove(scopedKey(userId, Suffix.BIRTHDATE))
+        profile.avatarUri?.let { prefs[scopedKey(userId, Suffix.AVATAR_URI)] = it }
+            ?: prefs.remove(scopedKey(userId, Suffix.AVATAR_URI))
+        prefs[scopedKey(userId, Suffix.BIO)] = profile.bio
+        prefs[scopedKey(userId, Suffix.TOTAL_XP)] = profile.totalExperiencePoints.toString()
+        prefs[scopedKey(userId, Suffix.XP_IN_LEVEL)] = profile.experiencePointsInCurrentLevel.toString()
+        prefs[scopedKey(userId, Suffix.XP_REQUIRED)] = profile.experiencePointsRequiredForNextLevel.toString()
+        prefs[scopedKey(userId, Suffix.LEVEL_PROGRESS)] = profile.levelProgressPercent.toString()
+        prefs[scopedKey(userId, Suffix.DAYS_STREAK)] = profile.daysStreak.toString()
+        etag?.let { prefs[scopedKey(userId, Suffix.ETAG)] = it }
+    }
+
+    private suspend fun migrateLegacyPrefsIfNeeded(prefs: Preferences, sessionUserId: String) {
+        val legacyUserId = prefs[LEGACY_KEY_PLAYER_ID].orEmpty()
+        if (legacyUserId.isBlank() || legacyUserId != sessionUserId) return
+        val legacyUserName = prefs[LEGACY_KEY_USER_NAME] ?: return
+        val profile = PlayerProfile(
+            playerUserId = legacyUserId,
+            userName = legacyUserName,
+            level = prefs[LEGACY_KEY_LEVEL]?.toIntOrNull() ?: 1,
+            classId = prefs[LEGACY_KEY_CLASS_ID]?.toIntOrNull() ?: 0,
+            className = prefs[LEGACY_KEY_CLASS_NAME].orEmpty(),
+            name = prefs[LEGACY_KEY_NAME].orEmpty(),
+            lastName = prefs[LEGACY_KEY_LAST_NAME].orEmpty(),
+            email = prefs[LEGACY_KEY_EMAIL].orEmpty(),
+            birthdate = prefs[LEGACY_KEY_BIRTHDATE],
+            avatarUri = avatarStorage.resolveDisplayUri(prefs[LEGACY_KEY_AVATAR_URI]),
+            bio = prefs[LEGACY_KEY_BIO].orEmpty(),
+        )
+        val legacyEtag = prefs[LEGACY_KEY_ETAG]
+        dataStore.edit { mutablePrefs ->
+            writeScopedProfile(mutablePrefs, sessionUserId, profile, legacyEtag)
+            mutablePrefs.remove(LEGACY_KEY_PLAYER_ID)
+            mutablePrefs.remove(LEGACY_KEY_USER_NAME)
+            mutablePrefs.remove(LEGACY_KEY_LEVEL)
+            mutablePrefs.remove(LEGACY_KEY_CLASS_ID)
+            mutablePrefs.remove(LEGACY_KEY_CLASS_NAME)
+            mutablePrefs.remove(LEGACY_KEY_NAME)
+            mutablePrefs.remove(LEGACY_KEY_LAST_NAME)
+            mutablePrefs.remove(LEGACY_KEY_EMAIL)
+            mutablePrefs.remove(LEGACY_KEY_BIRTHDATE)
+            mutablePrefs.remove(LEGACY_KEY_AVATAR_URI)
+            mutablePrefs.remove(LEGACY_KEY_BIO)
+            mutablePrefs.remove(LEGACY_KEY_ETAG)
+        }
+    }
+
+    private fun scopedKey(userId: String, suffix: String) =
+        stringPreferencesKey("user_${userId}_$suffix")
+
+    private object Suffix {
+        const val PLAYER_ID = "player_id"
+        const val USER_NAME = "user_name"
+        const val LEVEL = "level"
+        const val CLASS_ID = "class_id"
+        const val CLASS_NAME = "class_name"
+        const val NAME = "name"
+        const val LAST_NAME = "last_name"
+        const val EMAIL = "email"
+        const val BIRTHDATE = "birthdate"
+        const val AVATAR_URI = "avatar_uri"
+        const val BIO = "bio"
+        const val ETAG = "etag"
+        const val TOTAL_XP = "total_xp"
+        const val XP_IN_LEVEL = "xp_in_level"
+        const val XP_REQUIRED = "xp_required"
+        const val LEVEL_PROGRESS = "level_progress"
+        const val DAYS_STREAK = "days_streak"
+    }
+
     private companion object {
-        val KEY_PLAYER_ID = stringPreferencesKey("player_id")
-        val KEY_USER_NAME = stringPreferencesKey("user_name")
-        val KEY_LEVEL = stringPreferencesKey("level")
-        val KEY_CLASS_ID = stringPreferencesKey("class_id")
-        val KEY_CLASS_NAME = stringPreferencesKey("class_name")
-        val KEY_NAME = stringPreferencesKey("name")
-        val KEY_LAST_NAME = stringPreferencesKey("last_name")
-        val KEY_EMAIL = stringPreferencesKey("email")
-        val KEY_BIRTHDATE = stringPreferencesKey("birthdate")
-        val KEY_AVATAR_URI = stringPreferencesKey("avatar_uri")
-        val KEY_BIO = stringPreferencesKey("bio")
-        val KEY_ETAG = stringPreferencesKey("etag")
+        val LEGACY_KEY_PLAYER_ID = stringPreferencesKey("player_id")
+        val LEGACY_KEY_USER_NAME = stringPreferencesKey("user_name")
+        val LEGACY_KEY_LEVEL = stringPreferencesKey("level")
+        val LEGACY_KEY_CLASS_ID = stringPreferencesKey("class_id")
+        val LEGACY_KEY_CLASS_NAME = stringPreferencesKey("class_name")
+        val LEGACY_KEY_NAME = stringPreferencesKey("name")
+        val LEGACY_KEY_LAST_NAME = stringPreferencesKey("last_name")
+        val LEGACY_KEY_EMAIL = stringPreferencesKey("email")
+        val LEGACY_KEY_BIRTHDATE = stringPreferencesKey("birthdate")
+        val LEGACY_KEY_AVATAR_URI = stringPreferencesKey("avatar_uri")
+        val LEGACY_KEY_BIO = stringPreferencesKey("bio")
+        val LEGACY_KEY_ETAG = stringPreferencesKey("etag")
     }
 }

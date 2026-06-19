@@ -8,8 +8,15 @@ data class GetPlayerProfileResponseDto(
     @SerialName("PlayerUserId") val playerUserId: String = "",
     @SerialName("PlayerUserUserName") val playerUserUserName: String = "",
     @SerialName("PlayerUserLevel") val playerUserLevel: Int = 0,
+    val totalExperiencePoints: Int = 0,
+    val experiencePointsInCurrentLevel: Int = 0,
+    val experiencePointsRequiredForNextLevel: Int = 0,
+    val levelProgressPercent: Double = 0.0,
+    val daysStreak: Int = 0,
     @SerialName("statusIsActive") val statusIsActive: Boolean = true,
     @SerialName("PlayerUserLastLogin") val playerUserLastLogin: String? = null,
+    @SerialName("bio") val bio: String? = null,
+    @SerialName("avatarUrl") val avatarUrl: String? = null,
     @SerialName("PersonData") val personData: GetPlayerProfilePersonDataDto = GetPlayerProfilePersonDataDto(),
 )
 
@@ -39,6 +46,7 @@ data class PersonUpdateRequestDto(
 data class PlayerDataUpdateRequestDto(
     val userName: String? = null,
     val preferredClassId: Int? = null,
+    val bio: String? = null,
     val timezone: String? = null,
 )
 
@@ -58,6 +66,8 @@ data class PlayerProfileDto(
     val lastLogin: String? = null,
     val classId: Int = 0,
     val className: String = "",
+    val bio: String? = null,
+    val avatarUrl: String? = null,
     val person: PersonProfileDto = PersonProfileDto(),
 )
 

@@ -3,8 +3,10 @@ package com.example.leveluplife.ui.habittaskdetail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskCompletionFailure
 import com.example.leveluplife.data.habits.HabitTaskRepository
+import com.example.leveluplife.data.habits.HabitTaskValidationFailure
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.player.ProfileCache
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,22 +20,21 @@ import java.time.Instant
 class HabitTaskDetailViewModel(
     private val taskId: Int,
     private val habitTaskRepository: HabitTaskRepository,
+    private val habitRepository: HabitRepository,
     private val profileCache: ProfileCache,
-    initialTask: HabitTaskDto? = null,
+    initialTask: HabitTaskDto?,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
         HabitTaskDetailUiState(
-            task = initialTask?.takeIf { it.id == taskId },
-            isLoading = initialTask?.id != taskId,
+            task = initialTask?.takeIf { isPreviewUsable(it) },
+            isLoading = initialTask == null || !isPreviewUsable(initialTask),
         ),
     )
     val state: StateFlow<HabitTaskDetailUiState> = _state.asStateFlow()
 
     init {
-        if (initialTask?.id != taskId) {
-            loadTask()
-        }
+        loadTask()
     }
 
     fun loadTask() {
@@ -41,7 +42,17 @@ class HabitTaskDetailViewModel(
             _state.update { it.copy(isLoading = true, loadError = null) }
             habitTaskRepository.getHabitTask(taskId)
                 .onSuccess { task ->
-                    _state.update { it.copy(isLoading = false, task = task) }
+                    val habitTitle = habitRepository.getHabitById(task.habitId)
+                        .getOrNull()
+                        ?.title
+                        ?.takeIf { it.isNotBlank() }
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            task = task,
+                            habitTitle = habitTitle,
+                        )
+                    }
                 }
                 .onFailure { t ->
                     _state.update {
@@ -59,7 +70,6 @@ class HabitTaskDetailViewModel(
         val task = current.task ?: return
         if (current.isCompleting || task.isCompleted || !task.isActive) return
 
-        val previousLevel = profileCache.profile.value?.level ?: 1
         val taskSnapshot = task
 
         _state.update {
@@ -73,7 +83,14 @@ class HabitTaskDetailViewModel(
         viewModelScope.launch {
             habitTaskRepository.completeHabitTask(taskId, Instant.now())
                 .onSuccess { response ->
-                    profileCache.updateLevel(response.newLevel)
+                    profileCache.updateGameplayProgress(
+                        level = response.newLevel,
+                        totalExperiencePoints = response.totalExperiencePoints,
+                        experiencePointsInCurrentLevel = response.experiencePointsInCurrentLevel,
+                        experiencePointsRequiredForNextLevel = response.experiencePointsRequiredForNextLevel,
+                        levelProgressPercent = response.levelProgressPercent,
+                        daysStreak = response.daysStreak,
+                    )
                     _state.update {
                         it.copy(
                             isCompleting = false,
@@ -81,8 +98,12 @@ class HabitTaskDetailViewModel(
                             reward = TaskCompletionReward(
                                 taskTitle = task.title,
                                 xpEarned = response.xpEarned,
+                                previousLevel = response.previousLevel,
                                 newLevel = response.newLevel,
-                                previousLevel = previousLevel,
+                                experiencePointsInCurrentLevel = response.experiencePointsInCurrentLevel,
+                                experiencePointsRequiredForNextLevel = response.experiencePointsRequiredForNextLevel,
+                                levelProgressPercent = response.levelProgressPercent,
+                                leveledUp = response.leveledUp,
                                 streakUpdated = response.streakUpdated,
                             ),
                         )
@@ -108,22 +129,93 @@ class HabitTaskDetailViewModel(
         _state.update { it.copy(reward = null) }
     }
 
+    fun onRequestDeactivate() {
+        _state.update {
+            it.copy(
+                showConfirmDeactivateDialog = true,
+                consequencesAcknowledged = false,
+                deactivateError = null,
+            )
+        }
+    }
+
+    fun onCancelDeactivate() {
+        _state.update {
+            it.copy(
+                showConfirmDeactivateDialog = false,
+                consequencesAcknowledged = false,
+                deactivateError = null,
+            )
+        }
+    }
+
+    fun onConsequencesAcknowledgedChange(value: Boolean) {
+        _state.update { it.copy(consequencesAcknowledged = value) }
+    }
+
+    fun dismissDeactivateError() {
+        _state.update { it.copy(deactivateError = null) }
+    }
+
+    fun consumeDeactivatedEvent() {
+        _state.update { it.copy(taskDeactivated = false, deactivationMessage = null) }
+    }
+
+    fun confirmDeactivate() {
+        val current = _state.value
+        if (!current.consequencesAcknowledged || current.isDeactivating || current.task == null) return
+
+        viewModelScope.launch {
+            _state.update { it.copy(isDeactivating = true, deactivateError = null) }
+            habitTaskRepository.deactivateHabitTask(taskId)
+                .onSuccess { message ->
+                    _state.update {
+                        it.copy(
+                            isDeactivating = false,
+                            showConfirmDeactivateDialog = false,
+                            taskDeactivated = true,
+                            deactivationMessage = message,
+                            task = it.task?.copy(isActive = false),
+                        )
+                    }
+                }
+                .onFailure { t ->
+                    _state.update {
+                        it.copy(
+                            isDeactivating = false,
+                            deactivateError = mapSubmitError(t),
+                        )
+                    }
+                }
+        }
+    }
+
     private fun mapNetworkMessage(t: Throwable): String = when (t) {
-        is IOException -> "No connection. Check your network and try again."
-        else -> t.message ?: "Unknown error"
+        is IOException -> "Sin conexión. Revisá tu red e intenta de nuevo."
+        else -> t.message ?: "No se pudo cargar la tarea."
     }
 
     private fun mapCompletionError(t: Throwable): String = when (t) {
-        is HabitTaskCompletionFailure -> t.message ?: "Could not complete the task."
-        is IOException -> "No connection. Check your network and try again."
-        else -> t.message ?: "Could not complete the task."
+        is HabitTaskCompletionFailure -> t.message ?: "No se pudo completar la tarea."
+        is IOException -> "Sin conexión. Revisá tu red e intenta de nuevo."
+        else -> t.message ?: "No se pudo completar la tarea."
     }
+
+    private fun mapSubmitError(t: Throwable): String = when (t) {
+        is IOException -> "Sin conexión. Revisá tu red e intenta de nuevo."
+        is HabitTaskValidationFailure -> t.message ?: "No se pudo completar la operación."
+        else -> t.message ?: "No se pudo desactivar la tarea."
+    }
+
+    private fun isPreviewUsable(task: HabitTaskDto): Boolean =
+        task.title.isNotBlank() && !task.title.startsWith("Task #")
 
     class Factory(
         private val taskId: Int,
         private val habitTaskRepository: HabitTaskRepository,
+        private val habitRepository: HabitRepository,
         private val profileCache: ProfileCache,
-        private val initialTask: HabitTaskDto? = null,
+        private val initialTask: HabitTaskDto?,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -131,6 +223,7 @@ class HabitTaskDetailViewModel(
             return HabitTaskDetailViewModel(
                 taskId,
                 habitTaskRepository,
+                habitRepository,
                 profileCache,
                 initialTask,
             ) as T

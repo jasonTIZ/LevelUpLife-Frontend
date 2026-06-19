@@ -22,6 +22,20 @@ fun FieldError.toMessage(): String = when (this) {
         id = R.string.field_max_length,
         max,
     )
+    is FieldError.InvalidRange -> stringResource(
+        id = R.string.field_invalid_range,
+        min,
+        max,
+    )
+    is FieldError.PasswordMismatch -> stringResource(id = R.string.field_password_mismatch)
+    is FieldError.SameAsName -> stringResource(id = R.string.field_username_same_as_name)
+}
+
+@Composable
+fun AuthError.toRegisterMessage(): String = when (this) {
+    is AuthError.DuplicateAccount -> message?.takeIf { it.isNotBlank() }
+        ?: stringResource(id = R.string.register_error_duplicate_account)
+    else -> toMessage()
 }
 
 @Composable
@@ -34,6 +48,8 @@ fun AuthError.toMessage(): String = when (this) {
     is AuthError.Server -> stringResource(id = R.string.login_error_server)
     is AuthError.Network -> stringResource(id = R.string.login_error_network)
     is AuthError.Unknown -> stringResource(id = R.string.login_error_unknown)
+    is AuthError.DuplicateAccount -> message?.takeIf { it.isNotBlank() }
+        ?: stringResource(id = R.string.register_error_duplicate_account)
 }
 
 fun isPasswordTooShort(input: String): Boolean =

@@ -4,9 +4,16 @@ import com.example.leveluplife.data.network.dto.HabitTaskDto
 
 data class HabitTaskDetailUiState(
     val task: HabitTaskDto? = null,
+    val habitTitle: String? = null,
     val isLoading: Boolean = true,
     val loadError: String? = null,
     val isCompleting: Boolean = false,
     val completionError: String? = null,
     val reward: TaskCompletionReward? = null,
+    val showConfirmDeactivateDialog: Boolean = false,
+    val consequencesAcknowledged: Boolean = false,
+    val isDeactivating: Boolean = false,
+    val deactivateError: String? = null,
+    val taskDeactivated: Boolean = false,
+    val deactivationMessage: String? = null,
 )

@@ -7,11 +7,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
 /**
- * Resuelve el host base del backend tomando en cuenta:
- *  1. Override runtime (DataStore debug) si se ha definido en builds debug.
- *  2. BuildConfig.API_HOST (default `localhost:5147` o el valor de local.properties).
- *  3. Si el host efectivo apunta a `localhost` y se ejecuta en emulador,
- *     se reemplaza automáticamente por `10.0.2.2` (IP del host del emulador).
+ * Resolves the backend base host taking into account:
+ *  1. Runtime override (DataStore debug) when set in debug builds.
+ *  2. BuildConfig.API_HOST (default `localhost:5147` or the local.properties value).
+ *  3. When the effective host points to `localhost` on an emulator,
+ *     it is automatically replaced with `10.0.2.2` (the emulator host IP).
  */
 class HostProvider(
     private val debugPrefs: DebugApiPreferences,
@@ -28,16 +28,34 @@ class HostProvider(
         val configuredHost = overrideHost?.takeUnless { it.isBlank() } ?: BuildConfig.API_HOST
         val configuredScheme = overrideScheme?.takeUnless { it.isBlank() } ?: BuildConfig.API_SCHEME
 
-        val finalHost = when {
-            configuredHost.startsWith("localhost") && isProbablyEmulator() ->
-                configuredHost.replaceFirst("localhost", "10.0.2.2")
-            // Physical device + adb reverse: force IPv4 loopback (localhost may resolve to ::1).
-            configuredHost.startsWith("localhost") ->
-                configuredHost.replaceFirst("localhost", "127.0.0.1")
-            else -> configuredHost
-        }
+        val finalHost = resolveHostForDevice(configuredHost)
         return configuredScheme to finalHost
     }
+
+    /**
+     * On the emulator, `localhost` and the PC LAN IPs (e.g. 192.168.x.x) cannot
+     * reach the host backend; use the `10.0.2.2` alias while preserving the port.
+     */
+    private fun resolveHostForDevice(configuredHost: String): String {
+        if (!isProbablyEmulator()) return configuredHost
+
+        return when {
+            configuredHost.startsWith("localhost") ->
+                configuredHost.replaceFirst("localhost", EMULATOR_HOST_ALIAS)
+            isPrivateLanHost(configuredHost) ->
+                "$EMULATOR_HOST_ALIAS:${extractPort(configuredHost)}"
+            else -> configuredHost
+        }
+    }
+
+    private fun isPrivateLanHost(host: String): Boolean {
+        val address = host.substringBefore(':')
+        if (address.startsWith("192.168.") || address.startsWith("10.")) return true
+        return PRIVATE_172_LAN.matches(address)
+    }
+
+    private fun extractPort(host: String): String =
+        host.substringAfter(':', DEFAULT_PORT)
 
     private fun isProbablyEmulator(): Boolean {
         val fp = Build.FINGERPRINT?.lowercase().orEmpty()
@@ -51,5 +69,11 @@ class HostProvider(
             product.contains("sdk") ||
             hardware.contains("goldfish") ||
             hardware.contains("ranchu")
+    }
+
+    companion object {
+        private const val EMULATOR_HOST_ALIAS = "10.0.2.2"
+        private const val DEFAULT_PORT = "5147"
+        private val PRIVATE_172_LAN = Regex("""172\.(1[6-9]|2\d|3[01])\.\d+\.\d+""")
     }
 }

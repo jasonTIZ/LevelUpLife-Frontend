@@ -58,7 +58,11 @@ fun TaskCompletionRewardDialog(
 
     LaunchedEffect(reward) {
         scale.animateTo(1f, animationSpec = tween(420, easing = FastOutSlowInEasing))
-        progress.animateTo(1f, animationSpec = tween(900, easing = FastOutSlowInEasing))
+        progress.snapTo(0f)
+        progress.animateTo(
+            targetValue = reward.progressFraction,
+            animationSpec = tween(900, easing = FastOutSlowInEasing),
+        )
     }
 
     Dialog(
@@ -175,13 +179,19 @@ fun TaskCompletionRewardDialog(
                         color = PurplePrimary,
                         trackColor = DarkOnSurfaceVariant.copy(alpha = 0.25f),
                     )
-                    Text(
-                        text = stringResource(R.string.complete_task_progress_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = DarkOnSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    if (reward.experiencePointsRequiredForNextLevel > 0) {
+                        Text(
+                            text = stringResource(
+                                R.string.complete_task_level_progress,
+                                reward.experiencePointsInCurrentLevel,
+                                reward.experiencePointsRequiredForNextLevel,
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = DarkOnSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
 
                 if (reward.streakUpdated) {

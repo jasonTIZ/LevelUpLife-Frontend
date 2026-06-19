@@ -1,10 +1,16 @@
 package com.example.leveluplife.ui.habittaskdetail
 
+import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskCompletionFailure
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.network.dto.CompleteHabitTaskResponse
+import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
+import com.example.leveluplife.data.network.dto.CreateHabitResponseDto
 import com.example.leveluplife.data.network.dto.CreateHabitTaskRequest
+import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
+import com.example.leveluplife.data.network.dto.HabitsPageResponse
+import com.example.leveluplife.data.network.dto.RepetitionCriteriaDto
 import com.example.leveluplife.data.player.PlayerProfile
 import com.example.leveluplife.data.player.ProfileCache
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +48,24 @@ class HabitTaskDetailViewModelTest {
     }
 
     @Test
+    fun `loadTask populates task from repository`() = runTest(testDispatcher) {
+        val task = sampleTask()
+        val vm = HabitTaskDetailViewModel(
+            42,
+            FakeHabitTaskRepository(task = task),
+            FakeHabitRepository(),
+            FakeProfileCache(),
+            null,
+        )
+
+        advanceUntilIdle()
+
+        assertFalse(vm.state.value.isLoading)
+        assertNull(vm.state.value.loadError)
+        assertEquals(task, vm.state.value.task)
+    }
+
+    @Test
     fun `completeTask success updates profile level and shows reward`() = runTest(testDispatcher) {
         val profileCache = FakeProfileCache(level = 2)
         val taskRepo = FakeHabitTaskRepository(
@@ -49,12 +73,23 @@ class HabitTaskDetailViewModelTest {
             completeResult = Result.success(
                 CompleteHabitTaskResponse(
                     xpEarned = 25,
+                    previousLevel = 2,
                     newLevel = 3,
+                    experiencePointsInCurrentLevel = 50,
+                    experiencePointsRequiredForNextLevel = 100,
+                    levelProgressPercent = 0.5,
+                    leveledUp = true,
                     streakUpdated = true,
                 ),
             ),
         )
-        val vm = HabitTaskDetailViewModel(42, taskRepo, profileCache, initialTask = sampleTask())
+        val vm = HabitTaskDetailViewModel(
+            42,
+            taskRepo,
+            FakeHabitRepository(),
+            profileCache,
+            sampleTask(),
+        )
 
         advanceUntilIdle()
 
@@ -63,16 +98,60 @@ class HabitTaskDetailViewModelTest {
 
         assertEquals(1, taskRepo.completeCalls)
         assertEquals(3, profileCache.lastLevel)
-        assertNotNull(vm.state.value.reward)
         assertEquals(25, vm.state.value.reward?.xpEarned)
+        assertEquals(2, vm.state.value.reward?.previousLevel)
+        assertEquals(3, vm.state.value.reward?.newLevel)
+        assertEquals(0.5f, vm.state.value.reward?.progressFraction)
         assertTrue(vm.state.value.reward?.leveledUp == true)
         assertTrue(vm.state.value.task?.isCompleted == true)
     }
 
     @Test
+    fun `completeTask uses previousLevel from API not stale profile cache`() = runTest(testDispatcher) {
+        val profileCache = FakeProfileCache(level = 1)
+        val taskRepo = FakeHabitTaskRepository(
+            task = sampleTask(),
+            completeResult = Result.success(
+                CompleteHabitTaskResponse(
+                    xpEarned = 25,
+                    previousLevel = 3,
+                    newLevel = 4,
+                    experiencePointsInCurrentLevel = 30,
+                    experiencePointsRequiredForNextLevel = 120,
+                    levelProgressPercent = 0.25,
+                    leveledUp = true,
+                    streakUpdated = false,
+                ),
+            ),
+        )
+        val vm = HabitTaskDetailViewModel(
+            42,
+            taskRepo,
+            FakeHabitRepository(),
+            profileCache,
+            sampleTask(),
+        )
+
+        advanceUntilIdle()
+
+        vm.completeTask()
+        advanceUntilIdle()
+
+        assertEquals(3, vm.state.value.reward?.previousLevel)
+        assertEquals(4, vm.state.value.reward?.newLevel)
+        assertEquals(0.25f, vm.state.value.reward?.progressFraction)
+    }
+
+    @Test
     fun `double tap while completing sends only one request`() = runTest(testDispatcher) {
         val taskRepo = FakeHabitTaskRepository(task = sampleTask())
-        val vm = HabitTaskDetailViewModel(42, taskRepo, FakeProfileCache(), initialTask = sampleTask())
+        val vm = HabitTaskDetailViewModel(
+            42,
+            taskRepo,
+            FakeHabitRepository(),
+            FakeProfileCache(),
+            sampleTask(),
+        )
 
         advanceUntilIdle()
 
@@ -89,7 +168,13 @@ class HabitTaskDetailViewModelTest {
             task = sampleTask(),
             completeResult = Result.failure(HabitTaskCompletionFailure("Already completed")),
         )
-        val vm = HabitTaskDetailViewModel(42, taskRepo, FakeProfileCache(), initialTask = sampleTask())
+        val vm = HabitTaskDetailViewModel(
+            42,
+            taskRepo,
+            FakeHabitRepository(),
+            FakeProfileCache(),
+            sampleTask(),
+        )
 
         advanceUntilIdle()
 
@@ -101,13 +186,90 @@ class HabitTaskDetailViewModelTest {
         assertNull(vm.state.value.reward)
     }
 
+    @Test
+    fun `confirmDeactivate without acknowledgement does nothing`() = runTest(testDispatcher) {
+        val taskRepo = FakeHabitTaskRepository(task = sampleTask())
+        val vm = HabitTaskDetailViewModel(
+            42,
+            taskRepo,
+            FakeHabitRepository(),
+            FakeProfileCache(),
+            sampleTask(),
+        )
+
+        advanceUntilIdle()
+
+        vm.onRequestDeactivate()
+        vm.confirmDeactivate()
+
+        advanceUntilIdle()
+
+        assertEquals(0, taskRepo.deactivateCalls)
+    }
+
+    @Test
+    fun `confirmDeactivate calls repository and emits deactivated event`() = runTest(testDispatcher) {
+        val taskRepo = FakeHabitTaskRepository(
+            task = sampleTask(),
+            deactivateResult = Result.success("Task deactivated successfully"),
+        )
+        val vm = HabitTaskDetailViewModel(
+            42,
+            taskRepo,
+            FakeHabitRepository(),
+            FakeProfileCache(),
+            sampleTask(),
+        )
+
+        advanceUntilIdle()
+
+        vm.onRequestDeactivate()
+        vm.onConsequencesAcknowledgedChange(true)
+        vm.confirmDeactivate()
+
+        advanceUntilIdle()
+
+        assertEquals(1, taskRepo.deactivateCalls)
+        assertTrue(vm.state.value.taskDeactivated)
+        assertEquals("Task deactivated successfully", vm.state.value.deactivationMessage)
+        assertFalse(vm.state.value.task?.isActive ?: true)
+    }
+
+    @Test
+    fun `cancelDeactivate closes dialog`() = runTest(testDispatcher) {
+        val vm = HabitTaskDetailViewModel(
+            42,
+            FakeHabitTaskRepository(task = sampleTask()),
+            FakeHabitRepository(),
+            FakeProfileCache(),
+            sampleTask(),
+        )
+
+        advanceUntilIdle()
+
+        vm.onRequestDeactivate()
+        vm.onCancelDeactivate()
+
+        assertFalse(vm.state.value.showConfirmDeactivateDialog)
+        assertFalse(vm.state.value.consequencesAcknowledged)
+    }
+
     private fun sampleTask() = HabitTaskDto(
         id = 42,
         habitId = 1,
-        title = "Morning routine",
+        title = "QA task",
+        difficulty = "EASY",
+        frequency = "DAILY",
+        startDate = "2026-06-17",
+        completionCriteria = "REPETITIONS",
         isActive = true,
         isCompleted = false,
         xpValue = 25,
+        repetitionCriteria = RepetitionCriteriaDto(
+            repetitions = 3,
+            measurementUnit = "SERIES",
+            isPartialAllowed = true,
+        ),
     )
 
     private class FakeProfileCache(level: Int = 1) : ProfileCache {
@@ -138,16 +300,50 @@ class HabitTaskDetailViewModelTest {
             _profile.value = _profile.value?.copy(level = level)
         }
 
+        override suspend fun updateGameplayProgress(
+            level: Int,
+            totalExperiencePoints: Int,
+            experiencePointsInCurrentLevel: Int,
+            experiencePointsRequiredForNextLevel: Int,
+            levelProgressPercent: Double,
+            daysStreak: Int?,
+        ) {
+            lastLevel = level
+            _profile.value = _profile.value?.copy(
+                level = level,
+                totalExperiencePoints = totalExperiencePoints,
+                experiencePointsInCurrentLevel = experiencePointsInCurrentLevel,
+                experiencePointsRequiredForNextLevel = experiencePointsRequiredForNextLevel,
+                levelProgressPercent = levelProgressPercent,
+                daysStreak = daysStreak ?: _profile.value?.daysStreak ?: 0,
+            )
+        }
+
+        override fun clearMemory() = Unit
+
+        override suspend fun clear() = Unit
+
         override fun currentEtag(): String? = null
     }
 
     private class FakeHabitTaskRepository(
         private val task: HabitTaskDto,
         private val completeResult: Result<CompleteHabitTaskResponse> = Result.success(
-            CompleteHabitTaskResponse(xpEarned = 10, newLevel = 2, streakUpdated = false),
+            CompleteHabitTaskResponse(
+                xpEarned = 10,
+                previousLevel = 1,
+                newLevel = 2,
+                experiencePointsInCurrentLevel = 10,
+                experiencePointsRequiredForNextLevel = 100,
+                levelProgressPercent = 0.1,
+                leveledUp = true,
+                streakUpdated = false,
+            ),
         ),
+        private val deactivateResult: Result<String> = Result.success("Task deactivated successfully"),
     ) : HabitTaskRepository {
         var completeCalls = 0
+        var deactivateCalls = 0
 
         override suspend fun createHabitTask(request: CreateHabitTaskRequest): Result<HabitTaskDto> =
             Result.failure(UnsupportedOperationException())
@@ -162,5 +358,30 @@ class HabitTaskDetailViewModelTest {
             completeCalls++
             return completeResult
         }
+
+        override suspend fun deactivateHabitTask(taskId: Int): Result<String> {
+            deactivateCalls++
+            return deactivateResult
+        }
+
+        override suspend fun updateHabitTask(
+            taskId: Int,
+            request: CreateHabitTaskRequest,
+        ): Result<HabitTaskDto> = Result.failure(UnsupportedOperationException())
+    }
+
+    private class FakeHabitRepository : HabitRepository {
+        override suspend fun getActiveHabits(page: Int, pageSize: Int): Result<HabitsPageResponse> =
+            Result.failure(UnsupportedOperationException())
+
+        override suspend fun getHabitById(habitId: Int): Result<HabitDto> =
+            Result.success(HabitDto(id = habitId, title = "Test habit"))
+
+        override suspend fun createHabit(request: CreateHabitRequestDto): Result<CreateHabitResponseDto> =
+            Result.failure(UnsupportedOperationException())
+
+        override fun setCurrentUserId(userId: Int) = Unit
+
+        override fun getCurrentUserId(): Int = 1
     }
 }

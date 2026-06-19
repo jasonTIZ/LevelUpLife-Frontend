@@ -54,10 +54,6 @@ class SettingsViewModel(
         _state.update { it.copy(errorMessage = null) }
     }
 
-    fun consumeDeactivatedEvent() {
-        _state.update { it.copy(accountDeactivated = false, deactivationMessage = null) }
-    }
-
     fun confirmDeactivate() {
         val current = _state.value
         if (!current.consequencesAcknowledged || current.isDeactivating) return
@@ -67,13 +63,11 @@ class SettingsViewModel(
                 it.copy(isDeactivating = true, errorMessage = null)
             }
             playerRepository.deactivateAccount(current.reason)
-                .onSuccess { result ->
+                .onSuccess {
                     _state.update {
                         it.copy(
                             isDeactivating = false,
                             showConfirmDialog = false,
-                            accountDeactivated = true,
-                            deactivationMessage = result.message,
                         )
                     }
                 }

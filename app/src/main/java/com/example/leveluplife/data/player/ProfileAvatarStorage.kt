@@ -2,6 +2,7 @@ package com.example.leveluplife.data.player
 
 import android.content.Context
 import android.net.Uri
+import com.example.leveluplife.data.auth.TokenStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -14,6 +15,7 @@ interface ProfileAvatarStorage {
 
 class LocalProfileAvatarStorage(
     context: Context,
+    private val tokenStore: TokenStore,
 ) : ProfileAvatarStorage {
 
     private val appContext = context.applicationContext
@@ -23,7 +25,7 @@ class LocalProfileAvatarStorage(
             runCatching {
                 val extension = extensionFor(mimeType)
                 val target = avatarFile(extension)
-                deleteAllAvatarFiles()
+                deleteAvatarFilesForCurrentUser()
 
                 appContext.contentResolver.openInputStream(Uri.parse(sourceUri))?.use { input ->
                     target.outputStream().use { output -> input.copyTo(output) }
@@ -38,9 +40,32 @@ class LocalProfileAvatarStorage(
         }
 
     override fun resolveDisplayUri(storedUri: String?): String? {
-        storedUri?.toExistingFileOrNull()?.let { return it.toURI().toString() }
-        return findExistingAvatarFile()?.toURI()?.toString()
+        val value = storedUri?.trim().orEmpty()
+        if (value.startsWith("http://", ignoreCase = true) ||
+            value.startsWith("https://", ignoreCase = true) ||
+            value.startsWith("content://", ignoreCase = true)
+        ) {
+            return value
+        }
+        migrateLegacyAvatarIfNeeded()
+        value.toExistingFileOrNull()?.let { return it.toURI().toString() }
+        return findExistingAvatarFileForCurrentUser()?.toURI()?.toString()
     }
+
+    private fun migrateLegacyAvatarIfNeeded() {
+        val key = currentUserKey()
+        if (key == "anonymous") return
+        SUPPORTED_EXTENSIONS.forEach { ext ->
+            val legacy = File(appContext.filesDir, "profile_avatar.$ext")
+            val scoped = avatarFile(ext)
+            if (legacy.exists() && legacy.length() > 0L && !scoped.exists()) {
+                legacy.renameTo(scoped)
+            }
+        }
+    }
+
+    private fun currentUserKey(): String =
+        tokenStore.userId()?.takeIf { it.isNotBlank() } ?: "anonymous"
 
     private fun extensionFor(mimeType: String?): String = when (mimeType?.lowercase()) {
         "image/png" -> "png"
@@ -49,14 +74,14 @@ class LocalProfileAvatarStorage(
     }
 
     private fun avatarFile(extension: String): File =
-        File(appContext.filesDir, "profile_avatar.$extension")
+        File(appContext.filesDir, "profile_avatar_${currentUserKey()}.$extension")
 
-    private fun findExistingAvatarFile(): File? =
+    private fun findExistingAvatarFileForCurrentUser(): File? =
         SUPPORTED_EXTENSIONS
             .map(::avatarFile)
             .firstOrNull { it.exists() && it.length() > 0L }
 
-    private fun deleteAllAvatarFiles() {
+    private fun deleteAvatarFilesForCurrentUser() {
         SUPPORTED_EXTENSIONS.forEach { ext ->
             avatarFile(ext).takeIf { it.exists() }?.delete()
         }

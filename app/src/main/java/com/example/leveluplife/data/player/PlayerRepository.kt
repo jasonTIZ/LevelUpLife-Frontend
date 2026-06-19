@@ -1,6 +1,6 @@
 package com.example.leveluplife.data.player
 
-import com.example.leveluplife.data.auth.TokenStore
+import com.example.leveluplife.data.auth.AuthRepository
 import com.example.leveluplife.data.network.PlayerApi
 import com.example.leveluplife.data.network.dto.DeletePlayerAccountRequest
 import java.io.IOException
@@ -30,7 +30,7 @@ interface PlayerRepository {
 
 class DefaultPlayerRepository(
     private val api: PlayerApi,
-    private val tokenStore: TokenStore,
+    private val authRepository: AuthRepository,
 ) : PlayerRepository {
 
     override suspend fun deactivateAccount(reason: String?): Result<DeactivateAccountResult> = try {
@@ -41,11 +41,12 @@ class DefaultPlayerRepository(
         when {
             response.isSuccessful -> {
                 val body = response.body()
-                tokenStore.clear()
+                val message = body?.message?.ifBlank { null }
+                    ?: "Cuenta desactivada correctamente"
+                authRepository.clearSessionAfterAccountDeactivation(message)
                 Result.success(
                     DeactivateAccountResult(
-                        message = body?.message?.ifBlank { null }
-                            ?: "Cuenta desactivada correctamente",
+                        message = message,
                         deactivatedAt = body?.deactivatedAt.orEmpty(),
                     ),
                 )
