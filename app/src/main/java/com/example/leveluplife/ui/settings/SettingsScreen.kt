@@ -30,7 +30,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -57,19 +56,9 @@ private val DangerRed = Color(0xFFEF4444)
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     onBack: () -> Unit,
-    onAccountDeactivated: (message: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
-    val defaultDeactivationMessage = stringResource(R.string.settings_deactivate_success)
-
-    LaunchedEffect(state.accountDeactivated, defaultDeactivationMessage) {
-        if (state.accountDeactivated) {
-            val message = state.deactivationMessage ?: defaultDeactivationMessage
-            onAccountDeactivated(message)
-            viewModel.consumeDeactivatedEvent()
-        }
-    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),

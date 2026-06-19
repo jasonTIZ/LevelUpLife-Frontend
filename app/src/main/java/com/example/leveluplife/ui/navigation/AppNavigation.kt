@@ -1,9 +1,12 @@
 package com.example.leveluplife.ui.navigation
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -15,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.leveluplife.AppContainer
 import com.example.leveluplife.R
+import com.example.leveluplife.data.auth.SessionEvent
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.ui.auth.LoginScreen
@@ -41,6 +45,11 @@ import com.example.leveluplife.ui.profile.ProfileScreen
 import com.example.leveluplife.ui.profile.ProfileViewModel
 import com.example.leveluplife.ui.settings.SettingsScreen
 import com.example.leveluplife.ui.settings.SettingsViewModel
+import com.example.leveluplife.ui.components.showLulSnackbar
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 object Routes {
@@ -75,6 +84,21 @@ object Routes {
     const val ARG_REGISTER_SUCCESS_MESSAGE = "register_success_message"
 }
 
+private fun NavHostController.navigateToLoginFromRoot() {
+    navigate(Routes.LOGIN) {
+        popUpTo(Routes.DASHBOARD) { inclusive = true }
+        launchSingleTop = true
+    }
+}
+
+private fun NavHostController.setLoginSavedMessage(key: String, message: String) {
+    runCatching {
+        getBackStackEntry(Routes.LOGIN)
+            .savedStateHandle
+            .set(key, message)
+    }
+}
+
 @Composable
 fun AppNavigation(
     container: AppContainer,
@@ -89,26 +113,51 @@ fun AppNavigation(
     }
 
     val sessionExpiredMessage = stringResource(R.string.login_session_expired_redirect)
+    val defaultDeactivationMessage = stringResource(R.string.settings_deactivate_success)
+    val forbiddenMessage = stringResource(R.string.session_forbidden_message)
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(container.sessionEvents, sessionExpiredMessage) {
-        container.sessionEvents.expired.collect {
-            container.authRepository.logout()
-            navController.navigate(Routes.LOGIN) {
-                popUpTo(Routes.DASHBOARD) { inclusive = true }
-                launchSingleTop = true
-            }
-            runCatching {
-                navController.getBackStackEntry(Routes.LOGIN)
-                    .savedStateHandle
-                    .set(Routes.ARG_SESSION_EXPIRED_MESSAGE, sessionExpiredMessage)
+    LaunchedEffect(
+        container.sessionEvents,
+        sessionExpiredMessage,
+        defaultDeactivationMessage,
+        forbiddenMessage,
+    ) {
+        container.sessionEvents.events.collect { event ->
+            when (event) {
+                SessionEvent.SESSION_EXPIRED -> {
+                    navController.navigateToLoginFromRoot()
+                    navController.setLoginSavedMessage(
+                        Routes.ARG_SESSION_EXPIRED_MESSAGE,
+                        sessionExpiredMessage,
+                    )
+                }
+                SessionEvent.SESSION_LOGOUT -> {
+                    navController.navigateToLoginFromRoot()
+                }
+                SessionEvent.SESSION_ACCOUNT_DEACTIVATED -> {
+                    val message = container.sessionEvents.consumePendingDeactivationMessage()
+                        ?: defaultDeactivationMessage
+                    navController.navigateToLoginFromRoot()
+                    navController.setLoginSavedMessage(Routes.ARG_DEACTIVATION_MESSAGE, message)
+                }
+                SessionEvent.SESSION_FORBIDDEN -> {
+                    snackbarHostState.showLulSnackbar(forbiddenMessage)
+                }
+                SessionEvent.SESSION_LOGIN_SUCCESS -> Unit
             }
         }
     }
 
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        modifier = modifier,
+    ) { padding ->
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier,
+        modifier = Modifier.padding(padding),
     ) {
         composable(Routes.LOGIN) { backStackEntry ->
             val infoMessage = backStackEntry.savedStateHandle
@@ -210,10 +259,8 @@ fun AppNavigation(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },
                 onLogout = {
-                    container.authRepository.logout()
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.DASHBOARD) { inclusive = true }
-                        launchSingleTop = true
+                    scope.launch {
+                        container.authRepository.logout()
                     }
                 },
             )
@@ -254,17 +301,6 @@ fun AppNavigation(
             SettingsScreen(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },
-                onAccountDeactivated = { message ->
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.DASHBOARD) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                    runCatching {
-                        navController.getBackStackEntry(Routes.LOGIN)
-                            .savedStateHandle
-                            .set(Routes.ARG_DEACTIVATION_MESSAGE, message)
-                    }
-                },
             )
         }
         composable(
@@ -422,5 +458,6 @@ fun AppNavigation(
                 onBack = { navController.popBackStack() },
             )
         }
+    }
     }
 }

@@ -20,6 +20,7 @@
     <string name="login_error_invalid_credentials">Usuario/email o contraseña incorrectos</string>
     <string name="login_error_session_expired">Tu sesión expiró. Iniciá sesión de nuevo.</string>
     <string name="login_session_expired_redirect">Tu sesión terminó y se cerró automáticamente. Iniciá sesión de nuevo para continuar.</string>
+    <string name="session_forbidden_message">No tenés permiso para realizar esta acción.</string>
     <string name="login_error_account_locked">Tu cuenta está bloqueada. Intenta más tarde.</string>
     <string name="login_error_bad_request">Solicitud inválida. Revisa los datos ingresados.</string>
     <string name="login_error_server">Error del servidor. Intenta más tarde.</string>

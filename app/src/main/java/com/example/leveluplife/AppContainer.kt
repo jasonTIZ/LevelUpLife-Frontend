@@ -13,9 +13,9 @@ import com.example.leveluplife.data.categories.HabitCategoryRepository
 import com.example.leveluplife.data.habits.DefaultHabitDisciplineRepository
 import com.example.leveluplife.data.habits.DefaultHabitRepository
 import com.example.leveluplife.data.habits.DefaultHabitTaskRepository
-import com.example.leveluplife.data.habits.HabitDisciplineRepository
 import com.example.leveluplife.data.habits.DefaultEvidenceRepository
 import com.example.leveluplife.data.habits.EvidenceRepository
+import com.example.leveluplife.data.habits.HabitDisciplineRepository
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.network.AuthApi
@@ -60,7 +60,17 @@ class AppContainer(applicationContext: Context) {
     val tokenStore: TokenStore = EncryptedTokenStore(appContext)
     val sessionEvents: SessionEvents = SessionEvents()
 
-    private val okHttp = NetworkModule.provideOkHttp(tokenStore, sessionEvents)
+    val profileAvatarStorage: ProfileAvatarStorage by lazy {
+        LocalProfileAvatarStorage(appContext, tokenStore)
+    }
+
+    val profileCache: ProfileCache by lazy {
+        DefaultProfileCache(appContext, profileAvatarStorage, tokenStore)
+    }
+
+    private val okHttp by lazy {
+        NetworkModule.provideOkHttp(tokenStore, sessionEvents, profileCache)
+    }
     private val retrofit by lazy {
         val baseUrl = hostProvider.resolveBaseUrl()
         if (BuildConfig.DEBUG) {
@@ -77,18 +87,11 @@ class AppContainer(applicationContext: Context) {
     private val habitDisciplinesApi: HabitDisciplinesApi by lazy { NetworkModule.provideHabitDisciplinesApi(retrofit) }
     private val playerApi: PlayerApi by lazy { NetworkModule.providePlayerApi(retrofit) }
 
-    val profileAvatarStorage: ProfileAvatarStorage by lazy {
-        LocalProfileAvatarStorage(appContext, tokenStore)
-    }
-
-    val profileCache: ProfileCache by lazy {
-        DefaultProfileCache(appContext, profileAvatarStorage, tokenStore)
-    }
-
     val authRepository: AuthRepository by lazy {
         DefaultAuthRepository(
             api = authApi,
             tokenStore = tokenStore,
+            sessionEvents = sessionEvents,
             profileCache = profileCache,
             json = NetworkModule.jsonParser(),
         )
@@ -115,7 +118,7 @@ class AppContainer(applicationContext: Context) {
     }
 
     val playerRepository: PlayerRepository by lazy {
-        DefaultPlayerRepository(api = playerApi, tokenStore = tokenStore)
+        DefaultPlayerRepository(api = playerApi, authRepository = authRepository)
     }
 
     val profileAvatarUploader: ProfileAvatarUploader by lazy {

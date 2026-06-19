@@ -3,6 +3,8 @@ package com.example.leveluplife.ui.updatetask
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskConflictFailure
 import com.example.leveluplife.data.habits.HabitTaskRepository
+import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
+import com.example.leveluplife.data.network.dto.CreateHabitResponseDto
 import com.example.leveluplife.data.network.dto.CreateHabitTaskRequest
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
@@ -183,6 +185,13 @@ class UpdateHabitTaskViewModelTest {
 
         override suspend fun getHabitById(id: Int): Result<HabitDto> =
             Result.failure(UnsupportedOperationException())
+
+        override suspend fun createHabit(request: CreateHabitRequestDto): Result<CreateHabitResponseDto> =
+            Result.failure(UnsupportedOperationException())
+
+        override fun setCurrentUserId(userId: Int) = Unit
+
+        override fun getCurrentUserId(): Int = 1
     }
 
     private class FakeHabitTaskRepository(
