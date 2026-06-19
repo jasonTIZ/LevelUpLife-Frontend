@@ -2,6 +2,8 @@ package com.example.leveluplife.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -16,6 +18,8 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
+import com.example.leveluplife.ui.auth.RegisterScreen
+import com.example.leveluplife.ui.auth.RegisterViewModel
 import com.example.leveluplife.ui.categories.CategoriesScreen
 import com.example.leveluplife.ui.categories.CategoriesViewModel
 import com.example.leveluplife.ui.createtask.CreateHabitTaskScreen
@@ -25,6 +29,9 @@ import com.example.leveluplife.ui.evidence.EvidenceGalleryViewModel
 import com.example.leveluplife.ui.habitdetail.HabitDetailScreen
 import com.example.leveluplife.ui.habitdetail.HabitDetailViewModel
 import com.example.leveluplife.ui.habittaskdetail.HabitTaskDetailScreen
+import com.example.leveluplife.ui.habittaskdetail.HabitTaskDetailViewModel
+import com.example.leveluplife.ui.updatetask.UpdateHabitTaskScreen
+import com.example.leveluplife.ui.updatetask.UpdateHabitTaskViewModel
 import com.example.leveluplife.ui.home.HomeScreen
 import com.example.leveluplife.ui.home.HomeViewModel
 import com.example.leveluplife.ui.profile.ProfileScreen
@@ -35,6 +42,7 @@ import kotlinx.serialization.json.Json
 
 object Routes {
     const val LOGIN = "login"
+    const val REGISTER = "register"
     const val DASHBOARD = "dashboard"
     const val CATEGORIES = "categories"
     const val PROFILE = "profile"
@@ -43,16 +51,23 @@ object Routes {
     const val CREATE_HABIT_TASK = "create_habit_task?habitId={habitId}"
     const val HABIT_TASK_DETAIL = "habit_task_detail/{taskId}"
     const val TASK_EVIDENCES = "task_evidences/{taskId}"
+    const val EDIT_HABIT_TASK = "edit_habit_task/{taskId}"
 
     fun habitDetail(id: Int) = "habit_detail/$id"
     fun createHabitTask(habitId: Int = -1) = "create_habit_task?habitId=$habitId"
     fun habitTaskDetail(taskId: Int) = "habit_task_detail/$taskId"
     fun taskEvidences(taskId: Int) = "task_evidences/$taskId"
+    fun editHabitTask(taskId: Int) = "edit_habit_task/$taskId"
 
     const val ARG_CREATED_TASK_JSON = "created_task_json"
+    const val ARG_TASK_SUCCESS_KIND = "task_success_kind"
+    const val TASK_SUCCESS_CREATED = "created"
+    const val TASK_SUCCESS_UPDATED = "updated"
     const val ARG_SHOW_CONFIRMATION = "show_confirmation"
+    const val ARG_TASK_DEACTIVATED_MESSAGE = "task_deactivated_message"
     const val ARG_DEACTIVATION_MESSAGE = "deactivation_message"
     const val ARG_SESSION_EXPIRED_MESSAGE = "session_expired_message"
+    const val ARG_REGISTER_SUCCESS_MESSAGE = "register_success_message"
 }
 
 @Composable
@@ -95,6 +110,8 @@ fun AppNavigation(
                 .get<String>(Routes.ARG_DEACTIVATION_MESSAGE)
                 ?: backStackEntry.savedStateHandle
                     .get<String>(Routes.ARG_SESSION_EXPIRED_MESSAGE)
+                ?: backStackEntry.savedStateHandle
+                    .get<String>(Routes.ARG_REGISTER_SUCCESS_MESSAGE)
             val vm: LoginViewModel = viewModel(
                 factory = LoginViewModel.Factory(container.authRepository),
             )
@@ -105,6 +122,7 @@ fun AppNavigation(
                 onInfoMessageShown = {
                     backStackEntry.savedStateHandle.remove<String>(Routes.ARG_DEACTIVATION_MESSAGE)
                     backStackEntry.savedStateHandle.remove<String>(Routes.ARG_SESSION_EXPIRED_MESSAGE)
+                    backStackEntry.savedStateHandle.remove<String>(Routes.ARG_REGISTER_SUCCESS_MESSAGE)
                 },
                 onLoggedIn = {
                     navController.navigate(Routes.DASHBOARD) {
@@ -112,7 +130,34 @@ fun AppNavigation(
                         launchSingleTop = true
                     }
                 },
-                onNavigateToRegister = {},
+                onNavigateToRegister = {
+                    navController.navigate(Routes.REGISTER) { launchSingleTop = true }
+                },
+            )
+        }
+        composable(Routes.REGISTER) {
+            val vm: RegisterViewModel = viewModel(
+                factory = RegisterViewModel.Factory(container.authRepository),
+            )
+            RegisterScreen(
+                viewModel = vm,
+                themeController = container.themeController,
+                onRegisteredAndLoggedIn = {
+                    navController.navigate(Routes.DASHBOARD) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToLogin = { successMessage ->
+                    navController.popBackStack()
+                    if (!successMessage.isNullOrBlank()) {
+                        runCatching {
+                            navController.getBackStackEntry(Routes.LOGIN)
+                                .savedStateHandle
+                                .set(Routes.ARG_REGISTER_SUCCESS_MESSAGE, successMessage)
+                        }
+                    }
+                },
             )
         }
         composable(Routes.DASHBOARD) {
@@ -144,7 +189,7 @@ fun AppNavigation(
                 factory = ProfileViewModel.Factory(
                     container.profileRepository,
                     container.profileCache,
-                    container.profileAvatarStorage,
+                    container.tokenStore,
                 ),
             )
             ProfileScreen(
@@ -196,6 +241,9 @@ fun AppNavigation(
             arguments = listOf(navArgument("habitId") { type = NavType.IntType }),
         ) { backStackEntry ->
             val habitId = backStackEntry.arguments?.getInt("habitId") ?: return@composable
+            val infoMessage by backStackEntry.savedStateHandle
+                .getStateFlow<String?>(Routes.ARG_TASK_DEACTIVATED_MESSAGE, null)
+                .collectAsState()
             val vm: HabitDetailViewModel = viewModel(
                 factory = HabitDetailViewModel.Factory(container.habitRepository, habitId),
             )
@@ -203,12 +251,15 @@ fun AppNavigation(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },
                 onTaskClick = { task ->
-                    val taskJson = json.encodeToString(HabitTaskDto.serializer(), task)
                     navController.navigate(Routes.habitTaskDetail(task.id))
                     navController.currentBackStackEntry?.savedStateHandle?.set(
                         Routes.ARG_CREATED_TASK_JSON,
-                        taskJson,
+                        json.encodeToString(HabitTaskDto.serializer(), task),
                     )
+                },
+                infoMessage = infoMessage,
+                onInfoMessageShown = {
+                    backStackEntry.savedStateHandle.remove<String>(Routes.ARG_TASK_DEACTIVATED_MESSAGE)
                 },
             )
         }
@@ -242,8 +293,39 @@ fun AppNavigation(
                         taskJson,
                     )
                     navController.currentBackStackEntry?.savedStateHandle?.set(
-                        Routes.ARG_SHOW_CONFIRMATION,
-                        true,
+                        Routes.ARG_TASK_SUCCESS_KIND,
+                        Routes.TASK_SUCCESS_CREATED,
+                    )
+                },
+            )
+        }
+        composable(
+            route = Routes.EDIT_HABIT_TASK,
+            arguments = listOf(navArgument("taskId") { type = NavType.IntType }),
+        ) { backStackEntry ->
+            val taskId = backStackEntry.arguments?.getInt("taskId") ?: return@composable
+            val vm: UpdateHabitTaskViewModel = viewModel(
+                factory = UpdateHabitTaskViewModel.Factory(
+                    taskId,
+                    container.habitRepository,
+                    container.habitTaskRepository,
+                ),
+            )
+            UpdateHabitTaskScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onTaskUpdated = { task ->
+                    val taskJson = json.encodeToString(HabitTaskDto.serializer(), task)
+                    navController.navigate(Routes.habitTaskDetail(task.id)) {
+                        popUpTo(Routes.editHabitTask(taskId)) { inclusive = true }
+                    }
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        Routes.ARG_CREATED_TASK_JSON,
+                        taskJson,
+                    )
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        Routes.ARG_TASK_SUCCESS_KIND,
+                        Routes.TASK_SUCCESS_UPDATED,
                     )
                 },
             )
@@ -257,35 +339,44 @@ fun AppNavigation(
                 ?: navController.previousBackStackEntry
                     ?.savedStateHandle
                     ?.get<String>(Routes.ARG_CREATED_TASK_JSON)
-            val task = taskJson?.let {
+            val initialTask = taskJson?.let {
                 runCatching { json.decodeFromString(HabitTaskDto.serializer(), it) }.getOrNull()
+            }?.takeIf { it.id == taskId }
+            val successKind = backStackEntry.savedStateHandle.get<String>(Routes.ARG_TASK_SUCCESS_KIND)
+                ?: navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<String>(Routes.ARG_TASK_SUCCESS_KIND)
+            val successMessageRes = when (successKind) {
+                Routes.TASK_SUCCESS_UPDATED -> R.string.update_task_success
+                Routes.TASK_SUCCESS_CREATED -> R.string.create_task_success_message
+                else -> null
             }
-            val showConfirmation = backStackEntry.savedStateHandle.get<Boolean>(Routes.ARG_SHOW_CONFIRMATION) == true
-            if (task != null && task.id == taskId) {
-                HabitTaskDetailScreen(
-                    task = task,
-                    showConfirmation = showConfirmation,
-                    onBack = {
-                        navController.popBackStack(Routes.DASHBOARD, inclusive = false)
-                    },
-                    onDone = {
-                        navController.popBackStack(Routes.DASHBOARD, inclusive = false)
-                    },
-                    onViewEvidences = {
-                        navController.navigate(Routes.taskEvidences(taskId))
-                    },
-                )
-            } else {
-                HabitTaskDetailScreen(
-                    task = HabitTaskDto(id = taskId, title = "Task #$taskId"),
-                    showConfirmation = false,
-                    onBack = { navController.popBackStack() },
-                    onDone = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
-                    onViewEvidences = {
-                        navController.navigate(Routes.taskEvidences(taskId))
-                    },
-                )
-            }
+            val vm: HabitTaskDetailViewModel = viewModel(
+                factory = HabitTaskDetailViewModel.Factory(
+                    taskId = taskId,
+                    habitTaskRepository = container.habitTaskRepository,
+                    habitRepository = container.habitRepository,
+                    initialTask = initialTask,
+                ),
+            )
+            HabitTaskDetailScreen(
+                viewModel = vm,
+                successMessageRes = successMessageRes,
+                onBack = { navController.popBackStack() },
+                onDone = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
+                onViewEvidences = {
+                    navController.navigate(Routes.taskEvidences(taskId))
+                },
+                onEdit = { loadedTask ->
+                    navController.navigate(Routes.editHabitTask(loadedTask.id))
+                },
+                onTaskDeactivated = { message ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(Routes.ARG_TASK_DEACTIVATED_MESSAGE, message)
+                    navController.popBackStack()
+                },
+            )
         }
         composable(
             route = Routes.TASK_EVIDENCES,
