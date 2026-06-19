@@ -1,4 +1,4 @@
-package com.example.leveluplife
+﻿package com.example.leveluplife
 
 import android.content.Context
 import android.util.Log
@@ -11,7 +11,6 @@ import com.example.leveluplife.data.auth.TokenStore
 import com.example.leveluplife.data.categories.DefaultHabitCategoryRepository
 import com.example.leveluplife.data.categories.HabitCategoryRepository
 import com.example.leveluplife.data.habits.DefaultHabitDisciplineRepository
-import com.example.leveluplife.data.habits.DefaultHabitRepository
 import com.example.leveluplife.data.habits.DefaultHabitTaskRepository
 import com.example.leveluplife.data.habits.HabitDisciplineRepository
 import com.example.leveluplife.data.habits.DefaultEvidenceRepository
@@ -109,6 +108,8 @@ class AppContainer(applicationContext: Context) {
 
     val habitDisciplineRepository: HabitDisciplineRepository by lazy {
         DefaultHabitDisciplineRepository(api = habitDisciplinesApi)
+    }
+
     val evidenceRepository: EvidenceRepository by lazy {
         DefaultEvidenceRepository(api = habitTasksApi)
     }
@@ -131,3 +132,4 @@ class AppContainer(applicationContext: Context) {
         )
     }
 }
+

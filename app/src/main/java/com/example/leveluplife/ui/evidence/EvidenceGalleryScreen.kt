@@ -1,4 +1,4 @@
-package com.example.leveluplife.ui.evidence
+﻿package com.example.leveluplife.ui.evidence
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,21 +20,30 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.WarningAmber
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -45,11 +54,15 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.EvidenceDto
+import com.example.leveluplife.ui.components.LulErrorAlertDialog
+import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.theme.DarkBackground
 import com.example.leveluplife.ui.theme.DarkOnBackground
 import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
 import com.example.leveluplife.ui.theme.DarkSurfaceVariant
 import com.example.leveluplife.ui.theme.PurplePrimary
+
+private val DangerRed = Color(0xFFCF6679)
 
 @Composable
 fun EvidenceGalleryScreen(
@@ -58,10 +71,46 @@ fun EvidenceGalleryScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val deleteSuccessMessage = stringResource(R.string.evidence_gallery_delete_success)
+    LaunchedEffect(state.deleteSuccess) {
+        if (state.deleteSuccess) {
+            snackbarHostState.showLulSnackbar(deleteSuccessMessage)
+            viewModel.onDeleteSuccessShown()
+        }
+    }
+
+    if (state.pendingDeleteEvidence != null) {
+        DeleteEvidenceConfirmDialog(
+            state = state,
+            onDismiss = viewModel::cancelDelete,
+            onConfirm = viewModel::confirmDelete,
+            onAcknowledgedChange = viewModel::onDeleteAcknowledgedChange,
+        )
+    }
+
+    if (state.deleteError != null) {
+        val forbiddenMessage = stringResource(R.string.evidence_gallery_delete_error_forbidden)
+        val notFoundMessage = stringResource(R.string.evidence_gallery_delete_error_not_found)
+        val genericMessage = stringResource(R.string.evidence_gallery_delete_error_generic)
+        val errorMessage = when (state.deleteError) {
+            "forbidden" -> forbiddenMessage
+            "not_found" -> notFoundMessage
+            else -> genericMessage
+        }
+        LulErrorAlertDialog(
+            title = stringResource(R.string.error_dialog_title),
+            message = errorMessage,
+            dismissText = stringResource(R.string.login_dismiss),
+            onDismiss = viewModel::dismissDeleteError,
+        )
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = DarkBackground,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -140,7 +189,10 @@ fun EvidenceGalleryScreen(
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         items(state.evidences, key = { it.id }) { evidence ->
-                            EvidenceCard(evidence = evidence)
+                            EvidenceCard(
+                                evidence = evidence,
+                                onDelete = { viewModel.requestDelete(evidence) },
+                            )
                         }
                     }
                 }
@@ -150,7 +202,10 @@ fun EvidenceGalleryScreen(
 }
 
 @Composable
-private fun EvidenceCard(evidence: EvidenceDto) {
+private fun EvidenceCard(
+    evidence: EvidenceDto,
+    onDelete: () -> Unit,
+) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
@@ -185,7 +240,7 @@ private fun EvidenceCard(evidence: EvidenceDto) {
                     .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
             )
 
-            Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+            Column(modifier = Modifier.padding(start = 10.dp, end = 4.dp, top = 8.dp, bottom = 4.dp)) {
                 Text(
                     text = stringResource(
                         R.string.evidence_gallery_uploaded_on,
@@ -203,7 +258,89 @@ private fun EvidenceCard(evidence: EvidenceDto) {
                         maxLines = 2,
                     )
                 }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    IconButton(
+                        onClick = onDelete,
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        Icon(
+                            Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.evidence_gallery_delete_button),
+                            tint = DangerRed,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+@Composable
+private fun DeleteEvidenceConfirmDialog(
+    state: EvidenceGalleryUiState,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    onAcknowledgedChange: (Boolean) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                Icons.Outlined.WarningAmber,
+                contentDescription = null,
+                tint = DangerRed,
+            )
+        },
+        title = {
+            Text(
+                text = stringResource(R.string.evidence_gallery_delete_confirm_title),
+                style = MaterialTheme.typography.titleLarge,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = stringResource(R.string.evidence_gallery_delete_confirm_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Checkbox(
+                        checked = state.deleteAcknowledged,
+                        onCheckedChange = onAcknowledgedChange,
+                    )
+                    Text(
+                        text = stringResource(R.string.evidence_gallery_delete_irreversible_ack),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.evidence_gallery_delete_cancel))
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                enabled = state.deleteAcknowledged && !state.isDeleting,
+            ) {
+                Text(
+                    text = if (state.isDeleting)
+                        stringResource(R.string.evidence_gallery_delete_confirming)
+                    else
+                        stringResource(R.string.evidence_gallery_delete_confirm_button),
+                    color = if (state.deleteAcknowledged) DangerRed else DarkOnSurfaceVariant,
+                )
+            }
+        },
+    )
 }
