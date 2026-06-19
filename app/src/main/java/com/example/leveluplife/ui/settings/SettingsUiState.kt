@@ -6,6 +6,4 @@ data class SettingsUiState(
     val reason: String = "",
     val isDeactivating: Boolean = false,
     val errorMessage: String? = null,
-    val accountDeactivated: Boolean = false,
-    val deactivationMessage: String? = null,
 )
