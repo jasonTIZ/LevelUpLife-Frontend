@@ -77,7 +77,7 @@ fun HomeScreen(
     onOpenSettings: () -> Unit = {},
     onOpenCategories: () -> Unit = {},
     onHabitClick: (habitId: Int) -> Unit = {},
-    onCreateTask: () -> Unit = {},
+    onCreateHabit: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -101,12 +101,12 @@ fun HomeScreen(
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onCreateTask,
+                onClick = onCreateHabit,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
                 shape = CircleShape,
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Agregar misión")
+                Icon(Icons.Filled.Add, contentDescription = "Create Habit")
             }
         },
         bottomBar = { HomeBottomBar(onOpenSettings = onOpenSettings) },
