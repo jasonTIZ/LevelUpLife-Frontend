@@ -264,6 +264,12 @@ class UpdateHabitTaskViewModelTest {
             return updateResult
         }
 
+        override suspend fun completeHabitTask(
+            taskId: Int,
+            completedAt: java.time.Instant,
+        ): Result<com.example.leveluplife.data.network.dto.CompleteHabitTaskResponse> =
+            Result.failure(UnsupportedOperationException())
+
         override suspend fun deactivateHabitTask(taskId: Int): Result<String> =
             Result.failure(UnsupportedOperationException())
     }
