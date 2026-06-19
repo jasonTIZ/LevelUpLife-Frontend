@@ -25,6 +25,7 @@ import com.example.leveluplife.data.player.DefaultPlayerRepository
 import com.example.leveluplife.data.player.DefaultProfileCache
 import com.example.leveluplife.data.player.DefaultProfileRepository
 import com.example.leveluplife.data.player.LocalProfileAvatarStorage
+import com.example.leveluplife.data.player.ProfileAvatarUploader
 import com.example.leveluplife.data.player.PlayerRepository
 import com.example.leveluplife.data.player.ProfileAvatarStorage
 import com.example.leveluplife.data.player.ProfileCache
@@ -70,16 +71,19 @@ class AppContainer(applicationContext: Context) {
     private val habitTasksApi: HabitTasksApi by lazy { NetworkModule.provideHabitTasksApi(retrofit) }
     private val playerApi: PlayerApi by lazy { NetworkModule.providePlayerApi(retrofit) }
 
-    val profileAvatarStorage: ProfileAvatarStorage by lazy { LocalProfileAvatarStorage(appContext) }
+    val profileAvatarStorage: ProfileAvatarStorage by lazy {
+        LocalProfileAvatarStorage(appContext, tokenStore)
+    }
 
     val profileCache: ProfileCache by lazy {
-        DefaultProfileCache(appContext, profileAvatarStorage)
+        DefaultProfileCache(appContext, profileAvatarStorage, tokenStore)
     }
 
     val authRepository: AuthRepository by lazy {
         DefaultAuthRepository(
             api = authApi,
             tokenStore = tokenStore,
+            profileCache = profileCache,
             json = NetworkModule.jsonParser(),
         )
     }
@@ -100,10 +104,16 @@ class AppContainer(applicationContext: Context) {
         DefaultPlayerRepository(api = playerApi, tokenStore = tokenStore)
     }
 
+    val profileAvatarUploader: ProfileAvatarUploader by lazy {
+        ProfileAvatarUploader(appContext)
+    }
+
     val profileRepository: ProfileRepository by lazy {
         DefaultProfileRepository(
             api = playerApi,
             profileCache = profileCache,
+            avatarUploader = profileAvatarUploader,
+            apiBaseUrl = hostProvider.resolveBaseUrl().trimEnd('/'),
             json = NetworkModule.jsonParser(),
         )
     }

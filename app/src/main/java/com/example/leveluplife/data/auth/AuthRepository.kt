@@ -8,6 +8,9 @@ import com.example.leveluplife.data.network.dto.LoginRequest
 import com.example.leveluplife.data.network.dto.RegisterPersonData
 import com.example.leveluplife.data.network.dto.RegisterPlayerUserData
 import com.example.leveluplife.data.network.dto.RegisterRequest
+import com.example.leveluplife.data.player.ProfileCache
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 interface AuthRepository {
@@ -29,6 +32,7 @@ interface AuthRepository {
 class DefaultAuthRepository(
     private val api: AuthApi,
     private val tokenStore: TokenStore,
+    private val profileCache: ProfileCache,
     private val json: Json,
 ) : AuthRepository {
 
@@ -39,6 +43,7 @@ class DefaultAuthRepository(
                 ?: return Result.failure(AuthErrorException(AuthError.Unknown("empty_body")))
             val data = body.data
                 ?: return Result.failure(AuthErrorException(AuthError.Unknown("missing_data")))
+            profileCache.clearMemory()
             val session = buildSession(data)
             tokenStore.saveTokens(session.accessToken, session.refreshToken, session.user.id)
             Result.success(session)
@@ -134,7 +139,12 @@ class DefaultAuthRepository(
 
     override fun isLoggedIn(): Boolean = tokenStore.hasSession()
 
-    override fun logout() = tokenStore.clear()
+    override fun logout() {
+        tokenStore.clear()
+        runBlocking(Dispatchers.IO) {
+            profileCache.clearMemory()
+        }
+    }
 
     override fun currentTokens(): Pair<String?, String?> =
         tokenStore.accessToken() to tokenStore.refreshToken()

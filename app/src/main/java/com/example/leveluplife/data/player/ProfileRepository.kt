@@ -6,7 +6,6 @@ import com.example.leveluplife.data.network.dto.PersonUpdateRequestDto
 import com.example.leveluplife.data.network.dto.PlayerDataUpdateRequestDto
 import com.example.leveluplife.data.network.dto.PlayerProfileDto
 import com.example.leveluplife.data.network.dto.UpdatePlayerProfileRequestDto
-import com.example.leveluplife.data.network.dto.UpdatePlayerProfileResponseDto
 import kotlinx.serialization.json.Json
 import java.io.IOException
 import java.net.SocketTimeoutException
@@ -21,12 +20,20 @@ interface ProfileRepository {
         email: String,
         birthdate: String?,
         userName: String,
+        bio: String,
     ): Result<PlayerProfile>
+    suspend fun uploadAvatar(
+        etag: String,
+        sourceUri: String,
+        mimeType: String?,
+    ): Result<ProfileUpdateResult>
 }
 
 class DefaultProfileRepository(
     private val api: PlayerApi,
     private val profileCache: ProfileCache,
+    private val avatarUploader: ProfileAvatarUploader,
+    private val apiBaseUrl: String,
     private val json: Json,
 ) : ProfileRepository {
 
@@ -38,11 +45,7 @@ class DefaultProfileRepository(
             if (body == null) {
                 Result.failure(ProfileException(ProfileError.Unknown("Empty profile response.")))
             } else {
-                val cached = profileCache.profile.value
-                val profile = body.toDomain(
-                    avatarUri = cached?.avatarUri,
-                    bio = cached?.bio.orEmpty(),
-                )
+                val profile = body.toDomain(apiBaseUrl)
                 profileCache.update(profile, etag)
                 Result.success(ProfileFetchResult(profile = profile, etag = etag))
             }
@@ -68,6 +71,7 @@ class DefaultProfileRepository(
         email: String,
         birthdate: String?,
         userName: String,
+        bio: String,
     ): Result<PlayerProfile> = try {
         val request = UpdatePlayerProfileRequestDto(
             personData = PersonUpdateRequestDto(
@@ -78,6 +82,7 @@ class DefaultProfileRepository(
             ),
             playerData = PlayerDataUpdateRequestDto(
                 userName = userName.trim(),
+                bio = bio.trim(),
             ),
         )
         val response = api.updateProfile(ifMatch = etag, body = request)
@@ -87,11 +92,7 @@ class DefaultProfileRepository(
             if (body?.player == null) {
                 Result.failure(ProfileException(ProfileError.Unknown("Empty update response.")))
             } else {
-                val cached = profileCache.profile.value
-                val profile = body.player.toDomain(
-                    avatarUri = cached?.avatarUri,
-                    bio = cached?.bio.orEmpty(),
-                )
+                val profile = body.player.toDomain(apiBaseUrl)
                 profileCache.update(profile, newEtag.ifBlank { null })
                 Result.success(profile)
             }
@@ -109,12 +110,48 @@ class DefaultProfileRepository(
     } catch (e: IOException) {
         Result.failure(ProfileException(ProfileError.Network(e.message ?: "network")))
     }
+
+    override suspend fun uploadAvatar(
+        etag: String,
+        sourceUri: String,
+        mimeType: String?,
+    ): Result<ProfileUpdateResult> = try {
+        val part = avatarUploader.createPart(sourceUri, mimeType)
+            ?: return Result.failure(ProfileException(ProfileError.Unknown("Cannot read avatar file.")))
+
+        val response = api.uploadAvatar(ifMatch = etag, file = part)
+        val newEtag = response.headers()["ETag"].orEmpty()
+        if (response.isSuccessful) {
+            val body = response.body()
+            if (body?.player == null) {
+                Result.failure(ProfileException(ProfileError.Unknown("Empty avatar upload response.")))
+            } else {
+                val profile = body.player.toDomain(apiBaseUrl)
+                profileCache.update(profile, newEtag.ifBlank { null })
+                Result.success(
+                    ProfileUpdateResult(
+                        profile = profile,
+                        etag = newEtag.ifBlank { etag },
+                    ),
+                )
+            }
+        } else {
+            Result.failure(
+                ProfileException(
+                    ProfileErrorMapper.fromHttpCode(response.code(), response.errorBody()?.string(), json),
+                ),
+            )
+        }
+    } catch (_: SocketTimeoutException) {
+        Result.failure(ProfileException(ProfileError.Network("timeout")))
+    } catch (_: UnknownHostException) {
+        Result.failure(ProfileException(ProfileError.Network("unknown_host")))
+    } catch (e: IOException) {
+        Result.failure(ProfileException(ProfileError.Network(e.message ?: "network")))
+    }
 }
 
-private fun GetPlayerProfileResponseDto.toDomain(
-    avatarUri: String?,
-    bio: String,
-): PlayerProfile = PlayerProfile(
+private fun GetPlayerProfileResponseDto.toDomain(apiBaseUrl: String): PlayerProfile = PlayerProfile(
     playerUserId = playerUserId,
     userName = playerUserUserName,
     level = playerUserLevel,
@@ -122,14 +159,11 @@ private fun GetPlayerProfileResponseDto.toDomain(
     lastName = personData.lastName,
     email = personData.email,
     birthdate = personData.birthdate,
-    avatarUri = avatarUri,
-    bio = bio,
+    avatarUri = ProfileImageUrls.resolve(avatarUrl, apiBaseUrl),
+    bio = bio.orEmpty(),
 )
 
-private fun PlayerProfileDto.toDomain(
-    avatarUri: String?,
-    bio: String,
-): PlayerProfile = PlayerProfile(
+private fun PlayerProfileDto.toDomain(apiBaseUrl: String): PlayerProfile = PlayerProfile(
     playerUserId = id.toString(),
     userName = userName,
     level = level,
@@ -139,6 +173,6 @@ private fun PlayerProfileDto.toDomain(
     lastName = person.lastName,
     email = person.email,
     birthdate = person.birthdate,
-    avatarUri = avatarUri,
-    bio = bio,
+    avatarUri = ProfileImageUrls.resolve(avatarUrl, apiBaseUrl),
+    bio = bio.orEmpty(),
 )

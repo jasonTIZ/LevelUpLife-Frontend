@@ -68,6 +68,7 @@ import com.example.leveluplife.domain.validation.ProfileValidators
 import com.example.leveluplife.ui.auth.toMessage
 import com.example.leveluplife.ui.components.LulErrorAlertDialog
 import com.example.leveluplife.ui.components.LulPrimaryButton
+import com.example.leveluplife.ui.components.showLulSnackbar
 
 object ProfileTestTags {
     const val SCREEN = "profile_screen"
@@ -107,7 +108,7 @@ fun ProfileScreen(
 
     LaunchedEffect(state.profileSaved, successMessage) {
         if (state.profileSaved) {
-            snackbarHostState.showSnackbar(successMessage)
+            snackbarHostState.showLulSnackbar(successMessage)
             viewModel.consumeSavedEvent()
         }
     }

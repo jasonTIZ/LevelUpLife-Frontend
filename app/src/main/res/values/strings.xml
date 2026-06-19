@@ -184,10 +184,24 @@
     <string name="task_detail_timer_no_pause">%1$s (sin pausas)</string>
     <string name="task_detail_back_home">Volver al inicio</string>
 
-    <string name="habit_detail_task_subtitle">%1$s · %2$s · %3$s</string>
+    <!-- Deactivate habit task -->
+    <string name="deactivate_task_button">Desactivar tarea</string>
+    <string name="deactivate_task_confirm_title">¿Desactivar esta tarea?</string>
+    <string name="deactivate_task_confirm_message">La tarea dejará de mostrarse en la app, pero el historial y los registros anteriores se conservan en el sistema.\n\nEsta acción no se puede deshacer desde la aplicación.</string>
+    <string name="deactivate_task_confirm_ack">Entiendo que se ocultará de las listas activas y el historial se conserva</string>
+    <string name="deactivate_task_confirm_button">Desactivar</string>
+    <string name="deactivate_task_confirming">Desactivando…</string>
+    <string name="deactivate_task_success">Tarea desactivada correctamente.</string>
+
+    <!-- Habit detail tasks -->
+    <string name="habit_detail_default_title">Detalle del hábito</string>
+    <string name="habit_detail_tasks_section">TAREAS ACTIVAS</string>
+    <string name="habit_detail_active_tasks_count">%1$d activas</string>
+    <string name="habit_detail_with_criteria_count">%1$d con criterios</string>
+    <string name="habit_detail_no_active_tasks">No hay tareas activas en este hábito.</string>
+    <string name="habit_detail_no_repetition_criteria">Sin criterios de repetición</string>
     <string name="habit_detail_task_default_title">Tarea %1$d</string>
-    <string name="habit_detail_tasks_section">TAREAS Y CRITERIOS</string>
-    <string name="habit_detail_with_criteria">%1$d con criterios</string>
+    <string name="habit_detail_task_subtitle">%1$s · %2$s · %3$s</string>
 
     <!-- Settings / deactivate account -->
     <string name="settings_title">Ajustes</string>

@@ -2,6 +2,8 @@ package com.example.leveluplife.data.auth
 
 import com.example.leveluplife.data.network.AuthApi
 import com.example.leveluplife.data.network.NetworkModule
+import com.example.leveluplife.ui.profile.FakeProfileCache
+import com.example.leveluplife.ui.profile.sampleProfile
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.mockwebserver.MockResponse
@@ -20,12 +22,14 @@ class AuthRepositoryTest {
 
     private val mockServer = MockWebServer()
     private lateinit var store: FakeTokenStore
+    private lateinit var profileCache: FakeProfileCache
     private lateinit var repo: AuthRepository
 
     @Before
     fun setUp() {
         mockServer.start()
         store = FakeTokenStore()
+        profileCache = FakeProfileCache()
         val json = NetworkModule.jsonParser()
         val retrofit = Retrofit.Builder()
             .baseUrl(mockServer.url("/"))
@@ -34,6 +38,7 @@ class AuthRepositoryTest {
         repo = DefaultAuthRepository(
             api = retrofit.create(AuthApi::class.java),
             tokenStore = store,
+            profileCache = profileCache,
             json = json,
         )
     }
@@ -79,6 +84,17 @@ class AuthRepositoryTest {
     // When logout completes
     // Then secure storage is cleared of tokens and session data
     @Test
+    fun `login exitoso limpia la memoria del perfil sin borrar datos locales del usuario`() = runTest {
+        profileCache.update(sampleProfile(), "\"etag-1\"")
+
+        mockServer.enqueue(loginOkResponse("tok-abc"))
+        val result = repo.login("user@test.com", "pass")
+
+        assertTrue(result.isSuccess)
+        assertNull(profileCache.profile.value)
+    }
+
+    @Test
     fun `logout limpia todos los tokens y la sesión del almacenamiento seguro`() = runTest {
         mockServer.enqueue(loginOkResponse("tok-abc"))
         repo.login("user@test.com", "pass")
@@ -89,15 +105,18 @@ class AuthRepositoryTest {
         assertEquals(1, store.clearCallCount)
         assertNull(store.accessToken())
         assertNull(store.refreshToken())
+        assertNull(profileCache.profile.value)
         assertFalse(repo.isLoggedIn())
     }
 
     @Test
-    fun `logout sin sesión previa no falla y el almacenamiento queda limpio`() {
+    fun `logout sin sesión previa no falla y el almacenamiento queda limpio`() = runTest {
+        profileCache.update(sampleProfile(), "\"etag-1\"")
         repo.logout()
 
         assertEquals(1, store.clearCallCount)
         assertNull(store.accessToken())
+        assertNull(profileCache.profile.value)
         assertFalse(repo.isLoggedIn())
     }
 

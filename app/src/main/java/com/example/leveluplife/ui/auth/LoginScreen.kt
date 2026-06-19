@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import com.example.leveluplife.R
 import com.example.leveluplife.data.error.AuthError
 import com.example.leveluplife.ui.components.LulErrorAlertDialog
+import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.components.LulLogo
 import com.example.leveluplife.ui.components.LulPrimaryButton
 import com.example.leveluplife.ui.components.LulScreenHeaderLabels
@@ -103,7 +104,7 @@ fun LoginScreen(
 
     LaunchedEffect(infoMessage) {
         if (!infoMessage.isNullOrBlank()) {
-            snackbarHostState.showSnackbar(infoMessage)
+            snackbarHostState.showLulSnackbar(infoMessage)
             onInfoMessageShown()
         }
     }

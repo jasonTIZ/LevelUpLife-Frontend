@@ -40,6 +40,7 @@ data class ProfileUiState(
     val level: Int = 1,
     val avatarUri: String? = null,
     val pendingAvatarUri: String? = null,
+    val pendingAvatarMimeType: String? = null,
     val editSnapshot: ProfileFormSnapshot? = null,
     val etag: String = "",
     val nameError: FieldError? = null,

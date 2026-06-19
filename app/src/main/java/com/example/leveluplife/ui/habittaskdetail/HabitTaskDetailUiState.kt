@@ -7,4 +7,10 @@ data class HabitTaskDetailUiState(
     val habitTitle: String? = null,
     val isLoading: Boolean = true,
     val loadError: String? = null,
+    val showConfirmDeactivateDialog: Boolean = false,
+    val consequencesAcknowledged: Boolean = false,
+    val isDeactivating: Boolean = false,
+    val deactivateError: String? = null,
+    val taskDeactivated: Boolean = false,
+    val deactivationMessage: String? = null,
 )
