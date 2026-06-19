@@ -43,7 +43,7 @@ class ProfileViewModelTest {
             fetchResult = Result.success(ProfileFetchResult(profile, "\"etag-1\"")),
         )
         val cache = FakeProfileCache(initial = profile, etag = "\"etag-1\"")
-        val vm = ProfileViewModel(repo, cache, FakeProfileAvatarStorage(), testTokenStore())
+        val vm = ProfileViewModel(repo, cache, testTokenStore())
 
         advanceUntilIdle()
 
@@ -59,7 +59,7 @@ class ProfileViewModelTest {
         val repo = FakeProfileRepository(
             fetchResult = Result.success(ProfileFetchResult(profile, "\"etag-1\"")),
         )
-        val vm = ProfileViewModel(repo, FakeProfileCache(initial = profile), FakeProfileAvatarStorage(), testTokenStore())
+        val vm = ProfileViewModel(repo, FakeProfileCache(initial = profile), testTokenStore())
         advanceUntilIdle()
 
         vm.onStartEditing()
@@ -78,7 +78,7 @@ class ProfileViewModelTest {
         val repo = FakeProfileRepository(
             fetchResult = Result.success(ProfileFetchResult(profile, "\"etag-1\"")),
         )
-        val vm = ProfileViewModel(repo, FakeProfileCache(initial = profile), FakeProfileAvatarStorage(), testTokenStore())
+        val vm = ProfileViewModel(repo, FakeProfileCache(initial = profile), testTokenStore())
         advanceUntilIdle()
 
         vm.onStartEditing()
@@ -92,7 +92,7 @@ class ProfileViewModelTest {
         val repo = FakeProfileRepository(
             fetchResult = Result.success(ProfileFetchResult(sampleProfile(), "\"etag-1\"")),
         )
-        val vm = ProfileViewModel(repo, FakeProfileCache(initial = sampleProfile()), FakeProfileAvatarStorage(), testTokenStore())
+        val vm = ProfileViewModel(repo, FakeProfileCache(initial = sampleProfile()), testTokenStore())
         advanceUntilIdle()
 
         vm.onStartEditing()
@@ -106,7 +106,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `avatar too large blocks selection`() = runTest(testDispatcher) {
-        val vm = ProfileViewModel(FakeProfileRepository(), FakeProfileCache(), FakeProfileAvatarStorage(), testTokenStore())
+        val vm = ProfileViewModel(FakeProfileRepository(), FakeProfileCache(), testTokenStore())
         advanceUntilIdle()
 
         vm.onAvatarSelected(
@@ -128,7 +128,7 @@ class ProfileViewModelTest {
             updateResult = Result.success(updated),
         )
         val cache = FakeProfileCache(initial = profile, etag = "\"etag-1\"")
-        val vm = ProfileViewModel(repo, cache, FakeProfileAvatarStorage(), testTokenStore())
+        val vm = ProfileViewModel(repo, cache, testTokenStore())
         advanceUntilIdle()
 
         vm.onStartEditing()
@@ -150,7 +150,7 @@ class ProfileViewModelTest {
             updateResult = Result.failure(validationException()),
         )
         val cache = FakeProfileCache(initial = profile, etag = "\"etag-1\"")
-        val vm = ProfileViewModel(repo, cache, FakeProfileAvatarStorage(), testTokenStore())
+        val vm = ProfileViewModel(repo, cache, testTokenStore())
         advanceUntilIdle()
 
         vm.onStartEditing()

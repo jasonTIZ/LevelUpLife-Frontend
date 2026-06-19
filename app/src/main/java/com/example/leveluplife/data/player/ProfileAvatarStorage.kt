@@ -40,8 +40,15 @@ class LocalProfileAvatarStorage(
         }
 
     override fun resolveDisplayUri(storedUri: String?): String? {
+        val value = storedUri?.trim().orEmpty()
+        if (value.startsWith("http://", ignoreCase = true) ||
+            value.startsWith("https://", ignoreCase = true) ||
+            value.startsWith("content://", ignoreCase = true)
+        ) {
+            return value
+        }
         migrateLegacyAvatarIfNeeded()
-        storedUri?.toExistingFileOrNull()?.let { return it.toURI().toString() }
+        value.toExistingFileOrNull()?.let { return it.toURI().toString() }
         return findExistingAvatarFileForCurrentUser()?.toURI()?.toString()
     }
 

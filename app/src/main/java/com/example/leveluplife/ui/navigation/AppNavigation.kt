@@ -136,7 +136,6 @@ fun AppNavigation(
                 factory = ProfileViewModel.Factory(
                     container.profileRepository,
                     container.profileCache,
-                    container.profileAvatarStorage,
                     container.tokenStore,
                 ),
             )

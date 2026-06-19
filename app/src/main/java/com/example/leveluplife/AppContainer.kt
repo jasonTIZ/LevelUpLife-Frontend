@@ -20,6 +20,7 @@ import com.example.leveluplife.data.player.DefaultPlayerRepository
 import com.example.leveluplife.data.player.DefaultProfileCache
 import com.example.leveluplife.data.player.DefaultProfileRepository
 import com.example.leveluplife.data.player.LocalProfileAvatarStorage
+import com.example.leveluplife.data.player.ProfileAvatarUploader
 import com.example.leveluplife.data.player.PlayerRepository
 import com.example.leveluplife.data.player.ProfileAvatarStorage
 import com.example.leveluplife.data.player.ProfileCache
@@ -83,11 +84,16 @@ class AppContainer(applicationContext: Context) {
         DefaultPlayerRepository(api = playerApi, tokenStore = tokenStore)
     }
 
+    val profileAvatarUploader: ProfileAvatarUploader by lazy {
+        ProfileAvatarUploader(appContext)
+    }
+
     val profileRepository: ProfileRepository by lazy {
         DefaultProfileRepository(
             api = playerApi,
             profileCache = profileCache,
-            avatarStorage = profileAvatarStorage,
+            avatarUploader = profileAvatarUploader,
+            apiBaseUrl = hostProvider.resolveBaseUrl().trimEnd('/'),
             json = NetworkModule.jsonParser(),
         )
     }

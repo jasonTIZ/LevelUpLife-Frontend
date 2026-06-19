@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.leveluplife.data.auth.TokenStore
 import com.example.leveluplife.data.player.PlayerProfile
-import com.example.leveluplife.data.player.ProfileAvatarStorage
 import com.example.leveluplife.data.player.ProfileCache
 import com.example.leveluplife.data.player.ProfileError
 import com.example.leveluplife.data.player.ProfileException
@@ -26,7 +25,6 @@ import kotlinx.coroutines.launch
 class ProfileViewModel(
     private val profileRepository: ProfileRepository,
     private val profileCache: ProfileCache,
-    private val avatarStorage: ProfileAvatarStorage,
     private val tokenStore: TokenStore,
 ) : ViewModel() {
 
@@ -126,21 +124,14 @@ class ProfileViewModel(
     fun onAvatarSelected(uri: String, mimeType: String?, sizeBytes: Long) {
         when (val validationError = AvatarValidator.validate(mimeType, sizeBytes)) {
             null -> {
-                viewModelScope.launch {
-                    val persistedUri = avatarStorage.persistFromPickerUri(uri, mimeType)
-                    if (persistedUri == null) {
-                        _state.update { it.copy(avatarError = AvatarValidationError.PersistFailed) }
-                        return@launch
-                    }
-                    _state.update {
-                        it.copy(
-                            pendingAvatarUri = persistedUri,
-                            avatarUri = persistedUri,
-                            avatarError = null,
-                            serverFieldErrors = it.serverFieldErrors - ProfileFormField.AVATAR,
-                        )
-                    }
-                    profileCache.updateLocalExtras(persistedUri, _state.value.bio)
+                _state.update {
+                    it.copy(
+                        pendingAvatarUri = uri,
+                        pendingAvatarMimeType = mimeType,
+                        avatarUri = uri,
+                        avatarError = null,
+                        serverFieldErrors = it.serverFieldErrors - ProfileFormField.AVATAR,
+                    )
                 }
             }
             else -> {
@@ -165,6 +156,7 @@ class ProfileViewModel(
                 serverFieldErrors = emptyMap(),
                 bannerError = null,
                 pendingAvatarUri = null,
+                pendingAvatarMimeType = null,
             )
         }
     }
@@ -186,6 +178,7 @@ class ProfileViewModel(
                 bio = snapshot.bio,
                 avatarUri = snapshot.avatarUri,
                 pendingAvatarUri = null,
+                pendingAvatarMimeType = null,
                 nameError = null,
                 lastNameError = null,
                 emailError = null,
@@ -213,26 +206,33 @@ class ProfileViewModel(
 
             _state.update { it.copy(isSaving = true, bannerError = null, profileSaved = false) }
 
-            profileCache.updateLocalExtras(
-                avatarUri = validated.pendingAvatarUri ?: validated.avatarUri,
-                bio = validated.bio,
-            )
+            var currentEtag = etag
+            val pendingAvatarUri = validated.pendingAvatarUri
+            if (!pendingAvatarUri.isNullOrBlank()) {
+                val uploadResult = profileRepository.uploadAvatar(
+                    etag = currentEtag,
+                    sourceUri = pendingAvatarUri,
+                    mimeType = validated.pendingAvatarMimeType,
+                )
+                if (uploadResult.isFailure) {
+                    handleSubmitFailure(uploadResult.exceptionOrNull() ?: Exception("avatar_upload_failed"))
+                    return@launch
+                }
+                val uploaded = uploadResult.getOrThrow()
+                currentEtag = uploaded.etag.ifBlank { currentEtag }
+                applyProfile(uploaded.profile, currentEtag)
+            }
 
             profileRepository.updateProfile(
-                etag = etag,
+                etag = currentEtag,
                 name = validated.name,
                 lastName = validated.lastName,
                 email = validated.email,
                 birthdate = validated.birthdate.ifBlank { null },
                 userName = validated.userName,
+                bio = validated.bio,
             ).onSuccess { profile ->
-                applyProfile(
-                    profile.copy(
-                        avatarUri = validated.pendingAvatarUri ?: validated.avatarUri,
-                        bio = validated.bio,
-                    ),
-                    profileCache.currentEtag().orEmpty(),
-                )
+                applyProfile(profile, profileCache.currentEtag().orEmpty().ifBlank { currentEtag })
                 _state.update {
                     it.copy(
                         isSaving = false,
@@ -241,6 +241,7 @@ class ProfileViewModel(
                         profileSaved = true,
                         successMessage = "saved",
                         pendingAvatarUri = null,
+                        pendingAvatarMimeType = null,
                     )
                 }
             }.onFailure { throwable ->
@@ -383,7 +384,6 @@ class ProfileViewModel(
     class Factory(
         private val profileRepository: ProfileRepository,
         private val profileCache: ProfileCache,
-        private val avatarStorage: ProfileAvatarStorage,
         private val tokenStore: TokenStore,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
@@ -392,7 +392,6 @@ class ProfileViewModel(
                 return ProfileViewModel(
                     profileRepository,
                     profileCache,
-                    avatarStorage,
                     tokenStore,
                 ) as T
             }
