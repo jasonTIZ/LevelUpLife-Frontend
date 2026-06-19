@@ -1,14 +1,23 @@
 package com.example.leveluplife.domain.validation
 
+import java.time.LocalDate
+
 sealed class HabitTaskFieldError {
     object Required : HabitTaskFieldError()
     data class TooShort(val min: Int) : HabitTaskFieldError()
     data class TooLong(val max: Int) : HabitTaskFieldError()
     object InvalidNumber : HabitTaskFieldError()
     object InvalidDate : HabitTaskFieldError()
+    object PastDate : HabitTaskFieldError()
+    object InvalidOption : HabitTaskFieldError()
     object CriteriaRequired : HabitTaskFieldError()
     object EvidenceRequired : HabitTaskFieldError()
 }
+
+data class HabitTaskValidationOptions(
+    val today: LocalDate = LocalDate.now(),
+    val preservedStartDate: String? = null,
+)
 
 data class HabitTaskFormInput(
     val habitId: Int?,
@@ -24,6 +33,7 @@ data class HabitTaskFormInput(
     val measurementUnit: String?,
     val evidence: String?,
     val isPartialAllowed: Boolean,
+    val timerSecondsDefined: String,
 )
 
 data class HabitTaskFormErrors(
@@ -38,6 +48,7 @@ data class HabitTaskFormErrors(
     val repetitions: HabitTaskFieldError? = null,
     val measurementUnit: HabitTaskFieldError? = null,
     val evidence: HabitTaskFieldError? = null,
+    val timerSeconds: HabitTaskFieldError? = null,
 ) {
     val hasErrors: Boolean
         get() = listOfNotNull(
@@ -52,6 +63,7 @@ data class HabitTaskFormErrors(
             repetitions,
             measurementUnit,
             evidence,
+            timerSeconds,
         ).isNotEmpty()
 }
 
@@ -59,20 +71,36 @@ object HabitTaskValidators {
 
     const val TITLE_MIN = 3
     const val TITLE_MAX = 100
+    const val DESCRIPTION_MAX = 500
+    const val PERIOD_LENGTH_MAX = 9999
+    const val REPETITIONS_MAX = 99_999
+    const val TIMER_SECONDS_MAX = 86_400
+
+    val DIFFICULTIES = setOf("EASY", "MEDIUM", "HARD", "EPIC")
+    val FREQUENCIES = setOf("DAILY", "WEEKLY", "MONTHLY")
+    val PERIOD_UNITS = setOf("DAYS", "WEEKS", "MONTHS")
+    val COMPLETION_CRITERIA = setOf("REPETITIONS", "EVIDENCE", "TIMER")
+    val MEASUREMENT_UNITS = setOf("REPS", "SERIES", "KMS", "CALS")
+    val EVIDENCE_TYPES = setOf("PHOTO", "VIDEO", "HEALTH_CONNECT")
+
     private val DATE_REGEX = Regex("^\\d{4}-\\d{2}-\\d{2}$")
 
-    fun validateForm(input: HabitTaskFormInput): HabitTaskFormErrors = HabitTaskFormErrors(
+    fun validateForm(
+        input: HabitTaskFormInput,
+        options: HabitTaskValidationOptions = HabitTaskValidationOptions(),
+    ): HabitTaskFormErrors = HabitTaskFormErrors(
         habitId = validateHabitId(input.habitId),
         title = validateTitle(input.title),
-        difficulty = validateRequiredSelection(input.difficulty),
-        frequency = validateRequiredSelection(input.frequency),
+        difficulty = validateOption(input.difficulty, DIFFICULTIES),
+        frequency = validateOption(input.frequency, FREQUENCIES),
         periodLength = validatePeriodLength(input.periodLength),
-        periodUnit = validateRequiredSelection(input.periodUnit),
-        startDate = validateStartDate(input.startDate),
-        completionCriteria = validateRequiredSelection(input.completionCriteria),
+        periodUnit = validateOption(input.periodUnit, PERIOD_UNITS),
+        startDate = validateStartDate(input.startDate, options),
+        completionCriteria = validateOption(input.completionCriteria, COMPLETION_CRITERIA),
         repetitions = validateRepetitions(input),
         measurementUnit = validateMeasurementUnit(input),
         evidence = validateEvidence(input),
+        timerSeconds = validateTimerSeconds(input),
     )
 
     fun validateHabitId(habitId: Int?): HabitTaskFieldError? =
@@ -88,42 +116,73 @@ object HabitTaskValidators {
         }
     }
 
-    fun validateRequiredSelection(value: String?): HabitTaskFieldError? =
-        if (value.isNullOrBlank()) HabitTaskFieldError.Required else null
+    fun validateOption(value: String?, allowed: Set<String>): HabitTaskFieldError? {
+        if (value.isNullOrBlank()) return HabitTaskFieldError.Required
+        return if (value in allowed) null else HabitTaskFieldError.InvalidOption
+    }
 
     fun validatePeriodLength(value: String): HabitTaskFieldError? {
         val trimmed = value.trim()
         if (trimmed.isEmpty()) return HabitTaskFieldError.Required
         val parsed = trimmed.toIntOrNull() ?: return HabitTaskFieldError.InvalidNumber
-        return if (parsed < 1) HabitTaskFieldError.InvalidNumber else null
+        return when {
+            parsed < 1 -> HabitTaskFieldError.InvalidNumber
+            parsed > PERIOD_LENGTH_MAX -> HabitTaskFieldError.InvalidNumber
+            else -> null
+        }
     }
 
-    fun validateStartDate(value: String): HabitTaskFieldError? {
+    fun validateStartDate(
+        value: String,
+        options: HabitTaskValidationOptions = HabitTaskValidationOptions(),
+    ): HabitTaskFieldError? {
         val trimmed = value.trim()
-        return when {
-            trimmed.isEmpty() -> HabitTaskFieldError.Required
-            !DATE_REGEX.matches(trimmed) -> HabitTaskFieldError.InvalidDate
-            else -> runCatching {
-                java.time.LocalDate.parse(trimmed)
-                null
-            }.getOrElse { HabitTaskFieldError.InvalidDate }
-        }
+        if (trimmed.isEmpty()) return HabitTaskFieldError.Required
+        if (!DATE_REGEX.matches(trimmed)) return HabitTaskFieldError.InvalidDate
+
+        val parsed = runCatching { LocalDate.parse(trimmed) }
+            .getOrElse { return HabitTaskFieldError.InvalidDate }
+
+        val preservedDate = options.preservedStartDate
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { preserved -> runCatching { LocalDate.parse(preserved) }.getOrNull() }
+        if (preservedDate != null && parsed == preservedDate) return null
+        if (parsed.isBefore(options.today)) return HabitTaskFieldError.PastDate
+        return null
     }
 
     fun validateRepetitions(input: HabitTaskFormInput): HabitTaskFieldError? {
         if (input.completionCriteria != "REPETITIONS") return null
         if (input.repetitions.isBlank()) return HabitTaskFieldError.CriteriaRequired
         val parsed = input.repetitions.toIntOrNull() ?: return HabitTaskFieldError.InvalidNumber
-        return if (parsed < 1) HabitTaskFieldError.InvalidNumber else null
+        return when {
+            parsed < 1 -> HabitTaskFieldError.InvalidNumber
+            parsed > REPETITIONS_MAX -> HabitTaskFieldError.InvalidNumber
+            else -> null
+        }
     }
 
     fun validateMeasurementUnit(input: HabitTaskFormInput): HabitTaskFieldError? {
         if (input.completionCriteria != "REPETITIONS") return null
-        return if (input.measurementUnit.isNullOrBlank()) HabitTaskFieldError.CriteriaRequired else null
+        if (input.measurementUnit.isNullOrBlank()) return HabitTaskFieldError.CriteriaRequired
+        return validateOption(input.measurementUnit, MEASUREMENT_UNITS)
     }
 
     fun validateEvidence(input: HabitTaskFormInput): HabitTaskFieldError? {
         if (input.completionCriteria != "EVIDENCE") return null
-        return if (input.evidence.isNullOrBlank()) HabitTaskFieldError.EvidenceRequired else null
+        if (input.evidence.isNullOrBlank()) return HabitTaskFieldError.EvidenceRequired
+        return validateOption(input.evidence, EVIDENCE_TYPES)
+    }
+
+    fun validateTimerSeconds(input: HabitTaskFormInput): HabitTaskFieldError? {
+        if (input.completionCriteria != "TIMER") return null
+        if (input.timerSecondsDefined.isBlank()) return HabitTaskFieldError.CriteriaRequired
+        val parsed = input.timerSecondsDefined.toIntOrNull() ?: return HabitTaskFieldError.InvalidNumber
+        return when {
+            parsed < 1 -> HabitTaskFieldError.InvalidNumber
+            parsed > TIMER_SECONDS_MAX -> HabitTaskFieldError.InvalidNumber
+            else -> null
+        }
     }
 }

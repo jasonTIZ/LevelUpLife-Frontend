@@ -1,8 +1,11 @@
 package com.example.leveluplife.ui.habittaskdetail
 
+import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.network.dto.CreateHabitTaskRequest
+import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
+import com.example.leveluplife.data.network.dto.HabitsPageResponse
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,7 +40,7 @@ class HabitTaskDetailViewModelTest {
     @Test
     fun `loadTask populates task from repository`() = runTest(testDispatcher) {
         val task = sampleTask()
-        val vm = HabitTaskDetailViewModel(42, FakeHabitTaskRepository(task = task))
+        val vm = HabitTaskDetailViewModel(42, FakeHabitTaskRepository(task = task), FakeHabitRepository(), null)
 
         advanceUntilIdle()
 
@@ -49,7 +52,7 @@ class HabitTaskDetailViewModelTest {
     @Test
     fun `confirmDeactivate without acknowledgement does nothing`() = runTest(testDispatcher) {
         val taskRepo = FakeHabitTaskRepository(task = sampleTask())
-        val vm = HabitTaskDetailViewModel(42, taskRepo, initialTask = sampleTask())
+        val vm = HabitTaskDetailViewModel(42, taskRepo, FakeHabitRepository(), sampleTask())
 
         advanceUntilIdle()
 
@@ -67,7 +70,7 @@ class HabitTaskDetailViewModelTest {
             task = sampleTask(),
             deactivateResult = Result.success("Task deactivated successfully"),
         )
-        val vm = HabitTaskDetailViewModel(42, taskRepo, initialTask = sampleTask())
+        val vm = HabitTaskDetailViewModel(42, taskRepo, FakeHabitRepository(), sampleTask())
 
         advanceUntilIdle()
 
@@ -85,7 +88,7 @@ class HabitTaskDetailViewModelTest {
 
     @Test
     fun `cancelDeactivate closes dialog`() = runTest(testDispatcher) {
-        val vm = HabitTaskDetailViewModel(42, FakeHabitTaskRepository(task = sampleTask()), initialTask = sampleTask())
+        val vm = HabitTaskDetailViewModel(42, FakeHabitTaskRepository(task = sampleTask()), FakeHabitRepository(), sampleTask())
 
         advanceUntilIdle()
 
@@ -128,5 +131,18 @@ class HabitTaskDetailViewModelTest {
             deactivateCalls++
             return deactivateResult
         }
+
+        override suspend fun updateHabitTask(
+            taskId: Int,
+            request: CreateHabitTaskRequest,
+        ): Result<HabitTaskDto> = Result.failure(UnsupportedOperationException())
+    }
+
+    private class FakeHabitRepository : HabitRepository {
+        override suspend fun getActiveHabits(page: Int, pageSize: Int): Result<HabitsPageResponse> =
+            Result.failure(UnsupportedOperationException())
+
+        override suspend fun getHabitById(habitId: Int): Result<HabitDto> =
+            Result.success(HabitDto(id = habitId, title = "Test habit"))
     }
 }

@@ -16,12 +16,16 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
+import com.example.leveluplife.ui.categories.CategoriesScreen
+import com.example.leveluplife.ui.categories.CategoriesViewModel
 import com.example.leveluplife.ui.createtask.CreateHabitTaskScreen
 import com.example.leveluplife.ui.createtask.CreateHabitTaskViewModel
 import com.example.leveluplife.ui.habitdetail.HabitDetailScreen
 import com.example.leveluplife.ui.habitdetail.HabitDetailViewModel
 import com.example.leveluplife.ui.habittaskdetail.HabitTaskDetailScreen
 import com.example.leveluplife.ui.habittaskdetail.HabitTaskDetailViewModel
+import com.example.leveluplife.ui.updatetask.UpdateHabitTaskScreen
+import com.example.leveluplife.ui.updatetask.UpdateHabitTaskViewModel
 import com.example.leveluplife.ui.home.HomeScreen
 import com.example.leveluplife.ui.home.HomeViewModel
 import com.example.leveluplife.ui.profile.ProfileScreen
@@ -33,17 +37,23 @@ import kotlinx.serialization.json.Json
 object Routes {
     const val LOGIN = "login"
     const val DASHBOARD = "dashboard"
+    const val CATEGORIES = "categories"
     const val PROFILE = "profile"
     const val SETTINGS = "settings"
     const val HABIT_DETAIL = "habit_detail/{habitId}"
     const val CREATE_HABIT_TASK = "create_habit_task?habitId={habitId}"
     const val HABIT_TASK_DETAIL = "habit_task_detail/{taskId}"
+    const val EDIT_HABIT_TASK = "edit_habit_task/{taskId}"
 
     fun habitDetail(id: Int) = "habit_detail/$id"
     fun createHabitTask(habitId: Int = -1) = "create_habit_task?habitId=$habitId"
     fun habitTaskDetail(taskId: Int) = "habit_task_detail/$taskId"
+    fun editHabitTask(taskId: Int) = "edit_habit_task/$taskId"
 
     const val ARG_CREATED_TASK_JSON = "created_task_json"
+    const val ARG_TASK_SUCCESS_KIND = "task_success_kind"
+    const val TASK_SUCCESS_CREATED = "created"
+    const val TASK_SUCCESS_UPDATED = "updated"
     const val ARG_SHOW_CONFIRMATION = "show_confirmation"
     const val ARG_TASK_DEACTIVATED_MESSAGE = "task_deactivated_message"
     const val ARG_DEACTIVATION_MESSAGE = "deactivation_message"
@@ -123,6 +133,9 @@ fun AppNavigation(
                 onOpenSettings = {
                     navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 },
+                onOpenCategories = {
+                    navController.navigate(Routes.CATEGORIES) { launchSingleTop = true }
+                },
                 onHabitClick = { habitId ->
                     navController.navigate(Routes.habitDetail(habitId))
                 },
@@ -148,6 +161,18 @@ fun AppNavigation(
                         popUpTo(Routes.DASHBOARD) { inclusive = true }
                         launchSingleTop = true
                     }
+                },
+            )
+        }
+        composable(Routes.CATEGORIES) {
+            val vm: CategoriesViewModel = viewModel(
+                factory = CategoriesViewModel.Factory(container.habitCategoryRepository),
+            )
+            CategoriesScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onCategoryClick = {
+                    // Navegación al detalle de categoría: fuera de alcance de esta tarea.
                 },
             )
         }
@@ -186,6 +211,10 @@ fun AppNavigation(
                 onBack = { navController.popBackStack() },
                 onTaskClick = { task ->
                     navController.navigate(Routes.habitTaskDetail(task.id))
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        Routes.ARG_CREATED_TASK_JSON,
+                        json.encodeToString(HabitTaskDto.serializer(), task),
+                    )
                 },
                 infoMessage = infoMessage,
                 onInfoMessageShown = {
@@ -222,6 +251,41 @@ fun AppNavigation(
                         Routes.ARG_CREATED_TASK_JSON,
                         taskJson,
                     )
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        Routes.ARG_TASK_SUCCESS_KIND,
+                        Routes.TASK_SUCCESS_CREATED,
+                    )
+                },
+            )
+        }
+        composable(
+            route = Routes.EDIT_HABIT_TASK,
+            arguments = listOf(navArgument("taskId") { type = NavType.IntType }),
+        ) { backStackEntry ->
+            val taskId = backStackEntry.arguments?.getInt("taskId") ?: return@composable
+            val vm: UpdateHabitTaskViewModel = viewModel(
+                factory = UpdateHabitTaskViewModel.Factory(
+                    taskId,
+                    container.habitRepository,
+                    container.habitTaskRepository,
+                ),
+            )
+            UpdateHabitTaskScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onTaskUpdated = { task ->
+                    val taskJson = json.encodeToString(HabitTaskDto.serializer(), task)
+                    navController.navigate(Routes.habitTaskDetail(task.id)) {
+                        popUpTo(Routes.editHabitTask(taskId)) { inclusive = true }
+                    }
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        Routes.ARG_CREATED_TASK_JSON,
+                        taskJson,
+                    )
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        Routes.ARG_TASK_SUCCESS_KIND,
+                        Routes.TASK_SUCCESS_UPDATED,
+                    )
                 },
             )
         }
@@ -237,19 +301,30 @@ fun AppNavigation(
             val initialTask = taskJson?.let {
                 runCatching { json.decodeFromString(HabitTaskDto.serializer(), it) }.getOrNull()
             }?.takeIf { it.id == taskId }
+            val successKind = backStackEntry.savedStateHandle.get<String>(Routes.ARG_TASK_SUCCESS_KIND)
+                ?: navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<String>(Routes.ARG_TASK_SUCCESS_KIND)
+            val successMessageRes = when (successKind) {
+                Routes.TASK_SUCCESS_UPDATED -> R.string.update_task_success
+                Routes.TASK_SUCCESS_CREATED -> R.string.create_task_success_message
+                else -> null
+            }
             val vm: HabitTaskDetailViewModel = viewModel(
                 factory = HabitTaskDetailViewModel.Factory(
                     taskId = taskId,
                     habitTaskRepository = container.habitTaskRepository,
+                    habitRepository = container.habitRepository,
                     initialTask = initialTask,
                 ),
             )
             HabitTaskDetailScreen(
                 viewModel = vm,
-                showConfirmation = initialTask != null,
+                successMessageRes = successMessageRes,
                 onBack = { navController.popBackStack() },
-                onDone = {
-                    navController.popBackStack(Routes.DASHBOARD, inclusive = false)
+                onDone = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
+                onEdit = { loadedTask ->
+                    navController.navigate(Routes.editHabitTask(loadedTask.id))
                 },
                 onTaskDeactivated = { message ->
                     navController.previousBackStackEntry

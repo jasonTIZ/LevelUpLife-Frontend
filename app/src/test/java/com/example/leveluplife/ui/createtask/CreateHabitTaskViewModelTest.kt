@@ -144,5 +144,10 @@ class CreateHabitTaskViewModelTest {
 
         override suspend fun deactivateHabitTask(taskId: Int): Result<String> =
             Result.failure(UnsupportedOperationException())
+
+        override suspend fun updateHabitTask(
+            taskId: Int,
+            request: CreateHabitTaskRequest,
+        ): Result<HabitTaskDto> = Result.failure(UnsupportedOperationException())
     }
 }

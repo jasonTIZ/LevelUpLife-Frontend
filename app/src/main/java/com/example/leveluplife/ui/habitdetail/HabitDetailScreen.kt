@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -50,6 +51,7 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaDto
+import com.example.leveluplife.ui.habittaskdetail.HabitTaskLabels
 import com.example.leveluplife.ui.theme.DarkBackground
 import com.example.leveluplife.ui.theme.DarkOnBackground
 import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
@@ -316,7 +318,11 @@ private fun HabitInfoCard(habit: HabitDto, activeTaskCount: Int) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val withCriteria = habit.tasks
                     .filter { it.isActive }
-                    .count { it.repetitionCriteria != null }
+                    .count { task ->
+                        task.repetitionCriteria != null ||
+                            task.timerCriteria != null ||
+                            !task.evidence.isNullOrBlank()
+                    }
 
                 Box(
                     modifier = Modifier
@@ -367,6 +373,9 @@ private fun TaskCriteriaCard(
     val criteria = task.repetitionCriteria
     val label = task.title.takeIf { it.isNotBlank() }
         ?: stringResource(R.string.habit_detail_task_default_title, taskNumber)
+    val criteriaType = HabitTaskLabels.completionCriteria(task.completionCriteria)
+    val goalSummary = HabitTaskLabels.criteriaGoalSummary(task)
+    val frequencyLine = HabitTaskLabels.frequency(task.frequency)
 
     Card(
         shape = RoundedCornerShape(14.dp),
@@ -416,6 +425,18 @@ private fun TaskCriteriaCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = DarkOnSurfaceVariant,
                     )
+                } else {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(
+                            R.string.habit_detail_task_subtitle,
+                            criteriaType,
+                            goalSummary,
+                            frequencyLine,
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = DarkOnSurfaceVariant,
+                    )
                 }
 
                 if (criteria != null) {
@@ -429,6 +450,15 @@ private fun TaskCriteriaCard(
                         color = DarkOnSurfaceVariant,
                     )
                 }
+            }
+
+            if (task.isCompleted) {
+                Icon(
+                    Icons.Filled.CheckCircle,
+                    contentDescription = stringResource(R.string.task_detail_status_completed),
+                    tint = GreenSuccess,
+                    modifier = Modifier.size(20.dp),
+                )
             }
         }
     }
@@ -454,7 +484,7 @@ private fun CriteriaRow(criteria: RepetitionCriteriaDto) {
         }
         if (!criteria.isActive) {
             CriteriaChip(
-                label = stringResource(R.string.task_detail_status_inactive),
+                label = stringResource(R.string.task_detail_criteria_inactive),
                 background = DarkOnSurfaceVariant.copy(alpha = 0.12f),
                 textColor = DarkOnSurfaceVariant,
             )

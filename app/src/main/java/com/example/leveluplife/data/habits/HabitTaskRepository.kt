@@ -7,9 +7,14 @@ import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
+class HabitTaskConflictFailure(
+    override val message: String,
+) : Exception(message)
+
 interface HabitTaskRepository {
     suspend fun createHabitTask(request: CreateHabitTaskRequest): Result<HabitTaskDto>
     suspend fun getHabitTask(taskId: Int): Result<HabitTaskDto>
+    suspend fun updateHabitTask(taskId: Int, request: CreateHabitTaskRequest): Result<HabitTaskDto>
     suspend fun deactivateHabitTask(taskId: Int): Result<String>
 }
 
@@ -18,10 +23,15 @@ class DefaultHabitTaskRepository(
 ) : HabitTaskRepository {
 
     override suspend fun createHabitTask(request: CreateHabitTaskRequest): Result<HabitTaskDto> =
-        executeTaskCall { api.createHabitTask(request) }
+        execute { api.createHabitTask(request) }
 
     override suspend fun getHabitTask(taskId: Int): Result<HabitTaskDto> =
-        executeTaskCall { api.getHabitTask(taskId) }
+        execute { api.getHabitTask(taskId) }
+
+    override suspend fun updateHabitTask(
+        taskId: Int,
+        request: CreateHabitTaskRequest,
+    ): Result<HabitTaskDto> = execute { api.updateHabitTask(taskId, request) }
 
     override suspend fun deactivateHabitTask(taskId: Int): Result<String> = try {
         val response = api.deactivateHabitTask(taskId)
@@ -30,10 +40,10 @@ class DefaultHabitTaskRepository(
                 response.body()?.message?.ifBlank { null }
                     ?: "Task deactivated successfully",
             )
-            response.code() == 404 -> Result.failure(Exception("Task not found or already removed."))
-            response.code() == 403 -> Result.failure(Exception("You do not have permission to deactivate this task."))
-            response.code() == 401 -> Result.failure(Exception("Session expired. Please sign in again."))
-            response.code() in 500..599 -> Result.failure(Exception("Server error. Try again later."))
+            response.code() == 404 -> Result.failure(Exception("Tarea no encontrada o ya inactiva."))
+            response.code() == 403 -> Result.failure(Exception("No tienes permiso para desactivar esta tarea."))
+            response.code() == 401 -> Result.failure(Exception("Sesión expirada. Vuelve a iniciar sesión."))
+            response.code() in 500..599 -> Result.failure(Exception("Error del servidor. Intenta más tarde."))
             else -> Result.failure(Exception("HTTP ${response.code()}"))
         }
     } catch (e: SocketTimeoutException) {
@@ -44,18 +54,20 @@ class DefaultHabitTaskRepository(
         Result.failure(t)
     }
 
-    private suspend fun executeTaskCall(
+    private suspend fun execute(
         call: suspend () -> retrofit2.Response<HabitTaskDto>,
     ): Result<HabitTaskDto> = try {
         val response = call()
         when {
             response.isSuccessful -> Result.success(requireNotNull(response.body()))
             response.code() == 409 -> Result.failure(
-                Exception("This habit already has an active task. Deactivate it before creating another."),
+                HabitTaskConflictFailure(
+                    "La tarea cambió en otro lugar. Recargá los datos e intentá de nuevo.",
+                ),
             )
-            response.code() == 404 -> Result.failure(Exception("Habit or task not found."))
-            response.code() == 403 -> Result.failure(Exception("You do not have permission to modify this task."))
-            response.code() == 401 -> Result.failure(Exception("Session expired. Please sign in again."))
+            response.code() == 404 -> Result.failure(Exception("Tarea no encontrada o inactiva."))
+            response.code() == 403 -> Result.failure(Exception("No tienes permiso para modificar esta tarea."))
+            response.code() == 401 -> Result.failure(Exception("Sesión expirada. Vuelve a iniciar sesión."))
             response.code() == 400 -> {
                 val body = runCatching { response.errorBody()?.string() }.getOrNull()
                 val parsed = HabitTaskApiErrorParser.parse400(body)

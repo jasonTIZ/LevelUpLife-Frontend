@@ -8,13 +8,13 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface HabitsApi {
-    @GET("api/habits/active")
+    @GET("api/Habits/active")
     suspend fun getActiveHabits(
         @Query("pageNumber") pageNumber: Int,
         @Query("pageSize") pageSize: Int,
     ): Response<HabitsPageResponse>
 
-    /** Detalle del hábito con tasks[] y repetitionCriteria (issue #24, requiere JWT). */
+    /** Habit detail with tasks[] (repetitionCriteria, timerCriteria). Requires JWT. */
     @GET("api/Habits/{id}")
     suspend fun getHabitById(@Path("id") id: Int): Response<HabitDto>
 }

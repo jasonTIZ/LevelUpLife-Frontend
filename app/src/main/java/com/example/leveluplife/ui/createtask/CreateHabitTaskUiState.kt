@@ -2,32 +2,34 @@ package com.example.leveluplife.ui.createtask
 
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
-import com.example.leveluplife.domain.validation.HabitTaskFormErrors
+import java.time.LocalDate
 
 data class CreateHabitTaskUiState(
-    val habits: List<HabitDto> = emptyList(),
+    val form: HabitTaskFormState = HabitTaskFormState(
+        startDate = LocalDate.now().toString(),
+    ),
     val isLoadingHabits: Boolean = true,
     val habitsLoadError: String? = null,
-    val selectedHabitId: Int? = null,
-    val title: String = "",
-    val description: String = "",
-    val difficulty: String? = "MEDIUM",
-    val frequency: String? = "WEEKLY",
-    val periodLength: String = "1",
-    val periodUnit: String? = "WEEKS",
-    val startDate: String = "",
-    val completionCriteria: String? = "REPETITIONS",
-    val repetitions: String = "3",
-    val measurementUnit: String? = "SERIES",
-    val evidence: String? = null,
-    val isPartialAllowed: Boolean = true,
-    val selectedTemplateId: String? = null,
-    val fieldErrors: HabitTaskFormErrors = HabitTaskFormErrors(),
-    val showValidationErrors: Boolean = false,
     val isSubmitting: Boolean = false,
-    val submitError: String? = null,
     val createdTask: HabitTaskDto? = null,
 ) {
-    val selectedHabit: HabitDto?
-        get() = habits.firstOrNull { it.id == selectedHabitId }
+    val habits: List<HabitDto> get() = form.habits
+    val selectedHabitId: Int? get() = form.selectedHabitId
+    val selectedHabit: HabitDto? get() = form.selectedHabit
+    val title get() = form.title
+    val description get() = form.description
+    val difficulty get() = form.difficulty
+    val frequency get() = form.frequency
+    val periodLength get() = form.periodLength
+    val periodUnit get() = form.periodUnit
+    val startDate get() = form.startDate
+    val completionCriteria get() = form.completionCriteria
+    val repetitions get() = form.repetitions
+    val measurementUnit get() = form.measurementUnit
+    val evidence get() = form.evidence
+    val isPartialAllowed get() = form.isPartialAllowed
+    val selectedTemplateId get() = form.selectedTemplateId
+    val fieldErrors get() = form.fieldErrors
+    val showValidationErrors get() = form.showValidationErrors
+    val submitError get() = form.submitError
 }

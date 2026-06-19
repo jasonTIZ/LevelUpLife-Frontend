@@ -376,6 +376,7 @@ class ProfileViewModel(
             is ProfileError.Network -> "network"
             is ProfileError.Conflict -> "conflict"
             is ProfileError.PreconditionFailed -> "precondition_failed"
+            is ProfileError.RateLimited -> "rate_limited"
             is ProfileError.Validation -> error.message
             is ProfileError -> error.message
             else -> throwable.message ?: "unknown"
