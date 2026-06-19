@@ -4,6 +4,25 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class CompleteHabitTaskRequest(
+    val completedAt: String,
+)
+
+@Serializable
+data class CompleteHabitTaskResponse(
+    val xpEarned: Int = 0,
+    val previousLevel: Int = 1,
+    val newLevel: Int = 1,
+    val totalExperiencePoints: Int = 0,
+    val experiencePointsInCurrentLevel: Int = 0,
+    val experiencePointsRequiredForNextLevel: Int = 0,
+    val levelProgressPercent: Double = 0.0,
+    val leveledUp: Boolean = false,
+    val streakUpdated: Boolean = false,
+    val daysStreak: Int = 0,
+)
+
+@Serializable
 data class CreateRepetitionCriteriaRequest(
     val repetitions: Int,
     val measurementUnit: String,

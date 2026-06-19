@@ -216,7 +216,11 @@ fun AppNavigation(
         }
         composable(Routes.DASHBOARD) { backStackEntry ->
             val vm: HomeViewModel = viewModel(
-                factory = HomeViewModel.Factory(container.habitRepository as HabitRepository),
+                factory = HomeViewModel.Factory(
+                    container.habitRepository as HabitRepository,
+                    container.profileRepository,
+                    container.profileCache,
+                ),
             )
             val shouldRefresh by backStackEntry.savedStateHandle
                 .getStateFlow(Routes.ARG_REFRESH_HABITS, false)
@@ -423,6 +427,7 @@ fun AppNavigation(
                     taskId = taskId,
                     habitTaskRepository = container.habitTaskRepository,
                     habitRepository = container.habitRepository,
+                    profileCache = container.profileCache,
                     initialTask = initialTask,
                 ),
             )
