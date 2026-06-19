@@ -15,6 +15,7 @@ import com.example.leveluplife.data.habits.DefaultHabitTaskRepository
 import com.example.leveluplife.data.habits.DefaultEvidenceRepository
 import com.example.leveluplife.data.habits.EvidenceRepository
 import com.example.leveluplife.data.habits.HabitDisciplineRepository
+import com.example.leveluplife.data.habits.DefaultHabitRepository
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.network.AuthApi

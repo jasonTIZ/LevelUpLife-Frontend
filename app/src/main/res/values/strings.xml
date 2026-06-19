@@ -1,20 +1,20 @@
-﻿<resources>
+<resources>
     <string name="app_name">LevelUpLife</string>
 
     <!-- Login -->
     <string name="login_welcome">Bienvenido</string>
-    <string name="login_welcome_subtitle">Tu aventura continÃºa aquÃ­</string>
+    <string name="login_welcome_subtitle">Tu aventura continúa aquí</string>
     <string name="login_email_placeholder">Email o usuario</string>
-    <string name="login_password_placeholder">ContraseÃ±a</string>
+    <string name="login_password_placeholder">Contraseña</string>
     <string name="login_submit">INICIAR</string>
-    <string name="login_no_account">Â¿NO TIENES CUENTA?</string>
-    <string name="login_register_cta">REGÃSTRATE</string>
+    <string name="login_no_account">¿NO TIENES CUENTA?</string>
+    <string name="login_register_cta">REGÍSTRATE</string>
     <string name="login_retry">Reintentar</string>
     <string name="login_dismiss">Cerrar</string>
     <string name="error_dialog_title">Error</string>
 
     <!-- Errores globales -->
-    <string name="error_rate_limited">Demasiadas solicitudes. IntentÃ¡ de nuevo en un momento.</string>
+    <string name="error_rate_limited">Demasiadas solicitudes. Intentá de nuevo en un momento.</string>
 
     <!-- Login: errores -->
     <string name="login_error_invalid_credentials">Usuario/email o contraseña incorrectos</string>
@@ -27,16 +27,16 @@
     <string name="login_error_network">Sin conexión. Revisa tu red e intenta de nuevo.</string>
     <string name="login_error_unknown">Ocurrió un error inesperado.</string>
 
-    <!-- ValidaciÃ³n de campos -->
+    <!-- Validación de campos -->
     <string name="field_required">Campo obligatorio</string>
-    <string name="field_invalid_email">Email invÃ¡lido</string>
-    <string name="field_invalid_birthdate">Usa una fecha vÃ¡lida en formato AAAA-MM-DD</string>
-    <string name="field_invalid_characters">Solo se permiten letras, espacios, apÃ³strofes y guiones</string>
-    <string name="field_invalid_username_or_email">Ingresa un email o usuario vÃ¡lido</string>
-    <string name="field_min_length">MÃ­nimo %1$d caracteres</string>
-    <string name="field_max_length">MÃ¡ximo %1$d caracteres</string>
+    <string name="field_invalid_email">Email inválido</string>
+    <string name="field_invalid_birthdate">Usa una fecha válida en formato AAAA-MM-DD</string>
+    <string name="field_invalid_characters">Solo se permiten letras, espacios, apóstrofes y guiones</string>
+    <string name="field_invalid_username_or_email">Ingresa un email o usuario válido</string>
+    <string name="field_min_length">Mínimo %1$d caracteres</string>
+    <string name="field_max_length">Máximo %1$d caracteres</string>
     <string name="field_invalid_range">Debe estar entre %1$d y %2$d</string>
-    <string name="field_password_mismatch">Las contraseÃ±as no coinciden</string>
+    <string name="field_password_mismatch">Las contraseñas no coinciden</string>
     <string name="field_username_same_as_name">El usuario debe ser distinto al nombre</string>
 
     <!-- Registro -->
@@ -47,100 +47,100 @@
     <string name="register_email_placeholder">Email</string>
     <string name="register_birthdate_placeholder">Fecha de nacimiento</string>
     <string name="register_username_placeholder">Nombre de usuario</string>
-    <string name="register_password_placeholder">ContraseÃ±a</string>
-    <string name="register_confirm_password_placeholder">Confirmar contraseÃ±a</string>
+    <string name="register_password_placeholder">Contraseña</string>
+    <string name="register_confirm_password_placeholder">Confirmar contraseña</string>
     <string name="register_class_placeholder">Clase de personaje</string>
     <string name="register_class_warrior">Guerrero</string>
     <string name="register_submit">REGISTRARME</string>
     <string name="register_next">SIGUIENTE</string>
-    <string name="register_back">ATRÃS</string>
+    <string name="register_back">ATRÁS</string>
     <string name="register_step2_title">Tu cuenta</string>
-    <string name="register_step2_subtitle">Usuario, email y contraseÃ±a</string>
-    <string name="register_has_account">Â¿YA TIENES CUENTA?</string>
-    <string name="register_login_cta">INICIA SESIÃ“N</string>
+    <string name="register_step2_subtitle">Usuario, email y contraseña</string>
+    <string name="register_has_account">¿YA TIENES CUENTA?</string>
+    <string name="register_login_cta">INICIA SESIÓN</string>
     <string name="register_date_picker_confirm">Aceptar</string>
-    <string name="register_password_strength_weak">ContraseÃ±a dÃ©bil</string>
-    <string name="register_password_strength_fair">ContraseÃ±a aceptable</string>
-    <string name="register_password_strength_strong">ContraseÃ±a fuerte</string>
+    <string name="register_password_strength_weak">Contraseña débil</string>
+    <string name="register_password_strength_fair">Contraseña aceptable</string>
+    <string name="register_password_strength_strong">Contraseña fuerte</string>
     <string name="register_error_duplicate_account">Esa cuenta ya existe</string>
     <string name="register_success_login_required">Usuario registrado exitosamente.</string>
 
     <!-- Accesibilidad -->
-    <string name="cd_show_password">Mostrar contraseÃ±a</string>
-    <string name="cd_hide_password">Ocultar contraseÃ±a</string>
+    <string name="cd_show_password">Mostrar contraseña</string>
+    <string name="cd_hide_password">Ocultar contraseña</string>
     <string name="cd_open_date_picker">Abrir calendario</string>
     <string name="cd_switch_to_dark">Cambiar a modo oscuro</string>
     <string name="cd_switch_to_light">Cambiar a modo claro</string>
 
     <!-- Dashboard -->
-    <string name="dashboard_title">Â¡Bienvenido!</string>
-    <string name="dashboard_subtitle">Has iniciado sesiÃ³n correctamente.</string>
-    <string name="dashboard_session_active">SesiÃ³n activa</string>
-    <string name="dashboard_logout">Cerrar sesiÃ³n</string>
+    <string name="dashboard_title">¡Bienvenido!</string>
+    <string name="dashboard_subtitle">Has iniciado sesión correctamente.</string>
+    <string name="dashboard_session_active">Sesión activa</string>
+    <string name="dashboard_logout">Cerrar sesión</string>
 
     <!-- Create habit task -->
     <string name="create_task_title">Nueva tarea</string>
-    <string name="create_task_subtitle">AgregÃ¡ una tarea a tu hÃ¡bito</string>
+    <string name="create_task_subtitle">Agregá una tarea a tu hábito</string>
     <string name="create_task_back">Regresar</string>
     <string name="create_task_retry">Reintentar</string>
     <string name="create_task_submit">Crear tarea</string>
-    <string name="create_task_templates_label">Plantillas rÃ¡pidas</string>
-    <string name="create_task_section_basic">InformaciÃ³n bÃ¡sica</string>
+    <string name="create_task_templates_label">Plantillas rápidas</string>
+    <string name="create_task_section_basic">Información básica</string>
     <string name="create_task_section_goal">Meta / criterio</string>
-    <string name="create_task_section_planning">PlanificaciÃ³n</string>
+    <string name="create_task_section_planning">Planificación</string>
     <string name="create_task_section_preview">Vista previa</string>
-    <string name="create_task_field_habit">HÃ¡bito</string>
-    <string name="create_task_field_category">CategorÃ­a</string>
-    <string name="create_task_field_title">TÃ­tulo</string>
-    <string name="create_task_field_description">DescripciÃ³n</string>
+    <string name="create_task_field_habit">Hábito</string>
+    <string name="create_task_field_category">Categoría</string>
+    <string name="create_task_field_title">Título</string>
+    <string name="create_task_field_description">Descripción</string>
     <string name="create_task_field_criteria_type">Meta a completar</string>
     <string name="create_task_field_repetitions">Objetivo</string>
     <string name="create_task_field_unit">Unidad de medida</string>
     <string name="create_task_field_evidence">Tipo de evidencia</string>
     <string name="create_task_field_difficulty">Dificultad</string>
     <string name="create_task_field_frequency">Frecuencia</string>
-    <string name="create_task_field_period_length">DuraciÃ³n</string>
+    <string name="create_task_field_period_length">Duración</string>
     <string name="create_task_field_period_unit">Periodo</string>
     <string name="create_task_field_start_date">Fecha de inicio</string>
-    <string name="create_task_start_date_hint">Formato AAAA-MM-DD Â· hoy o una fecha futura</string>
-    <string name="update_task_start_date_hint">Si no la cambiÃ¡s, se mantiene la fecha original. Al modificarla, elegÃ­ hoy o una fecha futura.</string>
+    <string name="create_task_start_date_hint">Formato AAAA-MM-DD · hoy o una fecha futura</string>
+    <string name="update_task_start_date_hint">Si no la cambiás, se mantiene la fecha original. Al modificarla, elegí hoy o una fecha futura.</string>
     <string name="create_task_partial_allowed">Permitir progreso parcial</string>
     <string name="create_task_preview_title">Vista previa</string>
-    <string name="create_task_preview_no_description">Sin descripciÃ³n</string>
+    <string name="create_task_preview_no_description">Sin descripción</string>
     <string name="create_task_preview_label_goal">Meta</string>
     <string name="create_task_preview_label_frequency">Frecuencia</string>
     <string name="create_task_preview_label_start">Inicio</string>
     <string name="create_task_preview_partial_allowed">Progreso parcial permitido</string>
-    <string name="create_task_category_unknown">Sin categorÃ­a</string>
+    <string name="create_task_category_unknown">Sin categoría</string>
     <string name="create_task_option_criteria_repetitions">Repeticiones</string>
-    <string name="create_task_option_criteria_timer">CronÃ³metro</string>
-    <string name="create_task_field_timer_seconds">DuraciÃ³n (segundos)</string>
+    <string name="create_task_option_criteria_timer">Cronómetro</string>
+    <string name="create_task_field_timer_seconds">Duración (segundos)</string>
     <string name="create_task_timer_pause_allowed">Pausas permitidas</string>
     <string name="create_task_option_criteria_evidence">Evidencia</string>
     <string name="create_task_option_unit_reps">Repeticiones</string>
     <string name="create_task_option_unit_series">Series</string>
-    <string name="create_task_option_unit_km">KilÃ³metros</string>
-    <string name="create_task_option_unit_cals">CalorÃ­as</string>
+    <string name="create_task_option_unit_km">Kilómetros</string>
+    <string name="create_task_option_unit_cals">Calorías</string>
     <string name="create_task_option_evidence_photo">Foto</string>
     <string name="create_task_option_evidence_video">Video</string>
     <string name="create_task_option_evidence_health">Health Connect</string>
-    <string name="create_task_option_difficulty_easy">FÃ¡cil</string>
+    <string name="create_task_option_difficulty_easy">Fácil</string>
     <string name="create_task_option_difficulty_medium">Media</string>
-    <string name="create_task_option_difficulty_hard">DifÃ­cil</string>
-    <string name="create_task_option_difficulty_epic">Ã‰pica</string>
+    <string name="create_task_option_difficulty_hard">Difícil</string>
+    <string name="create_task_option_difficulty_epic">Épica</string>
     <string name="create_task_option_frequency_daily">Diaria</string>
     <string name="create_task_option_frequency_weekly">Semanal</string>
     <string name="create_task_option_frequency_monthly">Mensual</string>
-    <string name="create_task_option_period_days">DÃ­as</string>
+    <string name="create_task_option_period_days">Días</string>
     <string name="create_task_option_period_weeks">Semanas</string>
     <string name="create_task_option_period_months">Meses</string>
-    <string name="create_task_error_invalid_number">Valor numÃ©rico invÃ¡lido</string>
-    <string name="create_task_error_invalid_date">Fecha invÃ¡lida. UsÃ¡ el formato AAAA-MM-DD</string>
+    <string name="create_task_error_invalid_number">Valor numérico inválido</string>
+    <string name="create_task_error_invalid_date">Fecha inválida. Usá el formato AAAA-MM-DD</string>
     <string name="create_task_error_past_date">La fecha de inicio no puede ser anterior a hoy</string>
-    <string name="create_task_error_invalid_option">SelecciÃ³n invÃ¡lida</string>
-    <string name="create_task_error_criteria_required">Completa los criterios de repeticiÃ³n</string>
+    <string name="create_task_error_invalid_option">Selección inválida</string>
+    <string name="create_task_error_criteria_required">Completa los criterios de repetición</string>
     <string name="create_task_error_evidence_required">Selecciona un tipo de evidencia</string>
-    <string name="create_task_success_message">Â¡Tarea creada correctamente!</string>
+    <string name="create_task_success_message">¡Tarea creada correctamente!</string>
 
     <!-- Evidence gallery -->
     <string name="evidence_gallery_title">Evidencias</string>
@@ -158,39 +158,38 @@
     <string name="evidence_upload_error_invalid">Datos inválidos. Verificá el archivo seleccionado.</string>
     <string name="evidence_upload_error_file">No se pudo leer el archivo seleccionado.</string>
 
-
     <string name="update_task_title">Editar tarea</string>
-    <string name="update_task_subtitle">ActualizÃ¡ los requisitos de la tarea</string>
+    <string name="update_task_subtitle">Actualizá los requisitos de la tarea</string>
     <string name="update_task_submit">Guardar cambios</string>
-    <string name="update_task_success">Â¡Tarea actualizada correctamente!</string>
+    <string name="update_task_success">¡Tarea actualizada correctamente!</string>
     <string name="update_task_edit">Editar</string>
     <string name="update_task_conflict_title">Conflicto al guardar</string>
-    <string name="update_task_conflict_message">La tarea cambiÃ³ en otro lugar. RecargÃ¡ los datos para ver la versiÃ³n mÃ¡s reciente e intentÃ¡ de nuevo.</string>
+    <string name="update_task_conflict_message">La tarea cambió en otro lugar. Recargá los datos para ver la versión más reciente e intentá de nuevo.</string>
     <string name="update_task_conflict_reload">Recargar</string>
     <string name="update_task_conflict_dismiss">Cancelar</string>
 
     <!-- Task detail -->
     <string name="task_detail_title">Detalle de la tarea</string>
-    <string name="task_detail_meta">%1$s Â· %2$s Â· inicio %3$s</string>
-    <string name="task_detail_planning_section">PLANIFICACIÃ“N</string>
+    <string name="task_detail_meta">%1$s · %2$s · inicio %3$s</string>
+    <string name="task_detail_planning_section">PLANIFICACIÓN</string>
     <string name="task_detail_criteria_section">CRITERIOS</string>
     <string name="task_detail_criteria_goal">Meta</string>
     <string name="task_detail_criteria_missing">Sin detalle configurado</string>
     <string name="task_detail_criteria_inactive">Criterio inactivo</string>
-    <string name="task_detail_plan_duration">DuraciÃ³n del plan</string>
+    <string name="task_detail_plan_duration">Duración del plan</string>
     <string name="task_detail_period_value">%1$d %2$s</string>
     <string name="task_detail_xp">Experiencia</string>
     <string name="task_detail_xp_value">%1$d XP</string>
-    <string name="task_detail_week_days">DÃ­as de la semana</string>
+    <string name="task_detail_week_days">Días de la semana</string>
     <string name="weekday_mon">Lun</string>
     <string name="weekday_tue">Mar</string>
-    <string name="weekday_wed">MiÃ©</string>
+    <string name="weekday_wed">Mié</string>
     <string name="weekday_thu">Jue</string>
     <string name="weekday_fri">Vie</string>
-    <string name="weekday_sat">SÃ¡b</string>
+    <string name="weekday_sat">Sáb</string>
     <string name="weekday_sun">Dom</string>
-    <string name="period_unit_day">dÃ­a</string>
-    <string name="period_unit_days">dÃ­as</string>
+    <string name="period_unit_day">día</string>
+    <string name="period_unit_days">días</string>
     <string name="period_unit_week">semana</string>
     <string name="period_unit_weeks">semanas</string>
     <string name="period_unit_month">mes</string>
@@ -198,60 +197,60 @@
     <string name="task_detail_status_active">Activa</string>
     <string name="task_detail_status_inactive">Inactiva</string>
     <string name="task_detail_status_completed">Completada</string>
-    <string name="task_detail_untitled">Tarea sin tÃ­tulo</string>
+    <string name="task_detail_untitled">Tarea sin título</string>
     <string name="task_detail_timer_with_pause">%1$s (pausas permitidas)</string>
     <string name="task_detail_timer_no_pause">%1$s (sin pausas)</string>
     <string name="task_detail_back_home">Volver al inicio</string>
 
     <!-- Deactivate habit task -->
     <string name="deactivate_task_button">Desactivar tarea</string>
-    <string name="deactivate_task_confirm_title">Â¿Desactivar esta tarea?</string>
-    <string name="deactivate_task_confirm_message">La tarea dejarÃ¡ de mostrarse en la app, pero el historial y los registros anteriores se conservan en el sistema.\n\nEsta acciÃ³n no se puede deshacer desde la aplicaciÃ³n.</string>
-    <string name="deactivate_task_confirm_ack">Entiendo que se ocultarÃ¡ de las listas activas y el historial se conserva</string>
+    <string name="deactivate_task_confirm_title">¿Desactivar esta tarea?</string>
+    <string name="deactivate_task_confirm_message">La tarea dejará de mostrarse en la app, pero el historial y los registros anteriores se conservan en el sistema.\n\nEsta acción no se puede deshacer desde la aplicación.</string>
+    <string name="deactivate_task_confirm_ack">Entiendo que se ocultará de las listas activas y el historial se conserva</string>
     <string name="deactivate_task_confirm_button">Desactivar</string>
-    <string name="deactivate_task_confirming">Desactivandoâ€¦</string>
+    <string name="deactivate_task_confirming">Desactivando…</string>
     <string name="deactivate_task_success">Tarea desactivada correctamente.</string>
 
     <!-- Habit detail tasks -->
-    <string name="habit_detail_default_title">Detalle del hÃ¡bito</string>
+    <string name="habit_detail_default_title">Detalle del hábito</string>
     <string name="habit_detail_tasks_section">TAREAS ACTIVAS</string>
     <string name="habit_detail_active_tasks_count">%1$d activas</string>
     <string name="habit_detail_with_criteria_count">%1$d con criterios</string>
-    <string name="habit_detail_no_active_tasks">No hay tareas activas en este hÃ¡bito.</string>
-    <string name="habit_detail_no_repetition_criteria">Sin criterios de repeticiÃ³n</string>
+    <string name="habit_detail_no_active_tasks">No hay tareas activas en este hábito.</string>
+    <string name="habit_detail_no_repetition_criteria">Sin criterios de repetición</string>
     <string name="habit_detail_task_default_title">Tarea %1$d</string>
-    <string name="habit_detail_task_subtitle">%1$s Â· %2$s Â· %3$s</string>
+    <string name="habit_detail_task_subtitle">%1$s · %2$s · %3$s</string>
 
     <!-- Settings / deactivate account -->
     <string name="settings_title">Ajustes</string>
     <string name="settings_back">Volver</string>
     <string name="settings_deactivate_section_title">Desactivar cuenta</string>
-    <string name="settings_deactivate_consequences">Al desactivar tu cuenta:\n\nâ€¢ No podrÃ¡s iniciar sesiÃ³n de nuevo.\nâ€¢ Tu progreso y hÃ¡bitos quedarÃ¡n inactivos.\nâ€¢ Se cerrarÃ¡ la sesiÃ³n en este dispositivo.\nâ€¢ Se borrarÃ¡n los datos locales de la app.</string>
-    <string name="settings_reactivation_info">La reactivaciÃ³n no estÃ¡ disponible desde la app. Si necesitÃ¡s recuperar tu cuenta, contactÃ¡ al equipo de soporte.</string>
+    <string name="settings_deactivate_consequences">Al desactivar tu cuenta:\n\n• No podrás iniciar sesión de nuevo.\n• Tu progreso y hábitos quedarán inactivos.\n• Se cerrará la sesión en este dispositivo.\n• Se borrarán los datos locales de la app.</string>
+    <string name="settings_reactivation_info">La reactivación no está disponible desde la app. Si necesitás recuperar tu cuenta, contactá al equipo de soporte.</string>
     <string name="settings_deactivate_button">Desactivar mi cuenta</string>
-    <string name="settings_confirm_title">Â¿Desactivar cuenta?</string>
-    <string name="settings_confirm_message">Esta acciÃ³n desactiva tu cuenta de forma permanente desde la app. ConfirmÃ¡ solo si entendÃ©s las consecuencias.</string>
+    <string name="settings_confirm_title">¿Desactivar cuenta?</string>
+    <string name="settings_confirm_message">Esta acción desactiva tu cuenta de forma permanente desde la app. Confirmá solo si entendés las consecuencias.</string>
     <string name="settings_confirm_acknowledge">Entiendo las consecuencias y quiero continuar</string>
     <string name="settings_deactivate_reason_label">Motivo (opcional)</string>
-    <string name="settings_deactivate_reason_hint">Contanos por quÃ© te vasâ€¦</string>
+    <string name="settings_deactivate_reason_hint">Contanos por qué te vas…</string>
     <string name="settings_cancel">Cancelar</string>
     <string name="settings_confirm_deactivate">Desactivar</string>
-    <string name="settings_deactivating">Desactivandoâ€¦</string>
-    <string name="settings_deactivate_success">Tu cuenta fue desactivada. La sesiÃ³n local se cerrÃ³ correctamente.</string>
+    <string name="settings_deactivating">Desactivando…</string>
+    <string name="settings_deactivate_success">Tu cuenta fue desactivada. La sesión local se cerró correctamente.</string>
 
     <!-- Profile -->
     <string name="profile_title">Mi perfil</string>
     <string name="profile_back">Volver</string>
-    <string name="profile_subtitle">RevisÃ¡ tu informaciÃ³n pÃºblica</string>
-    <string name="profile_edit_subtitle">ModificÃ¡ los campos que quieras actualizar</string>
+    <string name="profile_subtitle">Revisá tu información pública</string>
+    <string name="profile_edit_subtitle">Modificá los campos que quieras actualizar</string>
     <string name="profile_edit">Editar perfil</string>
     <string name="profile_cancel_edit">Cancelar</string>
     <string name="profile_not_set">Sin definir</string>
     <string name="profile_avatar_change">Cambiar avatar</string>
-    <string name="profile_avatar_hint">JPG, PNG o WebP. MÃ¡ximo 2 MB.</string>
-    <string name="profile_avatar_too_large">La imagen supera el tamaÃ±o mÃ¡ximo</string>
+    <string name="profile_avatar_hint">JPG, PNG o WebP. Máximo 2 MB.</string>
+    <string name="profile_avatar_too_large">La imagen supera el tamaño máximo</string>
     <string name="profile_avatar_invalid_type">Formato de imagen no permitido</string>
-    <string name="profile_avatar_persist_failed">No se pudo guardar la imagen. IntentÃ¡ de nuevo.</string>
+    <string name="profile_avatar_persist_failed">No se pudo guardar la imagen. Intentá de nuevo.</string>
     <string name="profile_name_label">Nombre</string>
     <string name="profile_last_name_label">Apellido</string>
     <string name="profile_email_label">Email</string>
@@ -259,21 +258,21 @@
     <string name="profile_birthdate_label">Fecha de nacimiento</string>
     <string name="profile_birthdate_hint">AAAA-MM-DD (opcional)</string>
     <string name="profile_bio_label">Bio</string>
-    <string name="profile_bio_hint">ContÃ¡ algo sobre vos (solo en este dispositivo por ahora)</string>
+    <string name="profile_bio_hint">Contá algo sobre vos (solo en este dispositivo por ahora)</string>
     <string name="profile_class_label">Clase</string>
     <string name="profile_level_label">Nivel %1$d</string>
     <string name="profile_save">Guardar cambios</string>
-    <string name="profile_saving">Guardandoâ€¦</string>
+    <string name="profile_saving">Guardando…</string>
     <string name="profile_save_success">Perfil actualizado correctamente</string>
     <string name="profile_load_error">No se pudo cargar el perfil</string>
-    <string name="profile_error_network">Sin conexiÃ³n. RevisÃ¡ tu red e intentÃ¡ de nuevo.</string>
-    <string name="profile_error_conflict">Ese usuario ya estÃ¡ en uso.</string>
-    <string name="profile_error_precondition">El perfil cambiÃ³ en otro lugar. RecargÃ¡ e intentÃ¡ de nuevo.</string>
+    <string name="profile_error_network">Sin conexión. Revisá tu red e intentá de nuevo.</string>
+    <string name="profile_error_conflict">Ese usuario ya está en uso.</string>
+    <string name="profile_error_precondition">El perfil cambió en otro lugar. Recargá e intentá de nuevo.</string>
     <string name="profile_retry">Reintentar</string>
-    <string name="profile_logout">Cerrar sesiÃ³n</string>
-    <string name="profile_logout_confirm_title">Â¿Cerrar sesiÃ³n?</string>
-    <string name="profile_logout_confirm_message">Se cerrarÃ¡ tu sesiÃ³n en este dispositivo. TendrÃ¡s que volver a iniciar sesiÃ³n para entrar.</string>
-    <string name="profile_logout_confirm">Cerrar sesiÃ³n</string>
+    <string name="profile_logout">Cerrar sesión</string>
+    <string name="profile_logout_confirm_title">¿Cerrar sesión?</string>
+    <string name="profile_logout_confirm_message">Se cerrará tu sesión en este dispositivo. Tendrás que volver a iniciar sesión para entrar.</string>
+    <string name="profile_logout_confirm">Cerrar sesión</string>
     <string name="cd_profile_avatar">Avatar de perfil</string>
 
     <!-- Evidence gallery - delete -->
@@ -289,4 +288,3 @@
     <string name="evidence_gallery_delete_error_not_found">La evidencia ya no existe</string>
     <string name="evidence_gallery_delete_error_generic">No se pudo eliminar la evidencia</string>
 </resources>
-
