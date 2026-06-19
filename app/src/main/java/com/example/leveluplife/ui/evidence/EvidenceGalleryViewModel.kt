@@ -1,4 +1,4 @@
-﻿package com.example.leveluplife.ui.evidence
+package com.example.leveluplife.ui.evidence
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -81,6 +81,33 @@ class EvidenceGalleryViewModel(
 
     fun onDeleteSuccessShown() {
         _state.update { it.copy(deleteSuccess = false) }
+    }
+
+    fun uploadEvidence(fileUri: String, mimeType: String?) {
+        viewModelScope.launch {
+            _state.update { it.copy(isUploading = true, uploadError = null) }
+            repository.uploadEvidence(taskId, fileUri, mimeType)
+                .onSuccess { evidence ->
+                    _state.update { state ->
+                        state.copy(
+                            isUploading = false,
+                            evidences = listOf(evidence) + state.evidences,
+                            uploadSuccess = true,
+                        )
+                    }
+                }
+                .onFailure { t ->
+                    _state.update { it.copy(isUploading = false, uploadError = t.message) }
+                }
+        }
+    }
+
+    fun onUploadSuccessShown() {
+        _state.update { it.copy(uploadSuccess = false) }
+    }
+
+    fun onUploadErrorShown() {
+        _state.update { it.copy(uploadError = null) }
     }
 
     class Factory(

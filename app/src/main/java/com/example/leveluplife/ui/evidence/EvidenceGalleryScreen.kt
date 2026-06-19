@@ -1,5 +1,7 @@
-﻿package com.example.leveluplife.ui.evidence
+package com.example.leveluplife.ui.evidence
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.WarningAmber
@@ -27,6 +30,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -72,13 +76,48 @@ fun EvidenceGalleryScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
+    val pickImage = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+    ) { uri ->
+        if (uri != null) {
+            val mimeType = context.contentResolver.getType(uri)
+            viewModel.uploadEvidence(uri.toString(), mimeType)
+        }
+    }
 
     val deleteSuccessMessage = stringResource(R.string.evidence_gallery_delete_success)
+    val successMessage = stringResource(R.string.evidence_upload_success)
+    val errorGenericMessage = stringResource(R.string.evidence_upload_error_generic)
+    val errorInvalidMessage = stringResource(R.string.evidence_upload_error_invalid)
+    val errorFileMessage = stringResource(R.string.evidence_upload_error_file)
+    val errorTaskNotFoundMessage = stringResource(R.string.evidence_gallery_error_not_found)
+
     LaunchedEffect(state.deleteSuccess) {
         if (state.deleteSuccess) {
             snackbarHostState.showLulSnackbar(deleteSuccessMessage)
             viewModel.onDeleteSuccessShown()
         }
+    }
+
+    LaunchedEffect(state.uploadSuccess) {
+        if (state.uploadSuccess) {
+            snackbarHostState.showLulSnackbar(successMessage)
+            viewModel.onUploadSuccessShown()
+        }
+    }
+
+    LaunchedEffect(state.uploadError) {
+        val error = state.uploadError ?: return@LaunchedEffect
+        val message = when {
+            error == "cannot_read_file" -> errorFileMessage
+            error.startsWith("upload_invalid_fields") -> errorInvalidMessage
+            error == "task_not_found" -> errorTaskNotFoundMessage
+            else -> "$errorGenericMessage ($error)"
+        }
+        snackbarHostState.showLulSnackbar(message, durationMillis = 5_000L)
+        viewModel.onUploadErrorShown()
     }
 
     if (state.pendingDeleteEvidence != null) {
@@ -111,6 +150,26 @@ fun EvidenceGalleryScreen(
         modifier = modifier.fillMaxSize(),
         containerColor = DarkBackground,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { if (!state.isUploading) pickImage.launch("image/*") },
+                containerColor = PurplePrimary,
+                contentColor = DarkOnBackground,
+            ) {
+                if (state.isUploading) {
+                    CircularProgressIndicator(
+                        color = DarkOnBackground,
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(24.dp),
+                    )
+                } else {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = stringResource(R.string.evidence_upload_button),
+                    )
+                }
+            }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier

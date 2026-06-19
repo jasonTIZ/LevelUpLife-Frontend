@@ -1,4 +1,4 @@
-﻿package com.example.leveluplife.ui.evidence
+package com.example.leveluplife.ui.evidence
 
 import com.example.leveluplife.data.network.dto.EvidenceDto
 
@@ -11,4 +11,7 @@ data class EvidenceGalleryUiState(
     val isDeleting: Boolean = false,
     val deleteError: String? = null,
     val deleteSuccess: Boolean = false,
+    val isUploading: Boolean = false,
+    val uploadError: String? = null,
+    val uploadSuccess: Boolean = false,
 )

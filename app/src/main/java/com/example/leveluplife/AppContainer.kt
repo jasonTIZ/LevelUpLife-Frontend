@@ -113,7 +113,7 @@ class AppContainer(applicationContext: Context) {
     }
 
     val evidenceRepository: EvidenceRepository by lazy {
-        DefaultEvidenceRepository(api = habitTasksApi)
+        DefaultEvidenceRepository(api = habitTasksApi, context = appContext)
     }
 
     val playerRepository: PlayerRepository by lazy {
