@@ -1,5 +1,7 @@
 package com.example.leveluplife.ui.evidence
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,19 +21,25 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +53,7 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.EvidenceDto
+import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.theme.DarkBackground
 import com.example.leveluplife.ui.theme.DarkOnBackground
 import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
@@ -58,10 +67,67 @@ fun EvidenceGalleryScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
+    val pickImage = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+    ) { uri ->
+        if (uri != null) {
+            val mimeType = context.contentResolver.getType(uri)
+            viewModel.uploadEvidence(uri.toString(), mimeType)
+        }
+    }
+
+    val successMessage = stringResource(R.string.evidence_upload_success)
+    val errorGenericMessage = stringResource(R.string.evidence_upload_error_generic)
+    val errorInvalidMessage = stringResource(R.string.evidence_upload_error_invalid)
+    val errorFileMessage = stringResource(R.string.evidence_upload_error_file)
+    val errorTaskNotFoundMessage = stringResource(R.string.evidence_gallery_error_not_found)
+
+    LaunchedEffect(state.uploadSuccess) {
+        if (state.uploadSuccess) {
+            snackbarHostState.showLulSnackbar(successMessage)
+            viewModel.onUploadSuccessShown()
+        }
+    }
+
+    LaunchedEffect(state.uploadError) {
+        val error = state.uploadError ?: return@LaunchedEffect
+        val message = when {
+            error == "cannot_read_file" -> errorFileMessage
+            error.startsWith("upload_invalid_fields") -> errorInvalidMessage
+            error == "task_not_found" -> errorTaskNotFoundMessage
+            else -> "$errorGenericMessage ($error)"
+        }
+        snackbarHostState.showLulSnackbar(message, durationMillis = 5_000L)
+        viewModel.onUploadErrorShown()
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = DarkBackground,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { if (!state.isUploading) pickImage.launch("image/*") },
+                containerColor = PurplePrimary,
+                contentColor = DarkOnBackground,
+            ) {
+                if (state.isUploading) {
+                    CircularProgressIndicator(
+                        color = DarkOnBackground,
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(24.dp),
+                    )
+                } else {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = stringResource(R.string.evidence_upload_button),
+                    )
+                }
+            }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
