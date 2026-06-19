@@ -31,6 +31,8 @@ import com.example.leveluplife.ui.createtask.CreateHabitTaskScreen
 import com.example.leveluplife.ui.createtask.CreateHabitTaskViewModel
 import com.example.leveluplife.ui.habit.CreateHabitScreen
 import com.example.leveluplife.ui.habit.CreateHabitViewModel
+import com.example.leveluplife.ui.coach.CoachScreen
+import com.example.leveluplife.ui.coach.CoachViewModel
 import com.example.leveluplife.ui.evidence.EvidenceGalleryScreen
 import com.example.leveluplife.ui.evidence.EvidenceGalleryViewModel
 import com.example.leveluplife.ui.habitdetail.HabitDetailScreen
@@ -65,6 +67,7 @@ object Routes {
     const val HABIT_TASK_DETAIL = "habit_task_detail/{taskId}"
     const val TASK_EVIDENCES = "task_evidences/{taskId}"
     const val EDIT_HABIT_TASK = "edit_habit_task/{taskId}"
+    const val COACH = "coach"
 
     fun habitDetail(id: Int) = "habit_detail/$id"
     fun createHabitTask(habitId: Int = -1) = "create_habit_task?habitId=$habitId"
@@ -244,6 +247,9 @@ fun AppNavigation(
                 },
                 onCreateHabit = {
                     navController.navigate(Routes.CREATE_HABIT)
+                },
+                onOpenCoach = {
+                    navController.navigate(Routes.COACH) { launchSingleTop = true }
                 },
             )
         }
@@ -443,6 +449,15 @@ fun AppNavigation(
                         ?.set(Routes.ARG_TASK_DEACTIVATED_MESSAGE, message)
                     navController.popBackStack()
                 },
+            )
+        }
+        composable(Routes.COACH) {
+            val vm: CoachViewModel = viewModel(
+                factory = CoachViewModel.Factory(container.coachRepository, container.tokenStore, container.chatStorage),
+            )
+            CoachScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
             )
         }
         composable(

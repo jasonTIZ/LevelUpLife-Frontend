@@ -10,6 +10,9 @@ import com.example.leveluplife.data.auth.SessionEvents
 import com.example.leveluplife.data.auth.TokenStore
 import com.example.leveluplife.data.categories.DefaultHabitCategoryRepository
 import com.example.leveluplife.data.categories.HabitCategoryRepository
+import com.example.leveluplife.data.coach.ChatStorage
+import com.example.leveluplife.data.coach.CoachRepository
+import com.example.leveluplife.data.coach.DefaultCoachRepository
 import com.example.leveluplife.data.habits.DefaultHabitDisciplineRepository
 import com.example.leveluplife.data.habits.DefaultHabitRepository
 import com.example.leveluplife.data.habits.DefaultHabitTaskRepository
@@ -18,6 +21,7 @@ import com.example.leveluplife.data.habits.EvidenceRepository
 import com.example.leveluplife.data.habits.HabitDisciplineRepository
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskRepository
+import com.example.leveluplife.data.network.AiApi
 import com.example.leveluplife.data.network.AuthApi
 import com.example.leveluplife.data.network.HabitCategoriesApi
 import com.example.leveluplife.data.network.HabitDisciplinesApi
@@ -86,6 +90,7 @@ class AppContainer(applicationContext: Context) {
     private val habitTasksApi: HabitTasksApi by lazy { NetworkModule.provideHabitTasksApi(retrofit) }
     private val habitDisciplinesApi: HabitDisciplinesApi by lazy { NetworkModule.provideHabitDisciplinesApi(retrofit) }
     private val playerApi: PlayerApi by lazy { NetworkModule.providePlayerApi(retrofit) }
+    private val aiApi: AiApi by lazy { NetworkModule.provideAiApi(retrofit) }
 
     val authRepository: AuthRepository by lazy {
         DefaultAuthRepository(
@@ -115,6 +120,12 @@ class AppContainer(applicationContext: Context) {
 
     val evidenceRepository: EvidenceRepository by lazy {
         DefaultEvidenceRepository(api = habitTasksApi, context = appContext)
+    }
+
+    val chatStorage: ChatStorage by lazy { ChatStorage(appContext) }
+
+    val coachRepository: CoachRepository by lazy {
+        DefaultCoachRepository(api = aiApi)
     }
 
     val playerRepository: PlayerRepository by lazy {

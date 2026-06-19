@@ -275,4 +275,17 @@
     <string name="profile_logout_confirm_message">Se cerrará tu sesión en este dispositivo. Tendrás que volver a iniciar sesión para entrar.</string>
     <string name="profile_logout_confirm">Cerrar sesión</string>
     <string name="cd_profile_avatar">Avatar de perfil</string>
+
+    <!-- Coach / AI chat -->
+    <string name="coach_title">Coach</string>
+    <string name="coach_subtitle">Asistente de hábitos</string>
+    <string name="coach_empty_title">¿En qué te puedo ayudar?</string>
+    <string name="coach_welcome">Soy tu coach de hábitos personales. Escribime o elegí una sugerencia.</string>
+    <string name="coach_input_hint">Escribí tu mensaje…</string>
+    <string name="coach_send_button">Enviar</string>
+    <string name="coach_clear_history">Limpiar conversación</string>
+    <string name="coach_keyboard_hint">Enter para enviar · Shift+Enter para nueva línea · Esc para cerrar teclado</string>
+    <string name="coach_suggestion_1">¿Cómo mejorar mis hábitos de sueño?</string>
+    <string name="coach_suggestion_2">¿Qué ejercicios son fáciles de mantener?</string>
+    <string name="coach_suggestion_3">Ayúdame a crear una rutina diaria</string>
 </resources>
