@@ -65,13 +65,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.player.ProfileCache
-import com.example.leveluplife.ui.theme.DarkBackground
-import com.example.leveluplife.ui.theme.DarkOnBackground
-import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
-import com.example.leveluplife.ui.theme.DarkSurface
-import com.example.leveluplife.ui.theme.DarkSurfaceVariant
-import com.example.leveluplife.ui.theme.PurplePrimary
-import com.example.leveluplife.ui.theme.PurplePrimaryContainer
 import java.util.Calendar
 
 private val OrangeFire = Color(0xFFF59E0B)
@@ -105,11 +98,11 @@ fun HomeScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = DarkBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onCreateTask,
-                containerColor = PurplePrimary,
+                containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
                 shape = CircleShape,
             ) {
@@ -144,7 +137,7 @@ fun HomeScreen(
                     fontSize = 11.sp,
                     letterSpacing = 2.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = DarkOnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(16.dp))
             }
@@ -158,7 +151,7 @@ fun HomeScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator(
-                            color = DarkOnSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             strokeWidth = 2.dp,
                             modifier = Modifier.size(44.dp),
                         )
@@ -174,7 +167,7 @@ fun HomeScreen(
                     ) {
                         Text(
                             text = state.error ?: "",
-                            color = DarkOnSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                         )
@@ -190,7 +183,7 @@ fun HomeScreen(
                     ) {
                         Text(
                             text = "No hay misiones activas",
-                            color = DarkOnSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
@@ -213,7 +206,7 @@ fun HomeScreen(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 CircularProgressIndicator(
-                                    color = PurplePrimary,
+                                    color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(28.dp),
                                 )
                             }
@@ -248,7 +241,7 @@ private fun HomeHeader(
                     ) { append("LEVEL UP ") }
                     withStyle(
                         SpanStyle(
-                            color = PurplePrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontStyle = FontStyle.Italic,
                             fontWeight = FontWeight.ExtraBold,
                         )
@@ -259,7 +252,7 @@ private fun HomeHeader(
             if (!displayName.isNullOrBlank()) {
                 Text(
                     text = displayName,
-                    color = DarkOnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                 )
             }
@@ -268,18 +261,18 @@ private fun HomeHeader(
             IconButton(
                 onClick = onOpenCategories,
                 modifier = Modifier
-                    .background(DarkSurfaceVariant, RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
                     .size(46.dp),
             ) {
-                Icon(Icons.Filled.Category, contentDescription = "Categorías", tint = DarkOnBackground)
+                Icon(Icons.Filled.Category, contentDescription = "Categorías", tint = MaterialTheme.colorScheme.onBackground)
             }
             IconButton(
                 onClick = onOpenProfile,
                 modifier = Modifier
-                    .background(DarkSurfaceVariant, RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
                     .size(46.dp),
             ) {
-                Icon(Icons.Filled.Person, contentDescription = "Perfil", tint = DarkOnBackground)
+                Icon(Icons.Filled.Person, contentDescription = "Perfil", tint = MaterialTheme.colorScheme.onBackground)
             }
         }
     }
@@ -297,13 +290,13 @@ private fun StatsRow() {
 private fun StatChip(emoji: String, value: String) {
     Row(
         modifier = Modifier
-            .background(DarkSurfaceVariant, RoundedCornerShape(50.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50.dp))
             .padding(horizontal = 14.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         Text(emoji, fontSize = 13.sp)
-        Text(value, color = DarkOnBackground, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text(value, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     }
 }
 
@@ -336,7 +329,7 @@ private fun CalendarWeekCard() {
 
     Card(
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
@@ -348,7 +341,7 @@ private fun CalendarWeekCard() {
                 Text(
                     text = MONTHS_ES[weekDays.first().get(Calendar.MONTH)],
                     style = MaterialTheme.typography.titleMedium,
-                    color = DarkOnBackground,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -364,7 +357,7 @@ private fun CalendarWeekCard() {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                             contentDescription = "Semana anterior",
-                            tint = DarkOnSurfaceVariant,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     IconButton(
@@ -379,7 +372,7 @@ private fun CalendarWeekCard() {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
                             contentDescription = "Semana siguiente",
-                            tint = DarkOnSurfaceVariant,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -394,7 +387,7 @@ private fun CalendarWeekCard() {
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodySmall,
-                        color = DarkOnSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -411,7 +404,7 @@ private fun CalendarWeekCard() {
                             .aspectRatio(1f)
                             .then(
                                 if (isToday) {
-                                    Modifier.background(PurplePrimary, RoundedCornerShape(10.dp))
+                                    Modifier.background(MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp))
                                 } else {
                                     Modifier
                                 }
@@ -422,7 +415,7 @@ private fun CalendarWeekCard() {
                             text = day.get(Calendar.DAY_OF_MONTH).toString(),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isToday) Color.White else DarkOnBackground,
+                            color = if (isToday) Color.White else MaterialTheme.colorScheme.onBackground,
                         )
                     }
                 }
@@ -438,7 +431,7 @@ private fun HabitCard(
 ) {
     Card(
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
@@ -450,13 +443,13 @@ private fun HabitCard(
             Box(
                 modifier = Modifier
                     .size(46.dp)
-                    .background(PurplePrimaryContainer, RoundedCornerShape(12.dp)),
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     Icons.Filled.Star,
                     contentDescription = null,
-                    tint = PurplePrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(22.dp),
                 )
             }
@@ -466,7 +459,7 @@ private fun HabitCard(
                     text = habit.title,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = DarkOnBackground,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
                 val subtitle = listOfNotNull(
                     habit.categoryName.takeIf { it.isNotBlank() },
@@ -477,7 +470,7 @@ private fun HabitCard(
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = DarkOnSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -501,7 +494,7 @@ private fun HomeBottomBar(onOpenSettings: () -> Unit) {
         NavItem("AJUSTES", Icons.Filled.Settings, false, onClick = onOpenSettings),
     )
     NavigationBar(
-        containerColor = DarkSurface,
+        containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
     ) {
         items.forEach { item ->
@@ -517,10 +510,10 @@ private fun HomeBottomBar(onOpenSettings: () -> Unit) {
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = PurplePrimary,
-                    selectedTextColor = PurplePrimary,
-                    unselectedIconColor = DarkOnSurfaceVariant,
-                    unselectedTextColor = DarkOnSurfaceVariant,
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     indicatorColor = Color.Transparent,
                 ),
             )

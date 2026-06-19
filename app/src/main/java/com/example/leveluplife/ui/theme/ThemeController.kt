@@ -31,6 +31,16 @@ class ThemeController(
         }
     }
 
+    /** Fija LIGHT o DARK según el modo efectivo actual (p. ej. al iniciar sesión). */
+    fun lockCurrentAppearance(currentSystemIsDark: Boolean) {
+        scope.launch {
+            val current = preferences.themeMode.first()
+            if (current != ThemeMode.SYSTEM) return@launch
+            val locked = if (currentSystemIsDark) ThemeMode.DARK else ThemeMode.LIGHT
+            preferences.setThemeMode(locked)
+        }
+    }
+
     fun setMode(mode: ThemeMode) {
         scope.launch { preferences.setThemeMode(mode) }
     }

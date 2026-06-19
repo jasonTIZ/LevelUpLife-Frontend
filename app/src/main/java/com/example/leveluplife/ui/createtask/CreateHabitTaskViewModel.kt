@@ -6,12 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.habits.HabitTaskValidationFailure
-import com.example.leveluplife.data.network.dto.CreateHabitTaskRequest
-import com.example.leveluplife.data.network.dto.CreateRepetitionCriteriaRequest
-import com.example.leveluplife.domain.validation.HabitTaskFormErrors
-import com.example.leveluplife.domain.validation.HabitTaskFormInput
 import com.example.leveluplife.domain.validation.HabitTaskValidators
-import com.example.leveluplife.domain.validation.TaskInputSanitizer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,8 +23,10 @@ class CreateHabitTaskViewModel(
 
     private val _state = MutableStateFlow(
         CreateHabitTaskUiState(
-            selectedHabitId = preselectedHabitId?.takeIf { it > 0 },
-            startDate = LocalDate.now().toString(),
+            form = HabitTaskFormState(
+                selectedHabitId = preselectedHabitId?.takeIf { it > 0 },
+                startDate = LocalDate.now().toString(),
+            ),
         ),
     )
     val state: StateFlow<CreateHabitTaskUiState> = _state.asStateFlow()
@@ -45,12 +42,13 @@ class CreateHabitTaskViewModel(
                 .onSuccess { response ->
                     val habits = response.habits.orEmpty()
                     _state.update { current ->
-                        val selected = current.selectedHabitId
-                            ?: habits.firstOrNull()?.id
+                        val selected = current.form.selectedHabitId ?: habits.firstOrNull()?.id
                         current.copy(
                             isLoadingHabits = false,
-                            habits = habits,
-                            selectedHabitId = selected,
+                            form = current.form.copy(
+                                habits = habits,
+                                selectedHabitId = selected,
+                            ),
                         )
                     }
                 }
@@ -66,161 +64,63 @@ class CreateHabitTaskViewModel(
     }
 
     fun onHabitSelected(habitId: Int) {
-        _state.update {
-            it.copy(
-                selectedHabitId = habitId,
-                fieldErrors = it.fieldErrors.copy(habitId = null),
-                showValidationErrors = false,
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormHandlers.onHabitSelected(it.form, habitId)) }
     }
 
     fun onTitleChange(value: String) {
-        _state.update {
-            it.copy(
-                title = TaskInputSanitizer.trimToMax(value, HabitTaskValidators.TITLE_MAX),
-                fieldErrors = it.fieldErrors.copy(title = null),
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormHandlers.onTitleChange(it.form, value)) }
     }
 
     fun onDescriptionChange(value: String) {
-        _state.update {
-            it.copy(
-                description = TaskInputSanitizer.trimToMax(value, 500),
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormHandlers.onDescriptionChange(it.form, value)) }
     }
 
     fun onDifficultyChange(value: String) {
-        _state.update {
-            it.copy(
-                difficulty = value,
-                fieldErrors = it.fieldErrors.copy(difficulty = null),
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormHandlers.onDifficultyChange(it.form, value)) }
     }
 
     fun onFrequencyChange(value: String) {
-        _state.update {
-            it.copy(
-                frequency = value,
-                fieldErrors = it.fieldErrors.copy(frequency = null),
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormHandlers.onFrequencyChange(it.form, value)) }
     }
 
     fun onPeriodLengthChange(value: String) {
-        _state.update {
-            it.copy(
-                periodLength = TaskInputSanitizer.digitsOnly(value),
-                fieldErrors = it.fieldErrors.copy(periodLength = null),
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormHandlers.onPeriodLengthChange(it.form, value)) }
     }
 
     fun onPeriodUnitChange(value: String) {
-        _state.update {
-            it.copy(
-                periodUnit = value,
-                fieldErrors = it.fieldErrors.copy(periodUnit = null),
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormHandlers.onPeriodUnitChange(it.form, value)) }
     }
 
     fun onStartDateChange(value: String) {
-        _state.update {
-            it.copy(
-                startDate = TaskInputSanitizer.isoDateInput(value),
-                fieldErrors = it.fieldErrors.copy(startDate = null),
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormHandlers.onStartDateChange(it.form, value)) }
     }
 
     fun onCompletionCriteriaChange(value: String) {
-        _state.update {
-            it.copy(
-                completionCriteria = value,
-                repetitions = if (value == "REPETITIONS" && it.repetitions.isBlank()) "3" else it.repetitions,
-                measurementUnit = if (value == "REPETITIONS") it.measurementUnit ?: "SERIES" else null,
-                evidence = if (value == "EVIDENCE") it.evidence ?: "PHOTO" else null,
-                fieldErrors = it.fieldErrors.copy(
-                    completionCriteria = null,
-                    repetitions = null,
-                    measurementUnit = null,
-                    evidence = null,
-                ),
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormHandlers.onCompletionCriteriaChange(it.form, value)) }
     }
 
     fun onRepetitionsChange(value: String) {
-        _state.update {
-            it.copy(
-                repetitions = TaskInputSanitizer.digitsOnly(value, maxLength = 5),
-                fieldErrors = it.fieldErrors.copy(repetitions = null),
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormHandlers.onRepetitionsChange(it.form, value)) }
     }
 
     fun onMeasurementUnitChange(value: String) {
-        _state.update {
-            it.copy(
-                measurementUnit = value,
-                fieldErrors = it.fieldErrors.copy(measurementUnit = null),
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormHandlers.onMeasurementUnitChange(it.form, value)) }
     }
 
     fun onEvidenceChange(value: String) {
-        _state.update {
-            it.copy(
-                evidence = value,
-                fieldErrors = it.fieldErrors.copy(evidence = null),
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormHandlers.onEvidenceChange(it.form, value)) }
     }
 
     fun onPartialAllowedChange(value: Boolean) {
-        _state.update { it.copy(isPartialAllowed = value) }
+        _state.update { it.copy(form = it.form.copy(isPartialAllowed = value)) }
     }
 
     fun applyTemplate(template: TaskFormTemplate) {
-        _state.update {
-            it.copy(
-                title = template.title,
-                description = template.description,
-                difficulty = template.difficulty,
-                frequency = template.frequency,
-                periodLength = template.periodLength,
-                periodUnit = template.periodUnit,
-                completionCriteria = template.completionCriteria,
-                repetitions = template.repetitions,
-                measurementUnit = template.measurementUnit,
-                evidence = template.evidence,
-                isPartialAllowed = template.isPartialAllowed,
-                selectedTemplateId = template.id,
-                fieldErrors = HabitTaskFormErrors(),
-                showValidationErrors = false,
-                submitError = null,
-            )
-        }
+        _state.update { it.copy(form = HabitTaskFormState.applyTemplate(it.form, template)) }
     }
 
     fun dismissSubmitError() {
-        _state.update { it.copy(submitError = null) }
+        _state.update { it.copy(form = it.form.copy(submitError = null)) }
     }
 
     fun consumeCreatedTask() {
@@ -228,36 +128,38 @@ class CreateHabitTaskViewModel(
     }
 
     fun submit() {
-        val sanitized = _state.value.sanitizedForValidation()
-        val errors = HabitTaskValidators.validateForm(sanitized.toFormInput())
+        val sanitizedForm = _state.value.form.sanitizedForValidation()
+        val errors = HabitTaskValidators.validateForm(sanitizedForm.toFormInput())
         if (errors.hasErrors) {
             _state.update {
-                sanitized.copy(
-                    fieldErrors = errors,
-                    showValidationErrors = true,
-                    submitError = null,
+                it.copy(
+                    form = sanitizedForm.copy(
+                        fieldErrors = errors,
+                        showValidationErrors = true,
+                        submitError = null,
+                    ),
                 )
             }
             return
         }
 
-        _state.update { sanitized }
+        _state.update { it.copy(form = sanitizedForm) }
 
-        val request = _state.value.toRequest()
+        val request = _state.value.form.toRequest()
         if (request == null) {
             _state.update {
                 it.copy(
-                    showValidationErrors = true,
-                    submitError = "No se pudo enviar la tarea. Revisá que todos los campos estén completos.",
+                    form = it.form.copy(
+                        showValidationErrors = true,
+                        submitError = "No se pudo enviar la tarea. Revisá que todos los campos estén completos.",
+                    ),
                 )
             }
             return
         }
 
         viewModelScope.launch {
-            _state.update {
-                it.copy(isSubmitting = true, submitError = null)
-            }
+            _state.update { it.copy(isSubmitting = true, form = it.form.copy(submitError = null)) }
             habitTaskRepository.createHabitTask(request)
                 .onSuccess { task ->
                     _state.update { it.copy(isSubmitting = false, createdTask = task) }
@@ -267,82 +169,22 @@ class CreateHabitTaskViewModel(
                         is HabitTaskValidationFailure -> _state.update {
                             it.copy(
                                 isSubmitting = false,
-                                fieldErrors = t.fieldErrors,
-                                showValidationErrors = true,
-                                submitError = null,
+                                form = it.form.copy(
+                                    fieldErrors = t.fieldErrors,
+                                    showValidationErrors = true,
+                                    submitError = null,
+                                ),
                             )
                         }
                         else -> _state.update {
                             it.copy(
                                 isSubmitting = false,
-                                submitError = mapSubmitError(t),
+                                form = it.form.copy(submitError = mapSubmitError(t)),
                             )
                         }
                     }
                 }
         }
-    }
-
-    private fun CreateHabitTaskUiState.sanitizedForValidation(): CreateHabitTaskUiState = copy(
-        title = title.trim(),
-        description = description.trim(),
-        periodLength = periodLength.trim(),
-        startDate = startDate.trim(),
-        repetitions = repetitions.trim(),
-    )
-
-    private fun CreateHabitTaskUiState.toFormInput(): HabitTaskFormInput = HabitTaskFormInput(
-        habitId = selectedHabitId,
-        title = title,
-        description = description,
-        difficulty = difficulty,
-        frequency = frequency,
-        periodLength = periodLength,
-        periodUnit = periodUnit,
-        startDate = startDate,
-        completionCriteria = completionCriteria,
-        repetitions = repetitions,
-        measurementUnit = measurementUnit,
-        evidence = evidence,
-        isPartialAllowed = isPartialAllowed,
-    )
-
-    private fun CreateHabitTaskUiState.toRequest(): CreateHabitTaskRequest? {
-        val habitId = selectedHabitId ?: return null
-        val criteria = completionCriteria ?: return null
-        val period = periodLength.toIntOrNull() ?: return null
-        val periodUnitValue = periodUnit ?: return null
-
-        val repetitionCriteria = when (criteria) {
-            "REPETITIONS" -> {
-                val reps = repetitions.toIntOrNull() ?: return null
-                val unit = measurementUnit ?: return null
-                CreateRepetitionCriteriaRequest(
-                    repetitions = reps,
-                    measurementUnit = unit,
-                    isPartialAllowed = isPartialAllowed,
-                    isActive = true,
-                )
-            }
-            else -> null
-        }
-
-        if (criteria == "EVIDENCE" && evidence.isNullOrBlank()) return null
-
-        return CreateHabitTaskRequest(
-            habitId = habitId,
-            title = title.trim(),
-            description = description.trim().ifBlank { null },
-            difficulty = difficulty!!,
-            frequency = frequency!!,
-            periodLength = period,
-            periodUnit = periodUnitValue,
-            startDate = startDate.trim(),
-            completionCriteria = criteria,
-            evidence = if (criteria == "EVIDENCE") evidence else null,
-            repetitionCriteria = repetitionCriteria,
-            isActive = true,
-        )
     }
 
     private fun mapNetworkMessage(t: Throwable): String = when (t) {

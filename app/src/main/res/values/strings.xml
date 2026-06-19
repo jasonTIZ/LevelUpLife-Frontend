@@ -149,6 +149,7 @@
     <string name="evidence_gallery_uploaded_on">Subido el %1$s</string>
     <string name="evidence_gallery_view_button">Ver evidencias</string>
 
+
     <string name="update_task_title">Editar tarea</string>
     <string name="update_task_subtitle">Actualizá los requisitos de la tarea</string>
     <string name="update_task_submit">Guardar cambios</string>

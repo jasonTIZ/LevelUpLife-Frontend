@@ -17,8 +17,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.WarningAmber
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,16 +41,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitTaskDto
+import com.example.leveluplife.ui.components.LulErrorAlertDialog
+import com.example.leveluplife.ui.components.LulPrimaryButton
+import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.createtask.CreateHabitTaskOptions
+
+object HabitTaskDetailTestTags {
+    const val DEACTIVATE_BUTTON = "task_detail_deactivate_button"
+    const val CONFIRM_DIALOG = "task_detail_deactivate_confirm_dialog"
+    const val CONFIRM_DEACTIVATE_BUTTON = "task_detail_confirm_deactivate_button"
+    const val CANCEL_DEACTIVATE_BUTTON = "task_detail_cancel_deactivate_button"
+}
 
 private val GreenSuccess = Color(0xFF4CAF50)
 private val OrangeWarn = Color(0xFFF59E0B)
+private val DangerRed = Color(0xFFEF4444)
 
 @Composable
 fun HabitTaskDetailScreen(
@@ -55,16 +72,44 @@ fun HabitTaskDetailScreen(
     onDone: () -> Unit,
     onViewEvidences: () -> Unit,
     onEdit: ((HabitTaskDto) -> Unit)? = null,
+    onTaskDeactivated: (message: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val confirmationMessage = successMessageRes?.let { stringResource(it) }
+    val defaultDeactivationMessage = stringResource(R.string.deactivate_task_success)
 
     LaunchedEffect(successMessageRes) {
         if (confirmationMessage != null) {
-            snackbarHostState.showSnackbar(confirmationMessage)
+            snackbarHostState.showLulSnackbar(confirmationMessage)
         }
+    }
+
+    LaunchedEffect(state.taskDeactivated, defaultDeactivationMessage) {
+        if (state.taskDeactivated) {
+            onTaskDeactivated(defaultDeactivationMessage)
+            viewModel.consumeDeactivatedEvent()
+        }
+    }
+
+    if (state.showConfirmDeactivateDialog) {
+        DeactivateTaskConfirmDialog(
+            state = state,
+            onDismiss = viewModel::onCancelDeactivate,
+            onConfirm = viewModel::confirmDeactivate,
+            onAcknowledgedChange = viewModel::onConsequencesAcknowledgedChange,
+        )
+    }
+
+    if (state.deactivateError != null) {
+        LulErrorAlertDialog(
+            title = stringResource(R.string.error_dialog_title),
+            message = state.deactivateError ?: "",
+            dismissText = stringResource(R.string.login_dismiss),
+            onDismiss = viewModel::dismissDeactivateError,
+            errorTestTag = HabitTaskDetailTestTags.CONFIRM_DIALOG,
+        )
     }
 
     Scaffold(
@@ -119,6 +164,7 @@ fun HabitTaskDetailScreen(
                     habitTitle = state.habitTitle,
                     onDone = onDone,
                     onViewEvidences = onViewEvidences,
+                    onRequestDeactivate = viewModel::onRequestDeactivate,
                 )
             }
         }
@@ -167,6 +213,7 @@ private fun HabitTaskDetailContent(
     habitTitle: String?,
     onDone: () -> Unit,
     onViewEvidences: () -> Unit,
+    onRequestDeactivate: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -307,8 +354,6 @@ private fun HabitTaskDetailContent(
             }
         }
 
-        Spacer(Modifier.height(8.dp))
-
         TextButton(
             onClick = onViewEvidences,
             modifier = Modifier.fillMaxWidth(),
@@ -318,6 +363,25 @@ private fun HabitTaskDetailContent(
                 color = MaterialTheme.colorScheme.primary,
             )
         }
+
+        if (task.isActive) {
+            LulPrimaryButton(
+                text = stringResource(R.string.deactivate_task_button),
+                onClick = onRequestDeactivate,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(HabitTaskDetailTestTags.DEACTIVATE_BUTTON),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = DangerRed,
+                    contentColor = Color.White,
+                    disabledContainerColor = DangerRed.copy(alpha = 0.5f),
+                ),
+                trailingIcon = Icons.Outlined.WarningAmber,
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+
 
         TextButton(
             onClick = onDone,
@@ -331,6 +395,87 @@ private fun HabitTaskDetailContent(
 
         Spacer(Modifier.height(16.dp))
     }
+}
+
+@Composable
+private fun DeactivateTaskConfirmDialog(
+    state: HabitTaskDetailUiState,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    onAcknowledgedChange: (Boolean) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.testTag(HabitTaskDetailTestTags.CONFIRM_DIALOG),
+        icon = {
+            Icon(
+                Icons.Outlined.WarningAmber,
+                contentDescription = null,
+                tint = DangerRed,
+            )
+        },
+        title = {
+            Text(
+                text = stringResource(R.string.deactivate_task_confirm_title),
+                style = MaterialTheme.typography.titleLarge,
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = stringResource(R.string.deactivate_task_confirm_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Checkbox(
+                        checked = state.consequencesAcknowledged,
+                        onCheckedChange = onAcknowledgedChange,
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = MaterialTheme.colorScheme.primary,
+                            uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
+                    )
+                    Text(
+                        text = stringResource(R.string.deactivate_task_confirm_ack),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.testTag(HabitTaskDetailTestTags.CANCEL_DEACTIVATE_BUTTON),
+                enabled = !state.isDeactivating,
+            ) {
+                Text(stringResource(R.string.settings_cancel))
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                modifier = Modifier.testTag(HabitTaskDetailTestTags.CONFIRM_DEACTIVATE_BUTTON),
+                enabled = state.consequencesAcknowledged && !state.isDeactivating,
+            ) {
+                Text(
+                    text = if (state.isDeactivating) {
+                        stringResource(R.string.deactivate_task_confirming)
+                    } else {
+                        stringResource(R.string.deactivate_task_confirm_button)
+                    },
+                    color = if (state.consequencesAcknowledged) {
+                        DangerRed
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                )
+            }
+        },
+    )
 }
 
 @Composable
