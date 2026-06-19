@@ -9,6 +9,8 @@ import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
 import com.example.leveluplife.data.network.dto.CreateHabitTaskRequestDto
 import com.example.leveluplife.data.network.dto.MeasurementUnit
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaRequestDto
+import com.example.leveluplife.data.network.dto.TimerCriteriaRequestDto
+import com.example.leveluplife.domain.validation.HabitTaskValidators
 import com.example.leveluplife.data.network.dto.TaskCompletionCriteria
 import com.example.leveluplife.data.network.dto.TaskDifficulty
 import com.example.leveluplife.data.network.dto.TaskEvidence
@@ -129,6 +131,15 @@ class CreateHabitViewModel(
     fun onTaskPartialAllowedChange(index: Int, value: Boolean) =
         updateTaskForm(index) { it.copy(isPartialAllowed = value) }
 
+    fun onTaskTimerSecondsDefinedChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onTimerSecondsDefinedChange(it, value) }
+
+    fun onTaskTimerSecondsLongChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onTimerSecondsLongChange(it, value) }
+
+    fun onTaskTimerPauseAllowedChange(index: Int, value: Boolean) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onTimerPauseAllowedChange(it, value) }
+
     fun applyTaskTemplate(index: Int, template: TaskFormTemplate) =
         updateTaskForm(index) { HabitTaskFormState.applyTemplate(it, template) }
 
@@ -183,6 +194,12 @@ class CreateHabitViewModel(
         if (task.completionCriteria == "EVIDENCE" && task.evidence.isNullOrBlank()) {
             return "Tipo de evidencia requerido"
         }
+        if (task.completionCriteria == "TIMER") {
+            val seconds = task.timerSecondsDefined.toIntOrNull()
+            if (seconds == null || seconds < 1 || seconds > HabitTaskValidators.TIMER_SECONDS_MAX) {
+                return "Duración inválida (1 a ${HabitTaskValidators.TIMER_SECONDS_MAX} segundos)"
+            }
+        }
         return null
     }
 
@@ -209,6 +226,14 @@ class CreateHabitViewModel(
                         measurementUnit = MeasurementUnit.valueOf(task.measurementUnit ?: "SERIES"),
                         isPartialAllowed = task.isPartialAllowed,
                         isActive = true,
+                    )
+                } else null,
+                timerCriteria = if (criteria == TaskCompletionCriteria.TIMER) {
+                    TimerCriteriaRequestDto(
+                        numSecondsDefined = task.timerSecondsDefined.toIntOrNull() ?: 1,
+                        numSecondsLong = task.timerSecondsLong.toIntOrNull(),
+                        typePauseIsAllowed = task.timerPauseAllowed,
+                        statusTimerCriteriaIsActive = true,
                     )
                 } else null,
                 xpValue = null,
