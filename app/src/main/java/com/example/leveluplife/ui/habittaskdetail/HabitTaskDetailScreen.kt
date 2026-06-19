@@ -50,6 +50,7 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.ui.components.LulErrorAlertDialog
 import com.example.leveluplife.ui.components.LulPrimaryButton
+import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.createtask.CreateHabitTaskOptions
 import com.example.leveluplife.ui.theme.DarkBackground
 import com.example.leveluplife.ui.theme.DarkOnBackground
@@ -86,14 +87,13 @@ fun HabitTaskDetailScreen(
 
     LaunchedEffect(successMessageRes) {
         if (confirmationMessage != null) {
-            snackbarHostState.showSnackbar(confirmationMessage)
+            snackbarHostState.showLulSnackbar(confirmationMessage)
         }
     }
 
     LaunchedEffect(state.taskDeactivated, defaultDeactivationMessage) {
         if (state.taskDeactivated) {
-            val message = state.deactivationMessage ?: defaultDeactivationMessage
-            onTaskDeactivated(message)
+            onTaskDeactivated(defaultDeactivationMessage)
             viewModel.consumeDeactivatedEvent()
         }
     }
@@ -357,12 +357,6 @@ private fun HabitTaskDetailContent(
                     disabledContainerColor = DangerRed.copy(alpha = 0.5f),
                 ),
                 trailingIcon = Icons.Outlined.WarningAmber,
-            )
-        } else {
-            Text(
-                text = stringResource(R.string.deactivate_task_reactivation_unavailable),
-                style = MaterialTheme.typography.bodySmall,
-                color = DarkOnSurfaceVariant,
             )
         }
 

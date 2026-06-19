@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 
 class HabitDetailViewModel(
     private val habitRepository: HabitRepository,
@@ -24,21 +26,24 @@ class HabitDetailViewModel(
 
     fun loadHabit() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
-            habitRepository.getHabitById(habitId)
-                .onSuccess { habit ->
-                    _state.update { it.copy(isLoading = false, habit = habit) }
-                }
-                .onFailure { t ->
-                    _state.update {
-                        it.copy(isLoading = false, error = t.message ?: "Error desconocido")
-                    }
-                }
+            refreshHabit()
         }
     }
 
-    fun onShowInactiveTasksChange(value: Boolean) {
-        _state.update { it.copy(showInactiveTasks = value) }
+    suspend fun refreshHabit() {
+        _state.update { it.copy(isLoading = true, error = null) }
+        val result = withContext(Dispatchers.IO) {
+            habitRepository.getHabitById(habitId)
+        }
+        result
+            .onSuccess { habit ->
+                _state.update { it.copy(isLoading = false, habit = habit) }
+            }
+            .onFailure { t ->
+                _state.update {
+                    it.copy(isLoading = false, error = t.message ?: "Error desconocido")
+                }
+            }
     }
 
     class Factory(

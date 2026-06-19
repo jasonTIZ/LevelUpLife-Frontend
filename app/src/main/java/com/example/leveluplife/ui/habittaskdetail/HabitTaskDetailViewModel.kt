@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskRepository
+import com.example.leveluplife.data.habits.HabitTaskValidationFailure
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -128,6 +129,7 @@ class HabitTaskDetailViewModel(
 
     private fun mapSubmitError(t: Throwable): String = when (t) {
         is IOException -> "Sin conexión. Revisa tu red e intenta de nuevo."
+        is HabitTaskValidationFailure -> t.message ?: "No se pudo completar la operación."
         else -> t.message ?: "No se pudo desactivar la tarea."
     }
 

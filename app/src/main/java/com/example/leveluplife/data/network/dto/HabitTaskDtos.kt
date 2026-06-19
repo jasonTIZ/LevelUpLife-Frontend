@@ -33,7 +33,7 @@ data class CreateHabitTaskRequest(
     val xpValue: Int? = null,
     val periodLength: Int? = null,
     val startDate: String? = null,
-    val isActive: Boolean? = true,
+    val isActive: Boolean? = null,
     val weekDays: String? = null,
     val difficulty: String,
     val frequency: String,

@@ -154,34 +154,25 @@
     <string name="task_detail_timer_with_pause">%1$s (pausas permitidas)</string>
     <string name="task_detail_timer_no_pause">%1$s (sin pausas)</string>
     <string name="task_detail_back_home">Volver al inicio</string>
-    <string name="task_detail_status_inactive">Inactiva</string>
 
     <!-- Deactivate habit task -->
     <string name="deactivate_task_button">Desactivar tarea</string>
     <string name="deactivate_task_confirm_title">¿Desactivar esta tarea?</string>
-    <string name="deactivate_task_confirm_message">La tarea dejará de mostrarse en las listas activas, pero el historial y los registros anteriores se conservan para auditoría.\n\nPodés ver tareas inactivas desde el detalle del hábito.</string>
+    <string name="deactivate_task_confirm_message">La tarea dejará de mostrarse en la app, pero el historial y los registros anteriores se conservan en el sistema.\n\nEsta acción no se puede deshacer desde la aplicación.</string>
     <string name="deactivate_task_confirm_ack">Entiendo que se ocultará de las listas activas y el historial se conserva</string>
     <string name="deactivate_task_confirm_button">Desactivar</string>
     <string name="deactivate_task_confirming">Desactivando…</string>
     <string name="deactivate_task_success">Tarea desactivada correctamente.</string>
-    <string name="deactivate_task_reactivation_unavailable">La reactivación no está disponible desde la app. Contactá al equipo si necesitás restaurar esta tarea.</string>
 
     <!-- Habit detail tasks -->
     <string name="habit_detail_default_title">Detalle del hábito</string>
     <string name="habit_detail_tasks_section">TAREAS ACTIVAS</string>
-    <string name="habit_detail_inactive_tasks_section">TAREAS INACTIVAS</string>
-    <string name="habit_detail_show_inactive_tasks">Mostrar tareas inactivas</string>
-    <string name="habit_detail_inactive_tasks_count">%1$d inactivas</string>
     <string name="habit_detail_active_tasks_count">%1$d activas</string>
     <string name="habit_detail_with_criteria_count">%1$d con criterios</string>
     <string name="habit_detail_no_active_tasks">No hay tareas activas en este hábito.</string>
     <string name="habit_detail_no_repetition_criteria">Sin criterios de repetición</string>
     <string name="habit_detail_task_default_title">Tarea %1$d</string>
-
     <string name="habit_detail_task_subtitle">%1$s · %2$s · %3$s</string>
-    <string name="habit_detail_task_default_title">Tarea %1$d</string>
-    <string name="habit_detail_tasks_section">TAREAS Y CRITERIOS</string>
-    <string name="habit_detail_with_criteria">%1$d con criterios</string>
 
     <!-- Settings / deactivate account -->
     <string name="settings_title">Ajustes</string>

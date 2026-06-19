@@ -68,6 +68,7 @@ import com.example.leveluplife.domain.validation.ProfileValidators
 import com.example.leveluplife.ui.auth.toMessage
 import com.example.leveluplife.ui.components.LulErrorAlertDialog
 import com.example.leveluplife.ui.components.LulPrimaryButton
+import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.theme.DarkBackground
 import com.example.leveluplife.ui.theme.DarkOnBackground
 import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
@@ -113,7 +114,7 @@ fun ProfileScreen(
 
     LaunchedEffect(state.profileSaved, successMessage) {
         if (state.profileSaved) {
-            snackbarHostState.showSnackbar(successMessage)
+            snackbarHostState.showLulSnackbar(successMessage)
             viewModel.consumeSavedEvent()
         }
     }

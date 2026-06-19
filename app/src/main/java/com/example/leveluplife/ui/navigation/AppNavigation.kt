@@ -2,6 +2,8 @@ package com.example.leveluplife.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -201,8 +203,9 @@ fun AppNavigation(
             arguments = listOf(navArgument("habitId") { type = NavType.IntType }),
         ) { backStackEntry ->
             val habitId = backStackEntry.arguments?.getInt("habitId") ?: return@composable
-            val infoMessage = backStackEntry.savedStateHandle
-                .get<String>(Routes.ARG_TASK_DEACTIVATED_MESSAGE)
+            val infoMessage by backStackEntry.savedStateHandle
+                .getStateFlow<String?>(Routes.ARG_TASK_DEACTIVATED_MESSAGE, null)
+                .collectAsState()
             val vm: HabitDetailViewModel = viewModel(
                 factory = HabitDetailViewModel.Factory(container.habitRepository, habitId),
             )

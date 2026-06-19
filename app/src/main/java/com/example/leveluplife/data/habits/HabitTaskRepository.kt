@@ -38,7 +38,7 @@ class DefaultHabitTaskRepository(
         when {
             response.isSuccessful -> Result.success(
                 response.body()?.message?.ifBlank { null }
-                    ?: "Task deactivated successfully",
+                    ?: "Tarea desactivada correctamente.",
             )
             response.code() == 404 -> Result.failure(Exception("Tarea no encontrada o ya inactiva."))
             response.code() == 403 -> Result.failure(Exception("No tienes permiso para desactivar esta tarea."))
