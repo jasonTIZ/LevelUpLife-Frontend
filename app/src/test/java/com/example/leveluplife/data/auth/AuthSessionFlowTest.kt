@@ -3,6 +3,7 @@ package com.example.leveluplife.data.auth
 import com.example.leveluplife.data.network.AuthApi
 import com.example.leveluplife.data.network.NetworkModule
 import com.example.leveluplife.data.network.interceptor.AuthInterceptor
+import com.example.leveluplife.ui.profile.FakeProfileCache
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -48,6 +49,7 @@ class AuthSessionFlowTest {
             api = retrofit.create(AuthApi::class.java),
             tokenStore = store,
             sessionEvents = sessionEvents,
+            profileCache = FakeProfileCache(),
             json = json,
         )
     }

@@ -1,24 +1,29 @@
 package com.example.leveluplife.ui.profile
 
 import com.example.leveluplife.data.player.PlayerProfile
-import com.example.leveluplife.data.player.ProfileAvatarStorage
 import com.example.leveluplife.data.player.ProfileCache
 import com.example.leveluplife.data.player.ProfileError
 import com.example.leveluplife.data.player.ProfileException
 import com.example.leveluplife.data.player.ProfileFetchResult
 import com.example.leveluplife.data.player.ProfileRepository
+import com.example.leveluplife.data.player.ProfileUpdateResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class FakeProfileRepository(
     private var fetchResult: Result<ProfileFetchResult> = Result.failure(Exception("not configured")),
     private var updateResult: Result<PlayerProfile> = Result.failure(Exception("not configured")),
+    private var uploadResult: Result<ProfileUpdateResult> = Result.failure(Exception("not configured")),
 ) : ProfileRepository {
     var fetchCalls = 0
         private set
     var updateCalls = 0
         private set
+    var uploadCalls = 0
+        private set
     var lastUpdateEtag: String? = null
+        private set
+    var lastBio: String? = null
         private set
 
     fun setFetchResult(result: Result<ProfileFetchResult>) {
@@ -27,6 +32,10 @@ class FakeProfileRepository(
 
     fun setUpdateResult(result: Result<PlayerProfile>) {
         updateResult = result
+    }
+
+    fun setUploadResult(result: Result<ProfileUpdateResult>) {
+        uploadResult = result
     }
 
     override suspend fun fetchProfile(): Result<ProfileFetchResult> {
@@ -41,10 +50,21 @@ class FakeProfileRepository(
         email: String,
         birthdate: String?,
         userName: String,
+        bio: String,
     ): Result<PlayerProfile> {
         updateCalls++
         lastUpdateEtag = etag
+        lastBio = bio
         return updateResult
+    }
+
+    override suspend fun uploadAvatar(
+        etag: String,
+        sourceUri: String,
+        mimeType: String?,
+    ): Result<ProfileUpdateResult> {
+        uploadCalls++
+        return uploadResult
     }
 }
 
@@ -67,12 +87,16 @@ class FakeProfileCache(
         _profile.value = current.copy(avatarUri = avatarUri, bio = bio)
     }
 
-    override fun currentEtag(): String? = etag
+    override suspend fun clearMemory() {
+        _profile.value = null
+        etag = null
+    }
 
     override suspend fun clear() {
-        etag = null
-        _profile.value = null
+        clearMemory()
     }
+
+    override fun currentEtag(): String? = etag
 }
 
 fun sampleProfile() = PlayerProfile(
@@ -96,17 +120,3 @@ fun validationException() = ProfileException(
         ),
     ),
 )
-
-class FakeProfileAvatarStorage(
-    private val persistedUri: String = "file:///fake/profile_avatar.jpg",
-) : ProfileAvatarStorage {
-    var persistCalls = 0
-        private set
-
-    override suspend fun persistFromPickerUri(sourceUri: String, mimeType: String?): String? {
-        persistCalls++
-        return persistedUri
-    }
-
-    override fun resolveDisplayUri(storedUri: String?): String? = storedUri ?: persistedUri
-}

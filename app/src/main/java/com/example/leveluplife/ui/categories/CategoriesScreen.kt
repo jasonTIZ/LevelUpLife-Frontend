@@ -48,12 +48,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.leveluplife.data.network.dto.HabitCategoryDto
-import com.example.leveluplife.ui.theme.DarkBackground
-import com.example.leveluplife.ui.theme.DarkOnBackground
-import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
-import com.example.leveluplife.ui.theme.DarkSurfaceVariant
-import com.example.leveluplife.ui.theme.PurplePrimary
-import com.example.leveluplife.ui.theme.PurplePrimaryContainer
 
 @Composable
 fun CategoriesScreen(
@@ -79,7 +73,7 @@ fun CategoriesScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = DarkBackground,
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         LazyColumn(
             state = listState,
@@ -104,7 +98,7 @@ fun CategoriesScreen(
                     fontSize = 11.sp,
                     letterSpacing = 2.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = DarkOnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(16.dp))
             }
@@ -118,7 +112,7 @@ fun CategoriesScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator(
-                            color = DarkOnSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             strokeWidth = 2.dp,
                             modifier = Modifier.size(44.dp),
                         )
@@ -134,7 +128,7 @@ fun CategoriesScreen(
                     ) {
                         Text(
                             text = state.error ?: "",
-                            color = DarkOnSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                         )
@@ -154,7 +148,7 @@ fun CategoriesScreen(
                             } else {
                                 "No se encontraron categorías para \"${state.searchQuery}\""
                             },
-                            color = DarkOnSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                         )
@@ -178,7 +172,7 @@ fun CategoriesScreen(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 CircularProgressIndicator(
-                                    color = PurplePrimary,
+                                    color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(28.dp),
                                 )
                             }
@@ -199,19 +193,19 @@ private fun CategoriesHeader(onBack: () -> Unit) {
         IconButton(
             onClick = onBack,
             modifier = Modifier
-                .background(DarkSurfaceVariant, RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
                 .size(46.dp),
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                 contentDescription = "Volver",
-                tint = DarkOnBackground,
+                tint = MaterialTheme.colorScheme.onBackground,
             )
         }
         Spacer(Modifier.width(14.dp))
         Text(
             text = "CATEGORÍAS",
-            color = PurplePrimary,
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.ExtraBold,
             fontSize = 22.sp,
             letterSpacing = 1.sp,
@@ -231,13 +225,13 @@ private fun CategoriesSearchField(
         singleLine = true,
         shape = RoundedCornerShape(16.dp),
         placeholder = {
-            Text("Buscar categorías…", color = DarkOnSurfaceVariant)
+            Text("Buscar categorías…", color = MaterialTheme.colorScheme.onSurfaceVariant)
         },
         leadingIcon = {
             Icon(
                 Icons.Filled.Search,
                 contentDescription = null,
-                tint = DarkOnSurfaceVariant,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         },
         trailingIcon = {
@@ -246,19 +240,19 @@ private fun CategoriesSearchField(
                     Icon(
                         Icons.Filled.Close,
                         contentDescription = "Limpiar búsqueda",
-                        tint = DarkOnSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
         },
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = DarkSurfaceVariant,
-            unfocusedContainerColor = DarkSurfaceVariant,
-            focusedBorderColor = PurplePrimary,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = Color.Transparent,
-            focusedTextColor = DarkOnBackground,
-            unfocusedTextColor = DarkOnBackground,
-            cursorColor = PurplePrimary,
+            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+            cursorColor = MaterialTheme.colorScheme.primary,
         ),
     )
 }
@@ -270,7 +264,7 @@ private fun CategoryCard(
 ) {
     Card(
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
@@ -286,14 +280,14 @@ private fun CategoryCard(
                     text = category.name,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = DarkOnBackground,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
                 if (category.description.isNotBlank()) {
                     Spacer(Modifier.height(2.dp))
                     Text(
                         text = category.description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = DarkOnSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -305,7 +299,7 @@ private fun CategoryCard(
             Icon(
                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = DarkOnSurfaceVariant,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -322,12 +316,12 @@ fun CategoryImage(
     Box(
         modifier = modifier
             .size(size)
-            .background(PurplePrimaryContainer, RoundedCornerShape(14.dp)),
+            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(14.dp)),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = category.name.trim().take(1).uppercase().ifBlank { "?" },
-            color = PurplePrimary,
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.ExtraBold,
             fontSize = 22.sp,
         )
@@ -337,12 +331,12 @@ fun CategoryImage(
 @Composable
 fun HabitsCountBadge(count: Int, modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier.background(PurplePrimaryContainer, RoundedCornerShape(50.dp)),
+        modifier = modifier.background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(50.dp)),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = if (count == 1) "1 hábito" else "$count hábitos",
-            color = PurplePrimary,
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
             fontSize = 11.sp,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),

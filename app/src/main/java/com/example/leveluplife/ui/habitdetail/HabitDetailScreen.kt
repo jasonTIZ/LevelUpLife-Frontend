@@ -28,30 +28,29 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.stringResource
 import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaDto
+import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.habittaskdetail.HabitTaskLabels
-import com.example.leveluplife.ui.theme.DarkBackground
-import com.example.leveluplife.ui.theme.DarkOnBackground
-import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
-import com.example.leveluplife.ui.theme.DarkSurfaceVariant
-import com.example.leveluplife.ui.theme.PurplePrimary
-import com.example.leveluplife.ui.theme.PurplePrimaryContainer
 
 private val GreenSuccess = Color(0xFF4CAF50)
 private val OrangeWarn = Color(0xFFF59E0B)
@@ -60,14 +59,25 @@ private val OrangeWarn = Color(0xFFF59E0B)
 fun HabitDetailScreen(
     viewModel: HabitDetailViewModel,
     onBack: () -> Unit,
-    onTaskClick: (HabitTaskDto) -> Unit = {},
+    onTaskClick: (HabitTaskDto) -> Unit,
+    infoMessage: String? = null,
+    onInfoMessageShown: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(infoMessage) {
+        val message = infoMessage?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
+        viewModel.refreshHabit()
+        snackbarHostState.showLulSnackbar(message)
+        onInfoMessageShown()
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = DarkBackground,
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -83,15 +93,15 @@ fun HabitDetailScreen(
                 IconButton(onClick = onBack) {
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Regresar",
-                        tint = DarkOnBackground,
+                        contentDescription = stringResource(R.string.create_task_back),
+                        tint = MaterialTheme.colorScheme.onBackground,
                     )
                 }
                 Text(
-                    text = state.habit?.title ?: "Detalle del hábito",
+                    text = state.habit?.title ?: stringResource(R.string.habit_detail_default_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = DarkOnBackground,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -102,7 +112,7 @@ fun HabitDetailScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(
-                        color = PurplePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 2.dp,
                         modifier = Modifier.size(44.dp),
                     )
@@ -115,14 +125,17 @@ fun HabitDetailScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = state.error ?: "",
-                            color = DarkOnSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 32.dp),
                         )
                         Spacer(Modifier.height(12.dp))
-                        TextButton(onClick = { viewModel.loadHabit() }) {
-                            Text(stringResource(R.string.create_task_retry), color = PurplePrimary)
+                        TextButton(onClick = viewModel::loadHabit) {
+                            Text(
+                                stringResource(R.string.create_task_retry),
+                                color = MaterialTheme.colorScheme.primary,
+                            )
                         }
                     }
                 }
@@ -141,30 +154,31 @@ private fun HabitDetailContent(
     habit: HabitDto,
     onTaskClick: (HabitTaskDto) -> Unit,
 ) {
+    val activeTasks = habit.tasks.filter { it.isActive }
+
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { HabitInfoCard(habit) }
+        item { HabitInfoCard(habit = habit, activeTaskCount = activeTasks.size) }
 
-        if (habit.tasks.isNotEmpty()) {
+        if (activeTasks.isNotEmpty()) {
             item {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = stringResource(R.string.habit_detail_tasks_section),
-                    fontSize = 11.sp,
-                    letterSpacing = 2.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = DarkOnSurfaceVariant,
-                )
-                Spacer(Modifier.height(4.dp))
+                SectionTitle(stringResource(R.string.habit_detail_tasks_section))
             }
-
-            itemsIndexed(habit.tasks) { index, task ->
+            itemsIndexed(activeTasks) { index, task ->
                 TaskCriteriaCard(
                     taskNumber = index + 1,
                     task = task,
                     onClick = { onTaskClick(task) },
+                )
+            }
+        } else {
+            item {
+                Text(
+                    text = stringResource(R.string.habit_detail_no_active_tasks),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -174,10 +188,23 @@ private fun HabitDetailContent(
 }
 
 @Composable
-private fun HabitInfoCard(habit: HabitDto) {
+private fun SectionTitle(text: String) {
+    Spacer(Modifier.height(4.dp))
+    Text(
+        text = text,
+        fontSize = 11.sp,
+        letterSpacing = 2.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Spacer(Modifier.height(4.dp))
+}
+
+@Composable
+private fun HabitInfoCard(habit: HabitDto, activeTaskCount: Int) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
@@ -185,7 +212,7 @@ private fun HabitInfoCard(habit: HabitDto) {
                 text = habit.title,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = DarkOnBackground,
+                color = MaterialTheme.colorScheme.onBackground,
             )
 
             val meta = listOfNotNull(
@@ -197,7 +224,7 @@ private fun HabitInfoCard(habit: HabitDto) {
                 Text(
                     text = meta,
                     style = MaterialTheme.typography.bodySmall,
-                    color = DarkOnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -206,28 +233,32 @@ private fun HabitInfoCard(habit: HabitDto) {
                 Text(
                     text = habit.description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = DarkOnBackground,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
             }
 
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                val taskCount = habit.tasks.size
-                val withCriteria = habit.tasks.count { task ->
-                    task.repetitionCriteria != null ||
-                        task.timerCriteria != null ||
-                        !task.evidence.isNullOrBlank()
-                }
+                val withCriteria = habit.tasks
+                    .filter { it.isActive }
+                    .count { task ->
+                        task.repetitionCriteria != null ||
+                            task.timerCriteria != null ||
+                            !task.evidence.isNullOrBlank()
+                    }
 
                 Box(
                     modifier = Modifier
-                        .background(PurplePrimaryContainer, RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                 ) {
                     Text(
-                        text = "$taskCount ${if (taskCount == 1) "tarea" else "tareas"}",
+                        text = stringResource(
+                            R.string.habit_detail_active_tasks_count,
+                            activeTaskCount,
+                        ),
                         fontSize = 12.sp,
-                        color = PurplePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium,
                     )
                 }
@@ -243,7 +274,7 @@ private fun HabitInfoCard(habit: HabitDto) {
                             .padding(horizontal = 10.dp, vertical = 4.dp),
                     ) {
                         Text(
-                            text = stringResource(R.string.habit_detail_with_criteria, withCriteria),
+                            text = stringResource(R.string.habit_detail_with_criteria_count, withCriteria),
                             fontSize = 12.sp,
                             color = GreenSuccess,
                             fontWeight = FontWeight.Medium,
@@ -259,8 +290,9 @@ private fun HabitInfoCard(habit: HabitDto) {
 private fun TaskCriteriaCard(
     taskNumber: Int,
     task: HabitTaskDto,
-    onClick: () -> Unit = {},
+    onClick: () -> Unit,
 ) {
+    val criteria = task.repetitionCriteria
     val label = task.title.takeIf { it.isNotBlank() }
         ?: stringResource(R.string.habit_detail_task_default_title, taskNumber)
     val criteriaType = HabitTaskLabels.completionCriteria(task.completionCriteria)
@@ -269,7 +301,7 @@ private fun TaskCriteriaCard(
 
     Card(
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
@@ -281,13 +313,13 @@ private fun TaskCriteriaCard(
             Box(
                 modifier = Modifier
                     .size(42.dp)
-                    .background(PurplePrimaryContainer, RoundedCornerShape(11.dp)),
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(11.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     Icons.Filled.FitnessCenter,
                     contentDescription = null,
-                    tint = PurplePrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -299,7 +331,7 @@ private fun TaskCriteriaCard(
                     text = label,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = DarkOnBackground,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
 
                 Spacer(Modifier.height(4.dp))
@@ -311,12 +343,19 @@ private fun TaskCriteriaCard(
                         frequencyLine,
                     ),
                     style = MaterialTheme.typography.bodySmall,
-                    color = DarkOnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
-                task.repetitionCriteria?.let { criteria ->
+                if (criteria != null) {
                     Spacer(Modifier.height(6.dp))
                     CriteriaRow(criteria)
+                } else {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.habit_detail_no_repetition_criteria),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
 
@@ -340,8 +379,8 @@ private fun CriteriaRow(criteria: RepetitionCriteriaDto) {
     ) {
         CriteriaChip(
             label = criteria.toReadableSummary(),
-            background = PurplePrimaryContainer,
-            textColor = PurplePrimary,
+            background = MaterialTheme.colorScheme.primaryContainer,
+            textColor = MaterialTheme.colorScheme.primary,
         )
         if (criteria.isPartialAllowed) {
             CriteriaChip(
@@ -353,8 +392,8 @@ private fun CriteriaRow(criteria: RepetitionCriteriaDto) {
         if (!criteria.isActive) {
             CriteriaChip(
                 label = stringResource(R.string.task_detail_criteria_inactive),
-                background = DarkOnSurfaceVariant.copy(alpha = 0.12f),
-                textColor = DarkOnSurfaceVariant,
+                background = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f),
+                textColor = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

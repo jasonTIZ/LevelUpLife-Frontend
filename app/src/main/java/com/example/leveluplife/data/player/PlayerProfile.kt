@@ -18,3 +18,8 @@ data class ProfileFetchResult(
     val profile: PlayerProfile,
     val etag: String,
 )
+
+data class ProfileUpdateResult(
+    val profile: PlayerProfile,
+    val etag: String,
+)

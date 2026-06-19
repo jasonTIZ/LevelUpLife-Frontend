@@ -2,6 +2,8 @@ package com.example.leveluplife.data.auth
 
 import com.example.leveluplife.data.network.AuthApi
 import com.example.leveluplife.data.network.NetworkModule
+import com.example.leveluplife.ui.profile.FakeProfileCache
+import com.example.leveluplife.ui.profile.sampleProfile
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.mockwebserver.MockResponse
@@ -21,6 +23,7 @@ class AuthRepositoryTest {
     private val mockServer = MockWebServer()
     private lateinit var store: FakeTokenStore
     private lateinit var sessionEvents: SessionEvents
+    private lateinit var profileCache: FakeProfileCache
     private lateinit var repo: AuthRepository
 
     @Before
@@ -28,6 +31,7 @@ class AuthRepositoryTest {
         mockServer.start()
         store = FakeTokenStore()
         sessionEvents = SessionEvents()
+        profileCache = FakeProfileCache()
         val json = NetworkModule.jsonParser()
         val retrofit = Retrofit.Builder()
             .baseUrl(mockServer.url("/"))
@@ -37,6 +41,7 @@ class AuthRepositoryTest {
             api = retrofit.create(AuthApi::class.java),
             tokenStore = store,
             sessionEvents = sessionEvents,
+            profileCache = profileCache,
             json = json,
         )
     }
@@ -83,44 +88,49 @@ class AuthRepositoryTest {
     }
 
     @Test
+    fun `login exitoso limpia la memoria del perfil sin borrar datos locales del usuario`() = runTest {
+        profileCache.update(sampleProfile(), "\"etag-1\"")
+
+        mockServer.enqueue(loginOkResponse("tok-abc"))
+        val result = repo.login("user@test.com", "pass")
+
+        assertTrue(result.isSuccess)
+        assertNull(profileCache.profile.value)
+    }
+
+    @Test
     fun `logout llama al endpoint y limpia tokens y emite SESSION_LOGOUT`() = runTest {
         mockServer.enqueue(loginOkResponse("tok-abc"))
         repo.login("user@test.com", "pass")
         sessionEvents.clearRecordedEvents()
-        mockServer.enqueue(
-            MockResponse()
-                .setResponseCode(200)
-                .addHeader("Content-Type", "application/json")
-                .setBody("""{"success":true,"message":"Sesión cerrada correctamente."}"""),
-        )
+        mockServer.enqueue(logoutOkResponse())
 
         repo.logout()
 
-        mockServer.takeRequest()
+        mockServer.takeRequest() // login
         val logoutRequest = mockServer.takeRequest()
         assertEquals("POST", logoutRequest.method)
         assertTrue(logoutRequest.path!!.endsWith("/api/auth/logout"))
         assertEquals(1, store.clearCallCount)
         assertNull(store.accessToken())
         assertNull(store.refreshToken())
+        assertNull(profileCache.profile.value)
         assertFalse(repo.isLoggedIn())
         assertEquals(1, sessionEvents.recordedEvents().count { it == SessionEvent.SESSION_LOGOUT })
     }
 
     @Test
     fun `logout sin sesión previa limpia almacenamiento y emite SESSION_LOGOUT`() = runTest {
-        mockServer.enqueue(
-            MockResponse()
-                .setResponseCode(200)
-                .addHeader("Content-Type", "application/json")
-                .setBody("""{"success":true,"message":"Sesión cerrada correctamente."}"""),
-        )
+        profileCache.update(sampleProfile(), "\"etag-1\"")
+        mockServer.enqueue(logoutOkResponse())
 
         repo.logout()
 
         assertEquals(1, store.clearCallCount)
         assertNull(store.accessToken())
+        assertNull(profileCache.profile.value)
         assertFalse(repo.isLoggedIn())
+        assertEquals(1, sessionEvents.recordedEvents().count { it == SessionEvent.SESSION_LOGOUT })
     }
 
     @Test
@@ -148,4 +158,9 @@ class AuthRepositoryTest {
         .setBody(
             """{"success":true,"data":{"token":"$token","userName":"TestUser","level":1,"className":"Warrior"}}""",
         )
+
+    private fun logoutOkResponse() = MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody("""{"success":true,"message":"Sesión cerrada correctamente."}""")
 }

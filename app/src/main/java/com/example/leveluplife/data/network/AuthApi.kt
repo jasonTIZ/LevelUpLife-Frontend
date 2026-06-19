@@ -3,6 +3,7 @@ package com.example.leveluplife.data.network
 import com.example.leveluplife.data.network.dto.LoginRequest
 import com.example.leveluplife.data.network.dto.LoginResponse
 import com.example.leveluplife.data.network.dto.LogoutResponse
+import com.example.leveluplife.data.network.dto.RegisterRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -13,4 +14,7 @@ interface AuthApi {
 
     @POST(ApiRoutes.AUTH_LOGOUT)
     suspend fun logout(): Response<LogoutResponse>
+
+    @POST(ApiRoutes.AUTH_REGISTER)
+    suspend fun register(@Body body: RegisterRequest): Response<LoginResponse>
 }

@@ -15,6 +15,7 @@ interface HabitTaskRepository {
     suspend fun createHabitTask(request: CreateHabitTaskRequest): Result<HabitTaskDto>
     suspend fun getHabitTask(taskId: Int): Result<HabitTaskDto>
     suspend fun updateHabitTask(taskId: Int, request: CreateHabitTaskRequest): Result<HabitTaskDto>
+    suspend fun deactivateHabitTask(taskId: Int): Result<String>
 }
 
 class DefaultHabitTaskRepository(
@@ -31,6 +32,27 @@ class DefaultHabitTaskRepository(
         taskId: Int,
         request: CreateHabitTaskRequest,
     ): Result<HabitTaskDto> = execute { api.updateHabitTask(taskId, request) }
+
+    override suspend fun deactivateHabitTask(taskId: Int): Result<String> = try {
+        val response = api.deactivateHabitTask(taskId)
+        when {
+            response.isSuccessful -> Result.success(
+                response.body()?.message?.ifBlank { null }
+                    ?: "Tarea desactivada correctamente.",
+            )
+            response.code() == 404 -> Result.failure(Exception("Tarea no encontrada o ya inactiva."))
+            response.code() == 403 -> Result.failure(Exception("No tienes permiso para desactivar esta tarea."))
+            response.code() == 401 -> Result.failure(Exception("Sesión expirada. Vuelve a iniciar sesión."))
+            response.code() in 500..599 -> Result.failure(Exception("Error del servidor. Intenta más tarde."))
+            else -> Result.failure(Exception("HTTP ${response.code()}"))
+        }
+    } catch (e: SocketTimeoutException) {
+        Result.failure(IOException("timeout", e))
+    } catch (e: UnknownHostException) {
+        Result.failure(IOException("unknown_host", e))
+    } catch (t: Throwable) {
+        Result.failure(t)
+    }
 
     private suspend fun execute(
         call: suspend () -> retrofit2.Response<HabitTaskDto>,
