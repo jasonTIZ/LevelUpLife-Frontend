@@ -5,8 +5,6 @@ object ApiRoutes {
     const val AUTH_LOGOUT = "api/auth/logout"
     const val AUTH_REGISTER = "api/auth/register"
 
-    fun isAuthRequestWithoutSession(encodedPath: String): Boolean = isAuthExemptRequest(encodedPath)
-
     fun isLoginRequest(encodedPath: String): Boolean =
         encodedPath.trim('/').lowercase().endsWith(AUTH_LOGIN.lowercase())
 

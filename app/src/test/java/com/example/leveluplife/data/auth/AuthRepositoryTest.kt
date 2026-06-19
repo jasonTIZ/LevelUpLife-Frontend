@@ -50,7 +50,7 @@ class AuthRepositoryTest {
     fun tearDown() = mockServer.shutdown()
 
     @Test
-    fun `login exitoso persiste el access token en el TokenStore seguro`() = runTest {
+    fun `successful login persists access token in secure TokenStore`() = runTest {
         mockServer.enqueue(loginOkResponse("tok-abc"))
 
         val result = repo.login("user@test.com", "pass")
@@ -62,7 +62,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `login exitoso emite SESSION_LOGIN_SUCCESS`() = runTest {
+    fun `successful login emits SESSION_LOGIN_SUCCESS`() = runTest {
         mockServer.enqueue(loginOkResponse("tok-abc"))
 
         repo.login("user@test.com", "pass")
@@ -71,7 +71,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `login fallido no escribe ningún token en el almacenamiento`() = runTest {
+    fun `failed login does not write any token to storage`() = runTest {
         mockServer.enqueue(
             MockResponse()
                 .setResponseCode(401)
@@ -88,7 +88,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `login exitoso limpia la memoria del perfil sin borrar datos locales del usuario`() = runTest {
+    fun `successful login clears profile memory without deleting local user data`() = runTest {
         profileCache.update(sampleProfile(), "\"etag-1\"")
 
         mockServer.enqueue(loginOkResponse("tok-abc"))
@@ -99,7 +99,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `logout llama al endpoint y limpia tokens y emite SESSION_LOGOUT`() = runTest {
+    fun `logout calls endpoint clears tokens and emits SESSION_LOGOUT`() = runTest {
         mockServer.enqueue(loginOkResponse("tok-abc"))
         repo.login("user@test.com", "pass")
         sessionEvents.clearRecordedEvents()
@@ -120,7 +120,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `logout sin sesión previa limpia almacenamiento y emite SESSION_LOGOUT`() = runTest {
+    fun `logout without prior session clears storage and emits SESSION_LOGOUT`() = runTest {
         profileCache.update(sampleProfile(), "\"etag-1\"")
         mockServer.enqueue(logoutOkResponse())
 
@@ -134,7 +134,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `clearLocalSession limpia tokens sin llamar al API`() = runTest {
+    fun `clearLocalSession clears tokens without calling API`() = runTest {
         mockServer.enqueue(loginOkResponse("tok-abc"))
         repo.login("user@test.com", "pass")
 
@@ -146,11 +146,38 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `repositorio sin sesión reporta no logueado y tokens nulos`() {
+    fun `repository without session reports logged out and null tokens`() {
         assertFalse(repo.isLoggedIn())
         assertNull(repo.currentTokens().first)
         assertNull(repo.currentTokens().second)
     }
+
+    @Test
+    fun `register with token clears profile memory and emits SESSION_LOGIN_SUCCESS`() = runTest {
+        profileCache.update(sampleProfile(), "\"etag-1\"")
+        mockServer.enqueue(registerWithTokenResponse("tok-reg"))
+
+        val result = repo.register(
+            name = "Ana",
+            lastName = "Garcia",
+            email = "ana@test.com",
+            birthdate = "2000-01-01",
+            userName = "anagarcia",
+            password = "secret123",
+            classId = 1,
+        )
+
+        assertTrue(result.isSuccess)
+        assertNull(profileCache.profile.value)
+        assertEquals(1, sessionEvents.recordedEvents().count { it == SessionEvent.SESSION_LOGIN_SUCCESS })
+    }
+
+    private fun registerWithTokenResponse(token: String) = MockResponse()
+        .setResponseCode(200)
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+            """{"success":true,"data":{"token":"$token","userName":"anagarcia","level":1,"className":"Warrior"}}""",
+        )
 
     private fun loginOkResponse(token: String) = MockResponse()
         .setResponseCode(200)

@@ -156,6 +156,7 @@ private fun HabitDetailContent(
 ) {
     val activeTasks = habit.tasks.filter { it.isActive }
 
+
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),

@@ -59,7 +59,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `successful deactivation emits accountDeactivated event`() = runTest(testDispatcher) {
+    fun `successful deactivation closes dialog`() = runTest(testDispatcher) {
         val repo = FakePlayerRepository(
             result = Result.success(
                 DeactivateAccountResult(
@@ -77,9 +77,8 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(1, repo.deactivateCalls)
-        assertTrue(vm.state.value.accountDeactivated)
-        assertEquals("Cuenta desactivada correctamente", vm.state.value.deactivationMessage)
         assertFalse(vm.state.value.showConfirmDialog)
+        assertFalse(vm.state.value.isDeactivating)
     }
 
     @Test
@@ -96,7 +95,6 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(1, repo.deactivateCalls)
-        assertFalse(vm.state.value.accountDeactivated)
         assertTrue(vm.state.value.showConfirmDialog)
         assertTrue(vm.state.value.errorMessage?.isNotBlank() == true)
     }

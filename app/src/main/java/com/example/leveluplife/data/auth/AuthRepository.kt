@@ -1,5 +1,6 @@
 package com.example.leveluplife.data.auth
 
+import android.util.Log
 import com.example.leveluplife.data.error.AuthError
 import com.example.leveluplife.data.error.AuthErrorMapper
 import com.example.leveluplife.data.error.RegisterErrorMapper
@@ -24,6 +25,7 @@ interface AuthRepository {
     ): Result<RegisterOutcome>
     fun isLoggedIn(): Boolean
     suspend fun logout()
+    suspend fun clearSessionAfterAccountDeactivation(message: String? = null)
     fun clearLocalSession()
     fun currentTokens(): Pair<String?, String?>
 }
@@ -35,6 +37,10 @@ class DefaultAuthRepository(
     private val profileCache: ProfileCache,
     private val json: Json,
 ) : AuthRepository {
+
+    private companion object {
+        const val TAG = "AuthRepository"
+    }
 
     override suspend fun login(email: String, password: String): Result<AuthSession> = try {
         val response = api.login(LoginRequest(userNameOrEmail = email, password = password))
@@ -84,8 +90,10 @@ class DefaultAuthRepository(
             val body = response.body()
                 ?: return Result.failure(AuthErrorException(AuthError.Unknown("empty_body")))
             body.data?.let { data ->
+                profileCache.clearMemory()
                 val session = buildSession(data)
                 tokenStore.saveTokens(session.accessToken, session.refreshToken, session.user.id)
+                sessionEvents.notifyLoginSuccess()
                 return Result.success(RegisterOutcome.LoggedIn(session))
             }
             val successMessage = body.message?.takeIf { it.isNotBlank() }
@@ -141,10 +149,18 @@ class DefaultAuthRepository(
     override fun isLoggedIn(): Boolean = tokenStore.hasSession()
 
     override suspend fun logout() {
-        runCatching { api.logout() }
+        runCatching { api.logout() }.onFailure { error ->
+            Log.w(TAG, "Logout API call failed; clearing local session anyway", error)
+        }
         clearLocalSession()
         profileCache.clearMemory()
         sessionEvents.notifyLogout()
+    }
+
+    override suspend fun clearSessionAfterAccountDeactivation(message: String?) {
+        clearLocalSession()
+        profileCache.clear()
+        sessionEvents.notifyAccountDeactivated(message)
     }
 
     override fun clearLocalSession() = tokenStore.clear()

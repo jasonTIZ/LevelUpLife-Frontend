@@ -237,6 +237,7 @@ class RegisterViewModelTest {
 
         override fun isLoggedIn(): Boolean = false
         override suspend fun logout() = Unit
+        override suspend fun clearSessionAfterAccountDeactivation(message: String?) = Unit
         override fun clearLocalSession() = Unit
         override fun currentTokens(): Pair<String?, String?> = null to null
     }

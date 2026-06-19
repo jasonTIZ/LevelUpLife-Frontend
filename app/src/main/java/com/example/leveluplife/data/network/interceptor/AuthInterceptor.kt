@@ -3,12 +3,14 @@ package com.example.leveluplife.data.network.interceptor
 import com.example.leveluplife.data.auth.SessionEvents
 import com.example.leveluplife.data.auth.TokenStore
 import com.example.leveluplife.data.network.ApiRoutes
+import com.example.leveluplife.data.player.ProfileCache
 import okhttp3.Interceptor
 import okhttp3.Response
 
 class AuthInterceptor(
     private val tokenStore: TokenStore,
     private val sessionEvents: SessionEvents,
+    private val profileCache: ProfileCache,
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -27,6 +29,7 @@ class AuthInterceptor(
         val response = chain.proceed(request)
         if (response.code == 401 && !ApiRoutes.isAuthExemptRequest(request.url.encodedPath)) {
             tokenStore.clear()
+            profileCache.clearMemory()
             sessionEvents.notifyExpired()
         } else if (response.code == 403 && token != null) {
             sessionEvents.notifyForbidden()

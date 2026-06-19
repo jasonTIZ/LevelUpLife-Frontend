@@ -4,6 +4,8 @@ import com.example.leveluplife.data.auth.FakeTokenStore
 import com.example.leveluplife.data.auth.SessionEvent
 import com.example.leveluplife.data.auth.SessionEvents
 import com.example.leveluplife.data.network.ApiRoutes
+import com.example.leveluplife.ui.profile.FakeProfileCache
+import com.example.leveluplife.ui.profile.sampleProfile
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
@@ -24,6 +26,7 @@ class AuthInterceptorTest {
     private val mockServer = MockWebServer()
     private val store = FakeTokenStore()
     private val sessionEvents = SessionEvents()
+    private val profileCache = FakeProfileCache(initial = sampleProfile())
 
     @Before
     fun setUp() = mockServer.start()
@@ -32,11 +35,11 @@ class AuthInterceptorTest {
     fun tearDown() = mockServer.shutdown()
 
     private fun client() = OkHttpClient.Builder()
-        .addInterceptor(AuthInterceptor(store, sessionEvents))
+        .addInterceptor(AuthInterceptor(store, sessionEvents, profileCache))
         .build()
 
     @Test
-    fun `petición autenticada incluye header Authorization Bearer con el token activo`() {
+    fun `authenticated request includes Authorization Bearer header with active token`() {
         store.saveTokens("my-access-token", null)
         mockServer.enqueue(MockResponse().setResponseCode(200))
 
@@ -47,7 +50,7 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `petición sin sesión no adjunta header Authorization`() {
+    fun `request without session does not attach Authorization header`() {
         mockServer.enqueue(MockResponse().setResponseCode(200))
 
         client().newCall(Request.Builder().url(mockServer.url("/api/resource")).build())
@@ -57,7 +60,7 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `respuesta 401 en endpoint autenticado limpia el token y emite sesión expirada`() {
+    fun `401 on authenticated endpoint clears token profile memory and emits SESSION_EXPIRED`() {
         store.saveTokens("expired-token", null)
         mockServer.enqueue(MockResponse().setResponseCode(401))
 
@@ -65,12 +68,13 @@ class AuthInterceptorTest {
             .execute().close()
 
         assertNull(store.accessToken())
+        assertNull(profileCache.profile.value)
         assertEquals(1, store.clearCallCount)
         assertEquals(1, sessionEvents.recordedEvents().count { it == SessionEvent.SESSION_EXPIRED })
     }
 
     @Test
-    fun `respuesta 401 en login no emite sesión expirada`() = runTest {
+    fun `401 on login does not emit SESSION_EXPIRED`() = runTest {
         store.saveTokens("expired-token", null)
         mockServer.enqueue(MockResponse().setResponseCode(401))
 
@@ -81,7 +85,7 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `respuesta 401 en login con path PascalCase no emite sesión expirada`() = runTest {
+    fun `401 on login with PascalCase path does not emit SESSION_EXPIRED`() = runTest {
         store.saveTokens("expired-token", null)
         mockServer.enqueue(MockResponse().setResponseCode(401))
 
@@ -92,14 +96,14 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `ApiRoutes reconoce login sin importar mayúsculas`() {
+    fun `ApiRoutes recognizes login regardless of casing`() {
         assertTrue(ApiRoutes.isLoginRequest("/api/auth/login"))
         assertTrue(ApiRoutes.isLoginRequest("/api/Auth/Login"))
         assertFalse(ApiRoutes.isLoginRequest("/api/Player/profile"))
     }
 
     @Test
-    fun `respuesta 200 no altera el almacenamiento de tokens`() {
+    fun `200 response does not alter token storage`() {
         store.saveTokens("valid-token", null)
         mockServer.enqueue(MockResponse().setResponseCode(200))
 
@@ -111,7 +115,7 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `respuesta 403 mantiene sesión y emite SESSION_FORBIDDEN`() {
+    fun `403 keeps session and emits SESSION_FORBIDDEN`() {
         store.saveTokens("valid-token", null)
         mockServer.enqueue(MockResponse().setResponseCode(403))
 
@@ -124,7 +128,7 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `respuesta 401 en logout no emite sesión expirada`() {
+    fun `401 on logout does not emit SESSION_EXPIRED`() {
         store.saveTokens("expired-token", null)
         mockServer.enqueue(MockResponse().setResponseCode(401))
 
@@ -135,7 +139,7 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `ApiRoutes reconoce logout como exento de expiración de sesión`() {
+    fun `ApiRoutes recognizes logout as exempt from session expiry`() {
         assertTrue(ApiRoutes.isAuthExemptRequest("/api/auth/logout"))
         assertTrue(ApiRoutes.isAuthExemptRequest("/api/Auth/Logout"))
     }

@@ -22,6 +22,17 @@ class SessionEvents {
 
     fun notifyForbidden() = emit(SessionEvent.SESSION_FORBIDDEN)
 
+    @Volatile
+    private var pendingDeactivationMessage: String? = null
+
+    fun notifyAccountDeactivated(message: String? = null) {
+        pendingDeactivationMessage = message
+        emit(SessionEvent.SESSION_ACCOUNT_DEACTIVATED)
+    }
+
+    fun consumePendingDeactivationMessage(): String? =
+        pendingDeactivationMessage.also { pendingDeactivationMessage = null }
+
     private fun emit(event: SessionEvent) {
         synchronized(emitted) { emitted.add(event) }
         _events.tryEmit(event)

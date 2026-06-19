@@ -28,6 +28,7 @@ class AuthSessionFlowTest {
     private val mockServer = MockWebServer()
     private lateinit var store: FakeTokenStore
     private lateinit var sessionEvents: SessionEvents
+    private lateinit var profileCache: FakeProfileCache
     private lateinit var repo: AuthRepository
     private lateinit var httpClient: OkHttpClient
 
@@ -36,9 +37,10 @@ class AuthSessionFlowTest {
         mockServer.start()
         store = FakeTokenStore()
         sessionEvents = SessionEvents()
+        profileCache = FakeProfileCache()
         val json = NetworkModule.jsonParser()
         httpClient = OkHttpClient.Builder()
-            .addInterceptor(AuthInterceptor(store, sessionEvents))
+            .addInterceptor(AuthInterceptor(store, sessionEvents, profileCache))
             .build()
         val retrofit = Retrofit.Builder()
             .baseUrl(mockServer.url("/"))
@@ -49,7 +51,7 @@ class AuthSessionFlowTest {
             api = retrofit.create(AuthApi::class.java),
             tokenStore = store,
             sessionEvents = sessionEvents,
-            profileCache = FakeProfileCache(),
+            profileCache = profileCache,
             json = json,
         )
     }
@@ -78,7 +80,8 @@ class AuthSessionFlowTest {
 
     // Escenario 2 — Token expirado fuerza logout
     @Test
-    fun `401 en endpoint protegido limpia credenciales y emite SESSION_EXPIRED sin refresh`() {
+    fun `401 on protected endpoint clears credentials profile memory and emits SESSION_EXPIRED without refresh`() = runTest {
+        profileCache.update(com.example.leveluplife.ui.profile.sampleProfile(), "\"etag-1\"")
         store.saveTokens("jwt-expired", null)
         mockServer.enqueue(MockResponse().setResponseCode(401))
 
@@ -86,6 +89,7 @@ class AuthSessionFlowTest {
             .execute().close()
 
         assertNull(store.accessToken())
+        assertNull(profileCache.profile.value)
         assertEquals(1, store.clearCallCount)
         assertEquals(1, sessionEvents.recordedEvents().count { it == SessionEvent.SESSION_EXPIRED })
         assertFalse(sessionEvents.recordedEvents().any { it == SessionEvent.SESSION_LOGOUT })
