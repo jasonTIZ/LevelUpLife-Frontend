@@ -1,6 +1,7 @@
 package com.example.leveluplife.data.categories
 
 import com.example.leveluplife.data.network.HabitCategoriesApi
+import com.example.leveluplife.data.network.dto.HabitCategoriesPagedData
 import com.example.leveluplife.data.network.dto.HabitCategoriesPageResponse
 import com.example.leveluplife.data.network.dto.PaginationDto
 
@@ -27,7 +28,7 @@ class DefaultHabitCategoryRepository(
             response.code() == 400 -> Result.success(
                 HabitCategoriesPageResponse(
                     success = true,
-                    categories = emptyList(),
+                    data = HabitCategoriesPagedData(),
                     pagination = PaginationDto(
                         currentPage = page,
                         pageSize = pageSize,

@@ -161,6 +161,11 @@ private fun GetPlayerProfileResponseDto.toDomain(apiBaseUrl: String): PlayerProf
     birthdate = personData.birthdate,
     avatarUri = ProfileImageUrls.resolve(avatarUrl, apiBaseUrl),
     bio = bio.orEmpty(),
+    totalExperiencePoints = totalExperiencePoints,
+    experiencePointsInCurrentLevel = experiencePointsInCurrentLevel,
+    experiencePointsRequiredForNextLevel = experiencePointsRequiredForNextLevel,
+    levelProgressPercent = levelProgressPercent,
+    daysStreak = daysStreak,
 )
 
 private fun PlayerProfileDto.toDomain(apiBaseUrl: String): PlayerProfile = PlayerProfile(

@@ -4,19 +4,32 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.leveluplife.data.habits.HabitRepository
+import com.example.leveluplife.data.player.ProfileCache
+import com.example.leveluplife.data.player.ProfileRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class HomeViewModel(private val habitRepository: HabitRepository) : ViewModel() {
+class HomeViewModel(
+    private val habitRepository: HabitRepository,
+    private val profileRepository: ProfileRepository,
+    private val profileCache: ProfileCache,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
 
     init {
         loadHabits()
+    }
+
+    fun refreshPlayerProgress() {
+        viewModelScope.launch {
+            profileCache.loadPersisted()
+            profileRepository.fetchProfile()
+        }
     }
 
     fun loadHabits() {
@@ -70,11 +83,15 @@ class HomeViewModel(private val habitRepository: HabitRepository) : ViewModel() 
         }
     }
 
-    class Factory(private val habitRepository: HabitRepository) : ViewModelProvider.Factory {
+    class Factory(
+        private val habitRepository: HabitRepository,
+        private val profileRepository: ProfileRepository,
+        private val profileCache: ProfileCache,
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             require(modelClass.isAssignableFrom(HomeViewModel::class.java))
-            return HomeViewModel(habitRepository) as T
+            return HomeViewModel(habitRepository, profileRepository, profileCache) as T
         }
     }
 }

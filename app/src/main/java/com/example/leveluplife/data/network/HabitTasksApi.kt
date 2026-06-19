@@ -1,5 +1,7 @@
 package com.example.leveluplife.data.network
 
+import com.example.leveluplife.data.network.dto.CompleteHabitTaskRequest
+import com.example.leveluplife.data.network.dto.CompleteHabitTaskResponse
 import com.example.leveluplife.data.network.dto.CreateEvidenceRequest
 import com.example.leveluplife.data.network.dto.CreateHabitTaskRequest
 import com.example.leveluplife.data.network.dto.DeactivateHabitTaskResponse
@@ -12,6 +14,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
@@ -38,6 +41,12 @@ interface HabitTasksApi {
 
     @GET("api/habit-tasks/{taskId}")
     suspend fun getHabitTask(@Path("taskId") taskId: Int): Response<HabitTaskDto>
+
+    @PATCH("api/habit-tasks/{id}/complete")
+    suspend fun completeHabitTask(
+        @Path("id") taskId: Int,
+        @Body body: CompleteHabitTaskRequest,
+    ): Response<CompleteHabitTaskResponse>
 
     @PUT("api/habit-tasks/{taskId}")
     suspend fun updateHabitTask(
