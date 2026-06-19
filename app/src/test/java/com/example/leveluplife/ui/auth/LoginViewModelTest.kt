@@ -38,6 +38,15 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun `password change elimina espacios al escribir`() = runTest(testDispatcher) {
+        val fake = FakeAuthRepository()
+        val vm = LoginViewModel(fake)
+
+        vm.onPasswordChange("123 456")
+        assertEquals("123456", vm.state.value.password)
+    }
+
+    @Test
     fun `submit con identificador invalido no llama al repositorio y muestra error de campo`() = runTest(testDispatcher) {
         val fake = FakeAuthRepository()
         val vm = LoginViewModel(fake)

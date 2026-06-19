@@ -105,16 +105,17 @@ class RegisterViewModel(
     }
 
     fun onPasswordChange(value: String) {
+        val sanitized = ProfileInputSanitizer.sanitizePassword(value)
         _state.update { current ->
             current.copy(
-                password = value,
+                password = sanitized,
                 passwordError = if (current.passwordError != null || current.serverFieldErrors.containsKey(RegisterFieldKey.PASSWORD)) {
-                    RegistrationValidators.validatePassword(value)
+                    RegistrationValidators.validatePassword(sanitized)
                 } else {
                     null
                 },
                 confirmPasswordError = if (current.confirmPasswordError != null) {
-                    RegistrationValidators.validateConfirmPassword(value, current.confirmPassword)
+                    RegistrationValidators.validateConfirmPassword(sanitized, current.confirmPassword)
                 } else {
                     null
                 },
@@ -125,11 +126,12 @@ class RegisterViewModel(
     }
 
     fun onConfirmPasswordChange(value: String) {
+        val sanitized = ProfileInputSanitizer.sanitizePassword(value)
         _state.update { current ->
             current.copy(
-                confirmPassword = value,
+                confirmPassword = sanitized,
                 confirmPasswordError = if (current.confirmPasswordError != null) {
-                    RegistrationValidators.validateConfirmPassword(current.password, value)
+                    RegistrationValidators.validateConfirmPassword(current.password, sanitized)
                 } else {
                     null
                 },
@@ -264,7 +266,7 @@ class RegisterViewModel(
                 email = current.email,
                 birthdate = current.birthdate,
                 userName = current.userName,
-                password = current.password.trim(),
+                password = current.password,
                 classId = current.classId!!,
             )
             result

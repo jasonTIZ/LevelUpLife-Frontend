@@ -56,6 +56,15 @@ class RegisterViewModelTest {
     }
 
     @Test
+    fun `password change elimina espacios al escribir`() = runTest(testDispatcher) {
+        val fake = FakeRegisterAuthRepository()
+        val vm = RegisterViewModel(fake)
+
+        vm.onPasswordChange("abc   ")
+        assertEquals("abc", vm.state.value.password)
+    }
+
+    @Test
     fun `submit con contrasena corta con espacios al final muestra TooShort`() = runTest(testDispatcher) {
         val fake = FakeRegisterAuthRepository()
         val vm = RegisterViewModel(fake)

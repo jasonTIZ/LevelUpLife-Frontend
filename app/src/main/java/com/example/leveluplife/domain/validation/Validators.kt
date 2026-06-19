@@ -51,6 +51,7 @@ object Validators {
     fun validatePassword(input: String): FieldError? {
         return when {
             input.isEmpty() -> FieldError.Required
+            input.any { it.isWhitespace() } -> FieldError.InvalidCharacters
             input.length < PASSWORD_MIN -> FieldError.TooShort(PASSWORD_MIN)
             input.length > PASSWORD_MAX -> FieldError.TooLong(PASSWORD_MAX)
             else -> null

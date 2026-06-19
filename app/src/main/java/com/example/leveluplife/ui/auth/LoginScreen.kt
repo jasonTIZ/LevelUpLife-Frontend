@@ -65,6 +65,8 @@ import com.example.leveluplife.ui.components.LulLogo
 import com.example.leveluplife.ui.components.LulPrimaryButton
 import com.example.leveluplife.ui.components.LulScreenHeaderLabels
 import com.example.leveluplife.ui.components.ThemeToggleButton
+import com.example.leveluplife.ui.components.blockPasswordWhitespaceKeys
+import com.example.leveluplife.ui.components.passwordInputChangeHandler
 import com.example.leveluplife.ui.theme.ThemeController
 
 object LoginTestTags {
@@ -223,7 +225,7 @@ private fun LoginContent(
 
             OutlinedTextField(
                 value = state.password,
-                onValueChange = onPasswordChange,
+                onValueChange = passwordInputChangeHandler(onPasswordChange),
                 singleLine = true,
                 isError = state.passwordError != null,
                 shape = RoundedCornerShape(14.dp),
@@ -264,6 +266,7 @@ private fun LoginContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(passwordFocus)
+                    .blockPasswordWhitespaceKeys()
                     .testTag(LoginTestTags.PASSWORD_FIELD)
                     .semantics {
                         contentDescription = "Contraseña"

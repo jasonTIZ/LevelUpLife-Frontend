@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.leveluplife.data.auth.AuthErrorException
 import com.example.leveluplife.data.auth.AuthRepository
 import com.example.leveluplife.data.error.AuthError
+import com.example.leveluplife.domain.validation.ProfileInputSanitizer
 import com.example.leveluplife.domain.validation.Validators
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,10 +32,11 @@ class LoginViewModel(
     }
 
     fun onPasswordChange(value: String) {
+        val sanitized = ProfileInputSanitizer.sanitizePassword(value)
         _state.update {
             it.copy(
-                password = value,
-                passwordError = if (it.passwordError != null) Validators.validatePassword(value) else null,
+                password = sanitized,
+                passwordError = if (it.passwordError != null) Validators.validatePassword(sanitized) else null,
                 bannerError = null,
             )
         }

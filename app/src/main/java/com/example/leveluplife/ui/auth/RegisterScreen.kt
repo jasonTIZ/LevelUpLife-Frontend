@@ -77,6 +77,8 @@ import com.example.leveluplife.ui.components.LulLogo
 import com.example.leveluplife.ui.components.LulPrimaryButton
 import com.example.leveluplife.ui.components.LulScreenHeaderLabels
 import com.example.leveluplife.ui.components.PasswordStrengthIndicator
+import com.example.leveluplife.ui.components.blockPasswordWhitespaceKeys
+import com.example.leveluplife.ui.components.passwordInputChangeHandler
 import com.example.leveluplife.ui.theme.ThemeController
 import java.time.Instant
 import java.time.LocalDate
@@ -326,6 +328,7 @@ private fun RegisterContent(
                     placeholder = stringResource(R.string.register_password_placeholder),
                     isError = state.passwordError != null || state.serverFieldErrors.containsKey(RegisterFieldKey.PASSWORD),
                     errorMessage = fieldMessage(state.passwordError, state.serverFieldErrors[RegisterFieldKey.PASSWORD]),
+                    blockWhitespace = true,
                     leadingIcon = {
                         Icon(Icons.Outlined.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     },
@@ -350,6 +353,7 @@ private fun RegisterContent(
                     placeholder = stringResource(R.string.register_confirm_password_placeholder),
                     isError = state.confirmPasswordError != null,
                     errorMessage = fieldMessage(state.confirmPasswordError, null),
+                    blockWhitespace = true,
                     leadingIcon = {
                         Icon(Icons.Outlined.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     },
@@ -562,15 +566,17 @@ private fun RegisterOutlinedField(
     errorMessage: String?,
     modifier: Modifier = Modifier,
     readOnly: Boolean = false,
+    blockWhitespace: Boolean = false,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
+    val handleChange = if (blockWhitespace) passwordInputChangeHandler(onValueChange) else onValueChange
     OutlinedTextField(
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = handleChange,
         singleLine = true,
         readOnly = readOnly,
         isError = isError,
@@ -583,7 +589,9 @@ private fun RegisterOutlinedField(
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(if (blockWhitespace) Modifier.blockPasswordWhitespaceKeys() else Modifier),
     )
 }
 
