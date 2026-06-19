@@ -70,6 +70,7 @@ fun HabitTaskDetailScreen(
     @StringRes successMessageRes: Int? = null,
     onBack: () -> Unit,
     onDone: () -> Unit,
+    onViewEvidences: () -> Unit,
     onEdit: ((HabitTaskDto) -> Unit)? = null,
     onTaskDeactivated: (message: String) -> Unit,
     modifier: Modifier = Modifier,
@@ -162,6 +163,7 @@ fun HabitTaskDetailScreen(
                     task = state.task!!,
                     habitTitle = state.habitTitle,
                     onDone = onDone,
+                    onViewEvidences = onViewEvidences,
                     onRequestDeactivate = viewModel::onRequestDeactivate,
                 )
             }
@@ -210,6 +212,7 @@ private fun HabitTaskDetailContent(
     task: HabitTaskDto,
     habitTitle: String?,
     onDone: () -> Unit,
+    onViewEvidences: () -> Unit,
     onRequestDeactivate: () -> Unit,
 ) {
     Column(
@@ -351,6 +354,16 @@ private fun HabitTaskDetailContent(
             }
         }
 
+        TextButton(
+            onClick = onViewEvidences,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(
+                stringResource(R.string.evidence_gallery_view_button),
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+
         if (task.isActive) {
             LulPrimaryButton(
                 text = stringResource(R.string.deactivate_task_button),
@@ -368,6 +381,7 @@ private fun HabitTaskDetailContent(
         }
 
         Spacer(Modifier.height(8.dp))
+
 
         TextButton(
             onClick = onDone,

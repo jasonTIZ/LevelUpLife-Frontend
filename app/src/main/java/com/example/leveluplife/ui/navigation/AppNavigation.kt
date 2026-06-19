@@ -24,6 +24,8 @@ import com.example.leveluplife.ui.categories.CategoriesScreen
 import com.example.leveluplife.ui.categories.CategoriesViewModel
 import com.example.leveluplife.ui.createtask.CreateHabitTaskScreen
 import com.example.leveluplife.ui.createtask.CreateHabitTaskViewModel
+import com.example.leveluplife.ui.evidence.EvidenceGalleryScreen
+import com.example.leveluplife.ui.evidence.EvidenceGalleryViewModel
 import com.example.leveluplife.ui.habitdetail.HabitDetailScreen
 import com.example.leveluplife.ui.habitdetail.HabitDetailViewModel
 import com.example.leveluplife.ui.habittaskdetail.HabitTaskDetailScreen
@@ -48,11 +50,13 @@ object Routes {
     const val HABIT_DETAIL = "habit_detail/{habitId}"
     const val CREATE_HABIT_TASK = "create_habit_task?habitId={habitId}"
     const val HABIT_TASK_DETAIL = "habit_task_detail/{taskId}"
+    const val TASK_EVIDENCES = "task_evidences/{taskId}"
     const val EDIT_HABIT_TASK = "edit_habit_task/{taskId}"
 
     fun habitDetail(id: Int) = "habit_detail/$id"
     fun createHabitTask(habitId: Int = -1) = "create_habit_task?habitId=$habitId"
     fun habitTaskDetail(taskId: Int) = "habit_task_detail/$taskId"
+    fun taskEvidences(taskId: Int) = "task_evidences/$taskId"
     fun editHabitTask(taskId: Int) = "edit_habit_task/$taskId"
 
     const val ARG_CREATED_TASK_JSON = "created_task_json"
@@ -360,6 +364,9 @@ fun AppNavigation(
                 successMessageRes = successMessageRes,
                 onBack = { navController.popBackStack() },
                 onDone = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
+                onViewEvidences = {
+                    navController.navigate(Routes.taskEvidences(taskId))
+                },
                 onEdit = { loadedTask ->
                     navController.navigate(Routes.editHabitTask(loadedTask.id))
                 },
@@ -369,6 +376,19 @@ fun AppNavigation(
                         ?.set(Routes.ARG_TASK_DEACTIVATED_MESSAGE, message)
                     navController.popBackStack()
                 },
+            )
+        }
+        composable(
+            route = Routes.TASK_EVIDENCES,
+            arguments = listOf(navArgument("taskId") { type = NavType.IntType }),
+        ) { backStackEntry ->
+            val taskId = backStackEntry.arguments?.getInt("taskId") ?: return@composable
+            val vm: EvidenceGalleryViewModel = viewModel(
+                factory = EvidenceGalleryViewModel.Factory(container.evidenceRepository, taskId),
+            )
+            EvidenceGalleryScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
             )
         }
     }

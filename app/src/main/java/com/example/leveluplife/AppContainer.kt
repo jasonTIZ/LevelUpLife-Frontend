@@ -10,8 +10,10 @@ import com.example.leveluplife.data.auth.SessionEvents
 import com.example.leveluplife.data.auth.TokenStore
 import com.example.leveluplife.data.categories.DefaultHabitCategoryRepository
 import com.example.leveluplife.data.categories.HabitCategoryRepository
+import com.example.leveluplife.data.habits.DefaultEvidenceRepository
 import com.example.leveluplife.data.habits.DefaultHabitRepository
 import com.example.leveluplife.data.habits.DefaultHabitTaskRepository
+import com.example.leveluplife.data.habits.EvidenceRepository
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.network.AuthApi
@@ -98,6 +100,10 @@ class AppContainer(applicationContext: Context) {
 
     val habitTaskRepository: HabitTaskRepository by lazy {
         DefaultHabitTaskRepository(api = habitTasksApi)
+    }
+
+    val evidenceRepository: EvidenceRepository by lazy {
+        DefaultEvidenceRepository(api = habitTasksApi)
     }
 
     val playerRepository: PlayerRepository by lazy {
