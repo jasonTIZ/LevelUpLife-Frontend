@@ -29,6 +29,11 @@ object ProfileInputSanitizer {
             .replace(Regex("[\\p{Cc}]"), "")
             .take(ProfileValidators.BIO_MAX)
 
+    fun sanitizePassword(input: String): String =
+        input
+            .filterNot { it.isWhitespace() }
+            .take(RegistrationValidators.PASSWORD_MAX)
+
     fun sanitizeProfile(state: ProfileFormValues): ProfileFormValues = ProfileFormValues(
         name = sanitizePersonName(state.name).trim(),
         lastName = sanitizePersonName(state.lastName).trim(),

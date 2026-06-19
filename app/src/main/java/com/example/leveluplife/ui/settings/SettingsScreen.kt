@@ -43,13 +43,6 @@ import androidx.compose.ui.unit.dp
 import com.example.leveluplife.R
 import com.example.leveluplife.ui.components.LulErrorAlertDialog
 import com.example.leveluplife.ui.components.LulPrimaryButton
-import com.example.leveluplife.ui.theme.DarkBackground
-import com.example.leveluplife.ui.theme.DarkOnBackground
-import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
-import com.example.leveluplife.ui.theme.DarkSurface
-import com.example.leveluplife.ui.theme.DarkSurfaceVariant
-import com.example.leveluplife.ui.theme.PurplePrimary
-import com.example.leveluplife.ui.theme.PurplePrimaryContainer
 
 object SettingsTestTags {
     const val DEACTIVATE_BUTTON = "settings_deactivate_button"
@@ -80,7 +73,7 @@ fun SettingsScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = DarkBackground,
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -98,14 +91,14 @@ fun SettingsScreen(
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.settings_back),
-                        tint = DarkOnBackground,
+                        tint = MaterialTheme.colorScheme.onBackground,
                     )
                 }
                 Text(
                     text = stringResource(R.string.settings_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = DarkOnBackground,
+                    color = MaterialTheme.colorScheme.onBackground,
                 )
             }
 
@@ -155,7 +148,7 @@ private fun ConsequencesCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = DarkSurface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -165,12 +158,12 @@ private fun ConsequencesCard() {
                 text = stringResource(R.string.settings_deactivate_section_title),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
-                color = DarkOnBackground,
+                color = MaterialTheme.colorScheme.onBackground,
             )
             Text(
                 text = stringResource(R.string.settings_deactivate_consequences),
                 style = MaterialTheme.typography.bodyMedium,
-                color = DarkOnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -181,7 +174,7 @@ private fun RecoveryInfoCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = PurplePrimaryContainer.copy(alpha = 0.35f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)),
         border = CardDefaults.outlinedCardBorder(),
     ) {
         Row(
@@ -191,12 +184,12 @@ private fun RecoveryInfoCard() {
             Icon(
                 Icons.Outlined.Info,
                 contentDescription = null,
-                tint = PurplePrimary,
+                tint = MaterialTheme.colorScheme.primary,
             )
             Text(
                 text = stringResource(R.string.settings_reactivation_info),
                 style = MaterialTheme.typography.bodySmall,
-                color = DarkOnBackground,
+                color = MaterialTheme.colorScheme.onBackground,
             )
         }
     }
@@ -212,11 +205,11 @@ private fun DeactivateConfirmDialog(
     onReasonChange: (String) -> Unit,
 ) {
     val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = PurplePrimary,
-        unfocusedBorderColor = DarkSurfaceVariant,
-        focusedTextColor = DarkOnBackground,
-        unfocusedTextColor = DarkOnBackground,
-        cursorColor = PurplePrimary,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+        cursorColor = MaterialTheme.colorScheme.primary,
     )
 
     androidx.compose.material3.AlertDialog(
@@ -240,14 +233,14 @@ private fun DeactivateConfirmDialog(
                         checked = state.consequencesAcknowledged,
                         onCheckedChange = onAcknowledgedChange,
                         colors = CheckboxDefaults.colors(
-                            checkedColor = PurplePrimary,
-                            uncheckedColor = DarkOnSurfaceVariant,
+                            checkedColor = MaterialTheme.colorScheme.primary,
+                            uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
                     )
                     Text(
                         text = stringResource(R.string.settings_confirm_acknowledge),
                         style = MaterialTheme.typography.bodySmall,
-                        color = DarkOnBackground,
+                        color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.weight(1f),
                     )
                 }

@@ -123,6 +123,11 @@ class ValidatorsTest {
     }
 
     @Test
+    fun `password con espacios devuelve InvalidCharacters`() {
+        assertEquals(FieldError.InvalidCharacters, Validators.validatePassword("123 456"))
+    }
+
+    @Test
     fun `password con minimo exacto es valida`() {
         assertNull(Validators.validatePassword("123456"))
     }
