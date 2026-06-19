@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.leveluplife.AppContainer
 import com.example.leveluplife.R
+import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
@@ -24,6 +25,8 @@ import com.example.leveluplife.ui.categories.CategoriesScreen
 import com.example.leveluplife.ui.categories.CategoriesViewModel
 import com.example.leveluplife.ui.createtask.CreateHabitTaskScreen
 import com.example.leveluplife.ui.createtask.CreateHabitTaskViewModel
+import com.example.leveluplife.ui.habit.CreateHabitScreen
+import com.example.leveluplife.ui.habit.CreateHabitViewModel
 import com.example.leveluplife.ui.evidence.EvidenceGalleryScreen
 import com.example.leveluplife.ui.evidence.EvidenceGalleryViewModel
 import com.example.leveluplife.ui.habitdetail.HabitDetailScreen
@@ -44,6 +47,7 @@ object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val DASHBOARD = "dashboard"
+    const val CREATE_HABIT = "create_habit"
     const val CATEGORIES = "categories"
     const val PROFILE = "profile"
     const val SETTINGS = "settings"
@@ -59,6 +63,7 @@ object Routes {
     fun taskEvidences(taskId: Int) = "task_evidences/$taskId"
     fun editHabitTask(taskId: Int) = "edit_habit_task/$taskId"
 
+    const val ARG_REFRESH_HABITS = "refresh_habits"
     const val ARG_CREATED_TASK_JSON = "created_task_json"
     const val ARG_TASK_SUCCESS_KIND = "task_success_kind"
     const val TASK_SUCCESS_CREATED = "created"
@@ -113,7 +118,7 @@ fun AppNavigation(
                 ?: backStackEntry.savedStateHandle
                     .get<String>(Routes.ARG_REGISTER_SUCCESS_MESSAGE)
             val vm: LoginViewModel = viewModel(
-                factory = LoginViewModel.Factory(container.authRepository),
+                factory = LoginViewModel.Factory(container.authRepository, container.habitRepository as HabitRepository),
             )
             LoginScreen(
                 viewModel = vm,
@@ -160,10 +165,19 @@ fun AppNavigation(
                 },
             )
         }
-        composable(Routes.DASHBOARD) {
+        composable(Routes.DASHBOARD) { backStackEntry ->
             val vm: HomeViewModel = viewModel(
-                factory = HomeViewModel.Factory(container.habitRepository),
+                factory = HomeViewModel.Factory(container.habitRepository as HabitRepository),
             )
+            val shouldRefresh by backStackEntry.savedStateHandle
+                .getStateFlow(Routes.ARG_REFRESH_HABITS, false)
+                .collectAsState()
+            LaunchedEffect(shouldRefresh) {
+                if (shouldRefresh) {
+                    vm.loadHabits()
+                    backStackEntry.savedStateHandle.remove<Boolean>(Routes.ARG_REFRESH_HABITS)
+                }
+            }
             HomeScreen(
                 viewModel = vm,
                 profileCache = container.profileCache,
@@ -179,8 +193,8 @@ fun AppNavigation(
                 onHabitClick = { habitId ->
                     navController.navigate(Routes.habitDetail(habitId))
                 },
-                onCreateTask = {
-                    navController.navigate(Routes.createHabitTask())
+                onCreateHabit = {
+                    navController.navigate(Routes.CREATE_HABIT)
                 },
             )
         }
@@ -201,6 +215,23 @@ fun AppNavigation(
                         popUpTo(Routes.DASHBOARD) { inclusive = true }
                         launchSingleTop = true
                     }
+                },
+            )
+        }
+        composable(Routes.CREATE_HABIT) {
+            val vm: CreateHabitViewModel = viewModel(
+                factory = CreateHabitViewModel.Factory(
+                    container.habitRepository as HabitRepository,
+                    container.habitDisciplineRepository,
+                ),
+            )
+            CreateHabitScreen(
+                viewModel = vm,
+                onHabitCreated = {
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(Routes.ARG_REFRESH_HABITS, true)
+                    navController.popBackStack()
                 },
             )
         }

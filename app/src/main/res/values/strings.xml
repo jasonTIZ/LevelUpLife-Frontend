@@ -34,6 +34,7 @@
     <string name="field_invalid_username_or_email">Ingresa un email o usuario válido</string>
     <string name="field_min_length">Mínimo %1$d caracteres</string>
     <string name="field_max_length">Máximo %1$d caracteres</string>
+    <string name="field_invalid_range">Debe estar entre %1$d y %2$d</string>
     <string name="field_password_mismatch">Las contraseñas no coinciden</string>
     <string name="field_username_same_as_name">El usuario debe ser distinto al nombre</string>
 

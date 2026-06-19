@@ -22,6 +22,11 @@ fun FieldError.toMessage(): String = when (this) {
         id = R.string.field_max_length,
         max,
     )
+    is FieldError.InvalidRange -> stringResource(
+        id = R.string.field_invalid_range,
+        min,
+        max,
+    )
     is FieldError.PasswordMismatch -> stringResource(id = R.string.field_password_mismatch)
     is FieldError.SameAsName -> stringResource(id = R.string.field_username_same_as_name)
 }
