@@ -3,32 +3,65 @@ package com.example.leveluplife.ui.habit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.leveluplife.data.habits.HabitDisciplineRepository
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
 import com.example.leveluplife.data.network.dto.CreateHabitTaskRequestDto
 import com.example.leveluplife.data.network.dto.MeasurementUnit
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaRequestDto
+import com.example.leveluplife.data.network.dto.TaskCompletionCriteria
+import com.example.leveluplife.data.network.dto.TaskDifficulty
+import com.example.leveluplife.data.network.dto.TaskEvidence
+import com.example.leveluplife.data.network.dto.TaskFrequency
+import com.example.leveluplife.data.network.dto.TaskPeriodUnit
 import com.example.leveluplife.domain.validation.Validators
+import com.example.leveluplife.ui.createtask.HabitTaskFormHandlers
+import com.example.leveluplife.ui.createtask.HabitTaskFormState
+import com.example.leveluplife.ui.createtask.TaskFormTemplate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class CreateHabitViewModel(
-    private val repository: HabitRepository
+    private val repository: HabitRepository,
+    private val disciplineRepository: HabitDisciplineRepository,
 ) : ViewModel() {
 
     companion object {
-        fun Factory(repository: HabitRepository): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+        fun Factory(
+            repository: HabitRepository,
+            disciplineRepository: HabitDisciplineRepository,
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return CreateHabitViewModel(repository) as T
+                return CreateHabitViewModel(repository, disciplineRepository) as T
             }
         }
     }
 
     private val _uiState = MutableStateFlow(CreateHabitUiState())
     val uiState: StateFlow<CreateHabitUiState> = _uiState.asStateFlow()
+
+    init {
+        loadDisciplines()
+    }
+
+    private fun loadDisciplines() {
+        _uiState.value = _uiState.value.copy(isDisciplinesLoading = true)
+        viewModelScope.launch {
+            disciplineRepository.getAll()
+                .onSuccess { list ->
+                    _uiState.value = _uiState.value.copy(
+                        disciplines = list.filter { it.isActive },
+                        isDisciplinesLoading = false,
+                    )
+                }
+                .onFailure {
+                    _uiState.value = _uiState.value.copy(isDisciplinesLoading = false)
+                }
+        }
+    }
 
     fun setTitle(title: String) {
         _uiState.value = _uiState.value.copy(title = title)
@@ -43,33 +76,64 @@ class CreateHabitViewModel(
     }
 
     fun addTask() {
-        val newTask = TaskUiState()
-        val updatedTasks = _uiState.value.tasks + newTask
-        _uiState.value = _uiState.value.copy(tasks = updatedTasks)
+        _uiState.value = _uiState.value.copy(tasks = _uiState.value.tasks + HabitTaskFormState())
     }
 
     fun removeTask(index: Int) {
         if (_uiState.value.tasks.size > 1) {
-            val updatedTasks = _uiState.value.tasks.toMutableList().apply { removeAt(index) }
-            _uiState.value = _uiState.value.copy(tasks = updatedTasks)
+            _uiState.value = _uiState.value.copy(
+                tasks = _uiState.value.tasks.toMutableList().apply { removeAt(index) },
+            )
         }
     }
 
-    fun updateTask(index: Int, updates: (TaskUiState) -> TaskUiState) {
-        val updatedTasks = _uiState.value.tasks.toMutableList().apply {
-            this[index] = updates(this[index])
-        }
-        _uiState.value = _uiState.value.copy(tasks = updatedTasks)
+    private fun updateTaskForm(index: Int, update: (HabitTaskFormState) -> HabitTaskFormState) {
+        val tasks = _uiState.value.tasks.toMutableList()
+        tasks[index] = update(tasks[index])
+        _uiState.value = _uiState.value.copy(tasks = tasks)
     }
 
-    fun updateRepetitionCriteria(
-        taskIndex: Int,
-        updates: (RepetitionCriteriaUiState) -> RepetitionCriteriaUiState
-    ) {
-        val task = _uiState.value.tasks[taskIndex]
-        val newRepetitionCriteria = updates(task.repetitionCriteria ?: RepetitionCriteriaUiState())
-        updateTask(taskIndex) { it.copy(repetitionCriteria = newRepetitionCriteria) }
-    }
+    fun onTaskTitleChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onTitleChange(it, value) }
+
+    fun onTaskDescriptionChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onDescriptionChange(it, value) }
+
+    fun onTaskDifficultyChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onDifficultyChange(it, value) }
+
+    fun onTaskFrequencyChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onFrequencyChange(it, value) }
+
+    fun onTaskPeriodLengthChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onPeriodLengthChange(it, value) }
+
+    fun onTaskPeriodUnitChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onPeriodUnitChange(it, value) }
+
+    fun onTaskStartDateChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onStartDateChange(it, value) }
+
+    fun onTaskCompletionCriteriaChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onCompletionCriteriaChange(it, value) }
+
+    fun onTaskRepetitionsChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onRepetitionsChange(it, value) }
+
+    fun onTaskMeasurementUnitChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onMeasurementUnitChange(it, value) }
+
+    fun onTaskEvidenceChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onEvidenceChange(it, value) }
+
+    fun onTaskPartialAllowedChange(index: Int, value: Boolean) =
+        updateTaskForm(index) { it.copy(isPartialAllowed = value) }
+
+    fun applyTaskTemplate(index: Int, template: TaskFormTemplate) =
+        updateTaskForm(index) { HabitTaskFormState.applyTemplate(it, template) }
+
+    fun dismissTaskError(index: Int) =
+        updateTaskForm(index) { it.copy(submitError = null) }
 
     fun createHabit() {
         val state = _uiState.value
@@ -95,61 +159,60 @@ class CreateHabitViewModel(
     }
 
     private fun validateHabit(state: CreateHabitUiState, userId: Int): String? {
-        val titleError = Validators.validateHabitTitle(state.title)
-        if (titleError != null) return "Invalid title"
-
-        val descriptionError = Validators.validateHabitDescription(state.description)
-        if (descriptionError != null) return "Description too long"
-
-        if (state.disciplineId == null) return "Discipline is required"
-
-        if (state.tasks.isEmpty()) return "At least one task is required"
-
+        if (Validators.validateHabitTitle(state.title) != null) return "Título inválido"
+        if (Validators.validateHabitDescription(state.description) != null) return "Descripción muy larga"
+        if (state.disciplineId == null) return "Selecciona una disciplina"
+        if (state.tasks.isEmpty()) return "Agrega al menos una tarea"
         for ((index, task) in state.tasks.withIndex()) {
             val taskError = validateTask(task)
-            if (taskError != null) return "Task ${index + 1}: $taskError"
+            if (taskError != null) return "Tarea ${index + 1}: $taskError"
         }
-
-        if (userId < 1) return "Invalid user"
-
+        if (userId < 1) return "Usuario inválido"
         return null
     }
 
-    private fun validateTask(task: TaskUiState): String? {
-        val titleError = Validators.validateTaskTitle(task.title)
-        if (titleError != null) return "Invalid title"
-
-        if (task.startDate.isEmpty()) return "Start date is required"
-
-        if (task.periodLength < 1) return "Invalid period length"
-
+    private fun validateTask(task: HabitTaskFormState): String? {
+        if (task.title.isBlank()) return "El título es requerido"
+        if (task.startDate.isBlank()) return "La fecha de inicio es requerida"
+        val periodLength = task.periodLength.toIntOrNull()
+        if (periodLength == null || periodLength < 1) return "Período inválido"
+        if (task.completionCriteria == "REPETITIONS") {
+            val reps = task.repetitions.toIntOrNull()
+            if (reps == null || reps < 1) return "Repeticiones inválidas"
+        }
+        if (task.completionCriteria == "EVIDENCE" && task.evidence.isNullOrBlank()) {
+            return "Tipo de evidencia requerido"
+        }
         return null
     }
 
     private fun buildCreateHabitRequest(state: CreateHabitUiState, userId: Int): CreateHabitRequestDto {
         val tasks = state.tasks.map { task ->
+            val criteria = TaskCompletionCriteria.valueOf(task.completionCriteria ?: "REPETITIONS")
             CreateHabitTaskRequestDto(
-                title = task.title,
-                description = task.description.ifEmpty { null },
-                habitDisciplineId = task.habitDisciplineId,
-                weekDays = task.weekDays.ifEmpty { null },
-                difficulty = task.difficulty,
-                frequency = task.frequency,
-                periodLength = task.periodLength,
-                periodUnit = task.periodUnit,
-                startDate = task.startDate,
-                completionCriteria = task.completionCriteria,
-                evidence = task.evidence?.let { com.example.leveluplife.data.network.dto.TaskEvidence.valueOf(it) },
-                repetitionCriteria = task.repetitionCriteria?.let { rc ->
+                title = task.title.trim(),
+                description = task.description.trim().ifBlank { null },
+                habitDisciplineId = null,
+                weekDays = null,
+                difficulty = TaskDifficulty.valueOf(task.difficulty ?: "MEDIUM"),
+                frequency = TaskFrequency.valueOf(task.frequency ?: "WEEKLY"),
+                periodLength = task.periodLength.toIntOrNull() ?: 1,
+                periodUnit = TaskPeriodUnit.valueOf(task.periodUnit ?: "WEEKS"),
+                startDate = task.startDate.trim(),
+                completionCriteria = criteria,
+                evidence = if (criteria == TaskCompletionCriteria.EVIDENCE) {
+                    task.evidence?.let { TaskEvidence.valueOf(it) }
+                } else null,
+                repetitionCriteria = if (criteria == TaskCompletionCriteria.REPETITIONS) {
                     RepetitionCriteriaRequestDto(
-                        repetitions = rc.repetitions,
-                        measurementUnit = MeasurementUnit.valueOf(rc.measurementUnit),
-                        isPartialAllowed = rc.isPartialAllowed,
-                        isActive = rc.isActive
+                        repetitions = task.repetitions.toIntOrNull() ?: 1,
+                        measurementUnit = MeasurementUnit.valueOf(task.measurementUnit ?: "SERIES"),
+                        isPartialAllowed = task.isPartialAllowed,
+                        isActive = true,
                     )
-                },
-                xpValue = task.xpValue,
-                isActive = task.isActive
+                } else null,
+                xpValue = null,
+                isActive = true,
             )
         }
 
@@ -158,7 +221,7 @@ class CreateHabitViewModel(
             description = state.description.ifEmpty { null },
             disciplineId = state.disciplineId!!,
             userId = userId,
-            tasks = tasks
+            tasks = tasks,
         )
     }
 

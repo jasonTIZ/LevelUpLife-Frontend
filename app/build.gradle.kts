@@ -11,7 +11,7 @@ val localProps = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }
-val apiHost: String = localProps.getProperty("api.host", "192.168.100.5:5223")
+val apiHost: String = localProps.getProperty("api.host", "192.168.1.142:5223")
 val apiScheme: String = localProps.getProperty("api.scheme", "http")
 
 android {
@@ -81,6 +81,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.kotlinx.coroutines.android)
+
+    implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

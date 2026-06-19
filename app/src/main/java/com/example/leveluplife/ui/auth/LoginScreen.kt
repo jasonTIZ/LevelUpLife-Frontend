@@ -31,6 +31,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -58,10 +61,13 @@ import androidx.compose.ui.unit.sp
 import com.example.leveluplife.R
 import com.example.leveluplife.data.error.AuthError
 import com.example.leveluplife.ui.components.LulErrorAlertDialog
+import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.components.LulLogo
 import com.example.leveluplife.ui.components.LulPrimaryButton
 import com.example.leveluplife.ui.components.LulScreenHeaderLabels
 import com.example.leveluplife.ui.components.ThemeToggleButton
+import com.example.leveluplife.ui.components.blockPasswordWhitespaceKeys
+import com.example.leveluplife.ui.components.passwordInputChangeHandler
 import com.example.leveluplife.ui.theme.ThemeController
 
 object LoginTestTags {
@@ -80,28 +86,46 @@ fun LoginScreen(
     themeController: ThemeController,
     onLoggedIn: () -> Unit,
     onNavigateToRegister: () -> Unit,
+    infoMessage: String? = null,
+    onInfoMessageShown: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
 
-    LaunchedEffect(state.loggedInUser) {
+    LaunchedEffect(state.loggedInUser, systemDark) {
         if (state.loggedInUser != null) {
+            themeController.lockCurrentAppearance(systemDark)
             onLoggedIn()
             viewModel.consumeLoggedIn()
         }
     }
 
-    LoginContent(
-        state = state,
-        themeController = themeController,
-        onEmailChange = viewModel::onEmailChange,
-        onPasswordChange = viewModel::onPasswordChange,
-        onTogglePasswordVisibility = viewModel::onTogglePasswordVisibility,
-        onSubmit = viewModel::onSubmit,
-        onDismissError = viewModel::dismissError,
-        onNavigateToRegister = onNavigateToRegister,
+    LaunchedEffect(infoMessage) {
+        if (!infoMessage.isNullOrBlank()) {
+            snackbarHostState.showLulSnackbar(infoMessage)
+            onInfoMessageShown()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background,
         modifier = modifier,
-    )
+    ) { innerPadding ->
+        LoginContent(
+            state = state,
+            themeController = themeController,
+            onEmailChange = viewModel::onEmailChange,
+            onPasswordChange = viewModel::onPasswordChange,
+            onTogglePasswordVisibility = viewModel::onTogglePasswordVisibility,
+            onSubmit = viewModel::onSubmit,
+            onDismissError = viewModel::dismissError,
+            onNavigateToRegister = onNavigateToRegister,
+            modifier = Modifier.padding(innerPadding),
+        )
+    }
 }
 
 @Composable
@@ -200,10 +224,9 @@ private fun LoginContent(
 
             Spacer(Modifier.height(12.dp))
 
-            // Password
             OutlinedTextField(
                 value = state.password,
-                onValueChange = onPasswordChange,
+                onValueChange = passwordInputChangeHandler(onPasswordChange),
                 singleLine = true,
                 isError = state.passwordError != null,
                 shape = RoundedCornerShape(14.dp),
@@ -244,6 +267,7 @@ private fun LoginContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(passwordFocus)
+                    .blockPasswordWhitespaceKeys()
                     .testTag(LoginTestTags.PASSWORD_FIELD)
                     .semantics {
                         contentDescription = "Contraseña"
@@ -326,7 +350,7 @@ private fun LoginContent(
 }
 
 @Composable
-private fun filledFieldColors() = OutlinedTextFieldDefaults.colors(
+internal fun filledFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
     disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
