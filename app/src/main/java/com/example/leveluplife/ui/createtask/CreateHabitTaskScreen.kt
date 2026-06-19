@@ -983,12 +983,18 @@ internal fun TimerCriteriaFields(
         onValueChange = onTimerSecondsLongChange,
         label = { Text(stringResource(R.string.create_task_field_timer_threshold)) },
         modifier = Modifier.fillMaxWidth(),
+        isError = form.showValidationErrors && form.fieldErrors.timerLong != null,
         supportingText = {
-            Text(
-                text = stringResource(R.string.create_task_timer_threshold_hint),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodySmall,
-            )
+            val err = form.fieldErrors.timerLong
+            if (form.showValidationErrors && err != null) {
+                Text(err.toMessage())
+            } else {
+                Text(
+                    text = stringResource(R.string.create_task_timer_threshold_hint),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
         },
         colors = fieldColors,
         singleLine = true,

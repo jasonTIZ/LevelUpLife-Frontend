@@ -8,8 +8,8 @@ import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
 import com.example.leveluplife.data.network.dto.CreateHabitTaskRequestDto
 import com.example.leveluplife.data.network.dto.MeasurementUnit
+import com.example.leveluplife.data.network.dto.CreateTimerCriteriaRequest
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaRequestDto
-import com.example.leveluplife.data.network.dto.TimerCriteriaRequestDto
 import com.example.leveluplife.domain.validation.HabitTaskValidators
 import com.example.leveluplife.data.network.dto.TaskCompletionCriteria
 import com.example.leveluplife.data.network.dto.TaskDifficulty
@@ -195,9 +195,12 @@ class CreateHabitViewModel(
             return "Tipo de evidencia requerido"
         }
         if (task.completionCriteria == "TIMER") {
-            val seconds = task.timerSecondsDefined.toIntOrNull()
-            if (seconds == null || seconds < 1 || seconds > HabitTaskValidators.TIMER_SECONDS_MAX) {
+            val input = task.toFormInput()
+            if (HabitTaskValidators.validateTimerSeconds(input) != null) {
                 return "Duración inválida (1 a ${HabitTaskValidators.TIMER_SECONDS_MAX} segundos)"
+            }
+            if (HabitTaskValidators.validateTimerLong(input) != null) {
+                return "El umbral largo debe superar la duración base"
             }
         }
         return null
@@ -229,9 +232,10 @@ class CreateHabitViewModel(
                     )
                 } else null,
                 timerCriteria = if (criteria == TaskCompletionCriteria.TIMER) {
-                    TimerCriteriaRequestDto(
-                        numSecondsDefined = task.timerSecondsDefined.toIntOrNull() ?: 1,
-                        numSecondsLong = task.timerSecondsLong.toIntOrNull(),
+                    // Safe to parse directly: validateTask() gates invalid durations before build.
+                    CreateTimerCriteriaRequest(
+                        numSecondsDefined = task.timerSecondsDefined.trim().toInt(),
+                        numSecondsLong = task.timerSecondsLong.trim().toIntOrNull(),
                         typePauseIsAllowed = task.timerPauseAllowed,
                         statusTimerCriteriaIsActive = true,
                     )

@@ -61,6 +61,7 @@ data class HabitTaskFormState(
         evidence = evidence,
         isPartialAllowed = isPartialAllowed,
         timerSecondsDefined = timerSecondsDefined,
+        timerSecondsLong = timerSecondsLong,
     )
 
     fun toRequest(): CreateHabitTaskRequest? {
@@ -223,6 +224,7 @@ object HabitTaskFormHandlers {
                 measurementUnit = null,
                 evidence = null,
                 timerSeconds = null,
+                timerLong = null,
             ),
             submitError = null,
         )
@@ -230,13 +232,14 @@ object HabitTaskFormHandlers {
     fun onTimerSecondsDefinedChange(state: HabitTaskFormState, value: String): HabitTaskFormState =
         state.copy(
             timerSecondsDefined = TaskInputSanitizer.digitsOnly(value, maxLength = 5),
-            fieldErrors = state.fieldErrors.copy(timerSeconds = null),
+            fieldErrors = state.fieldErrors.copy(timerSeconds = null, timerLong = null),
             submitError = null,
         )
 
     fun onTimerSecondsLongChange(state: HabitTaskFormState, value: String): HabitTaskFormState =
         state.copy(
             timerSecondsLong = TaskInputSanitizer.digitsOnly(value, maxLength = 5),
+            fieldErrors = state.fieldErrors.copy(timerLong = null),
             submitError = null,
         )
 
