@@ -18,6 +18,8 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
+import com.example.leveluplife.ui.auth.RegisterScreen
+import com.example.leveluplife.ui.auth.RegisterViewModel
 import com.example.leveluplife.ui.categories.CategoriesScreen
 import com.example.leveluplife.ui.categories.CategoriesViewModel
 import com.example.leveluplife.ui.createtask.CreateHabitTaskScreen
@@ -38,6 +40,7 @@ import kotlinx.serialization.json.Json
 
 object Routes {
     const val LOGIN = "login"
+    const val REGISTER = "register"
     const val DASHBOARD = "dashboard"
     const val CATEGORIES = "categories"
     const val PROFILE = "profile"
@@ -60,6 +63,7 @@ object Routes {
     const val ARG_TASK_DEACTIVATED_MESSAGE = "task_deactivated_message"
     const val ARG_DEACTIVATION_MESSAGE = "deactivation_message"
     const val ARG_SESSION_EXPIRED_MESSAGE = "session_expired_message"
+    const val ARG_REGISTER_SUCCESS_MESSAGE = "register_success_message"
 }
 
 @Composable
@@ -102,6 +106,8 @@ fun AppNavigation(
                 .get<String>(Routes.ARG_DEACTIVATION_MESSAGE)
                 ?: backStackEntry.savedStateHandle
                     .get<String>(Routes.ARG_SESSION_EXPIRED_MESSAGE)
+                ?: backStackEntry.savedStateHandle
+                    .get<String>(Routes.ARG_REGISTER_SUCCESS_MESSAGE)
             val vm: LoginViewModel = viewModel(
                 factory = LoginViewModel.Factory(container.authRepository),
             )
@@ -112,6 +118,7 @@ fun AppNavigation(
                 onInfoMessageShown = {
                     backStackEntry.savedStateHandle.remove<String>(Routes.ARG_DEACTIVATION_MESSAGE)
                     backStackEntry.savedStateHandle.remove<String>(Routes.ARG_SESSION_EXPIRED_MESSAGE)
+                    backStackEntry.savedStateHandle.remove<String>(Routes.ARG_REGISTER_SUCCESS_MESSAGE)
                 },
                 onLoggedIn = {
                     navController.navigate(Routes.DASHBOARD) {
@@ -119,7 +126,34 @@ fun AppNavigation(
                         launchSingleTop = true
                     }
                 },
-                onNavigateToRegister = {},
+                onNavigateToRegister = {
+                    navController.navigate(Routes.REGISTER) { launchSingleTop = true }
+                },
+            )
+        }
+        composable(Routes.REGISTER) {
+            val vm: RegisterViewModel = viewModel(
+                factory = RegisterViewModel.Factory(container.authRepository),
+            )
+            RegisterScreen(
+                viewModel = vm,
+                themeController = container.themeController,
+                onRegisteredAndLoggedIn = {
+                    navController.navigate(Routes.DASHBOARD) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToLogin = { successMessage ->
+                    navController.popBackStack()
+                    if (!successMessage.isNullOrBlank()) {
+                        runCatching {
+                            navController.getBackStackEntry(Routes.LOGIN)
+                                .savedStateHandle
+                                .set(Routes.ARG_REGISTER_SUCCESS_MESSAGE, successMessage)
+                        }
+                    }
+                },
             )
         }
         composable(Routes.DASHBOARD) {

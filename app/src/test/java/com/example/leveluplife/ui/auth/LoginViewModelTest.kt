@@ -38,6 +38,15 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun `password change elimina espacios al escribir`() = runTest(testDispatcher) {
+        val fake = FakeAuthRepository()
+        val vm = LoginViewModel(fake)
+
+        vm.onPasswordChange("123 456")
+        assertEquals("123456", vm.state.value.password)
+    }
+
+    @Test
     fun `submit con identificador invalido no llama al repositorio y muestra error de campo`() = runTest(testDispatcher) {
         val fake = FakeAuthRepository()
         val vm = LoginViewModel(fake)
@@ -171,6 +180,17 @@ class LoginViewModelTest {
             }
             return r
         }
+
+        override suspend fun register(
+            name: String,
+            lastName: String,
+            email: String,
+            birthdate: String,
+            userName: String,
+            password: String,
+            classId: Int,
+        ): Result<com.example.leveluplife.data.auth.RegisterOutcome> =
+            Result.failure(IllegalStateException("not configured"))
 
         override fun isLoggedIn(): Boolean = !access.isNullOrBlank()
         override fun logout() {

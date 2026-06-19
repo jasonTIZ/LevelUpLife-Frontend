@@ -27,7 +27,7 @@ object AuthErrorMapper {
         else -> AuthError.Unknown(t.message)
     }
 
-    private fun parseMessage(rawBody: String?, json: Json?): String? {
+    fun parseMessage(rawBody: String?, json: Json?): String? {
         if (rawBody.isNullOrBlank()) return null
         if (json == null) return rawBody.take(240)
         return runCatching {
@@ -35,4 +35,5 @@ object AuthErrorMapper {
             parsed.message ?: parsed.errors?.values?.flatten()?.firstOrNull()
         }.getOrNull() ?: rawBody.take(240)
     }
+
 }

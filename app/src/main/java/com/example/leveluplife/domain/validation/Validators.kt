@@ -6,6 +6,8 @@ sealed class FieldError {
     object InvalidEmail : FieldError()
     object InvalidBirthdate : FieldError()
     object InvalidCharacters : FieldError()
+    object PasswordMismatch : FieldError()
+    object SameAsName : FieldError()
     data class TooShort(val min: Int) : FieldError()
     data class TooLong(val max: Int) : FieldError()
 }
@@ -49,6 +51,7 @@ object Validators {
     fun validatePassword(input: String): FieldError? {
         return when {
             input.isEmpty() -> FieldError.Required
+            input.any { it.isWhitespace() } -> FieldError.InvalidCharacters
             input.length < PASSWORD_MIN -> FieldError.TooShort(PASSWORD_MIN)
             input.length > PASSWORD_MAX -> FieldError.TooLong(PASSWORD_MAX)
             else -> null

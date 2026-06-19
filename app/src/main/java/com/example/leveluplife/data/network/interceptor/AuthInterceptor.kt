@@ -25,7 +25,7 @@ class AuthInterceptor(
             chain.request()
         }
         val response = chain.proceed(request)
-        if (response.code == 401 && !ApiRoutes.isLoginRequest(request.url.encodedPath)) {
+        if (response.code == 401 && !ApiRoutes.isAuthRequestWithoutSession(request.url.encodedPath)) {
             tokenStore.clear()
             sessionEvents.notifyExpired()
         }
