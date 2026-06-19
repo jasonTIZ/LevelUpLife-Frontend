@@ -377,6 +377,7 @@ fun AppNavigation(
                     taskId,
                     container.habitRepository,
                     container.habitTaskRepository,
+                    container.habitDisciplineRepository,
                 ),
             )
             UpdateHabitTaskScreen(

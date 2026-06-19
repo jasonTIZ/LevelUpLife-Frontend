@@ -1,11 +1,9 @@
 package com.example.leveluplife.ui.habit
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,9 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.leveluplife.R
-import com.example.leveluplife.data.network.dto.HabitCategoryDto
+import com.example.leveluplife.ui.components.CategoryChipsRow
 import com.example.leveluplife.ui.components.LulPrimaryButton
-import com.example.leveluplife.ui.components.SelectableChip
 import com.example.leveluplife.ui.createtask.HabitTaskEmbeddedForm
 import kotlinx.coroutines.delay
 
@@ -162,7 +159,10 @@ fun HabitFormSection(
             label = { Text("Título del hábito") },
             placeholder = { Text("Ej. Ejercicio diario") },
             modifier = Modifier.fillMaxWidth(),
-            isError = uiState.error != null,
+            isError = uiState.habitTitleError != null,
+            supportingText = uiState.habitTitleError?.let { error ->
+                { Text(error, color = MaterialTheme.colorScheme.error) }
+            },
             singleLine = true,
         )
 
@@ -173,61 +173,5 @@ fun HabitFormSection(
             modifier = Modifier.fillMaxWidth(),
             maxLines = 3,
         )
-    }
-}
-
-@Composable
-private fun CategoryChipsRow(
-    categories: List<HabitCategoryDto>,
-    selectedId: Int?,
-    isLoading: Boolean,
-    onSelect: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            text = stringResource(R.string.create_habit_category_label),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.secondary,
-        )
-
-        when {
-            isLoading -> {
-                Text(
-                    text = stringResource(R.string.create_habit_categories_loading),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            categories.isEmpty() -> {
-                Text(
-                    text = stringResource(R.string.create_habit_categories_empty),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            else -> {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    categories.forEach { category ->
-                        SelectableChip(
-                            label = category.name,
-                            selected = category.id == selectedId,
-                            onClick = { onSelect(category.id) },
-                        )
-                    }
-                }
-            }
-        }
     }
 }

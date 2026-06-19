@@ -64,11 +64,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.leveluplife.R
-import com.example.leveluplife.data.network.dto.HabitDto
+import com.example.leveluplife.data.network.dto.HabitCategoryDto
 import com.example.leveluplife.data.network.dto.HabitDisciplineDto
+import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.domain.validation.HabitTaskFieldError
+import com.example.leveluplife.ui.components.CategoryChipsRow
 import com.example.leveluplife.ui.components.DisciplineChipsRow
+import com.example.leveluplife.ui.components.LulDatePickerField
+import com.example.leveluplife.ui.components.LulInlineErrorBanner
 import com.example.leveluplife.ui.components.SelectableChip
 
 object CreateHabitTaskTestTags {
@@ -273,6 +277,16 @@ internal fun HabitTaskFormContent(
     onPartialAllowedChange: (Boolean) -> Unit,
     onApplyTemplate: (TaskFormTemplate) -> Unit,
     onDismissError: () -> Unit,
+    showDisciplinePicker: Boolean = false,
+    showCategoryPicker: Boolean = false,
+    taskCategories: List<HabitCategoryDto> = emptyList(),
+    selectedCategoryId: Int? = null,
+    isCategoriesLoading: Boolean = false,
+    onCategorySelected: (Int) -> Unit = {},
+    taskDisciplines: List<HabitDisciplineDto> = emptyList(),
+    isTaskDisciplinesLoading: Boolean = false,
+    onDisciplineSelected: (Int) -> Unit = {},
+    preservedStartDate: String? = null,
 ) {
     val scroll = rememberScrollState()
     val fieldColors = OutlinedTextFieldDefaults.colors(
@@ -305,6 +319,23 @@ internal fun HabitTaskFormContent(
             )
         }
 
+        if (showDisciplinePicker) {
+            if (showCategoryPicker) {
+                CategoryChipsRow(
+                    categories = taskCategories,
+                    selectedId = selectedCategoryId,
+                    isLoading = isCategoriesLoading,
+                    onSelect = onCategorySelected,
+                )
+            }
+            DisciplineChipsRow(
+                disciplines = taskDisciplines,
+                selectedId = form.selectedDisciplineId,
+                isLoading = isTaskDisciplinesLoading,
+                onSelect = onDisciplineSelected,
+            )
+        }
+
         FormSection(title = stringResource(R.string.create_task_section_basic)) {
             if (showHabitPicker) {
                 HabitDropdown(
@@ -322,13 +353,15 @@ internal fun HabitTaskFormContent(
                 )
             }
 
-            val categoryLabel = form.selectedHabit?.categoryName?.takeIf { it.isNotBlank() }
-                ?: stringResource(R.string.create_task_category_unknown)
-            ReadOnlyMetaField(
-                label = stringResource(R.string.create_task_field_category),
-                value = categoryLabel,
-                fieldColors = fieldColors,
-            )
+            if (!showCategoryPicker) {
+                val categoryLabel = form.selectedHabit?.categoryName?.takeIf { it.isNotBlank() }
+                    ?: stringResource(R.string.create_task_category_unknown)
+                ReadOnlyMetaField(
+                    label = stringResource(R.string.create_task_field_category),
+                    value = categoryLabel,
+                    fieldColors = fieldColors,
+                )
+            }
 
             OutlinedTextField(
                 value = form.title,
@@ -491,31 +524,26 @@ internal fun HabitTaskFormContent(
                 )
             }
 
-            OutlinedTextField(
+            LulDatePickerField(
                 value = form.startDate,
                 onValueChange = onStartDateChange,
                 label = { Text(stringResource(R.string.create_task_field_start_date)) },
-                modifier = Modifier.fillMaxWidth(),
-                isError = form.showValidationErrors && form.fieldErrors.startDate != null,
-                supportingText = {
-                    if (form.showValidationErrors && form.fieldErrors.startDate != null) {
-                        Text(form.fieldErrors.startDate!!.toMessage())
+                hint = stringResource(
+                    if (showTemplates) {
+                        R.string.create_task_start_date_hint
                     } else {
-                        Text(
-                            stringResource(
-                                if (showTemplates) {
-                                    R.string.create_task_start_date_hint
-                                } else {
-                                    R.string.update_task_start_date_hint
-                                },
-                            ),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
+                        R.string.update_task_start_date_hint
+                    },
+                ),
+                isError = form.showValidationErrors && form.fieldErrors.startDate != null,
+                errorMessage = if (form.showValidationErrors && form.fieldErrors.startDate != null) {
+                    form.fieldErrors.startDate!!.toMessage()
+                } else {
+                    null
                 },
-                colors = fieldColors,
-                singleLine = true,
+                preservedIsoDate = preservedStartDate,
+                fieldColors = fieldColors,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
 
@@ -747,25 +775,19 @@ internal fun HabitTaskEmbeddedForm(
                 )
             }
 
-            OutlinedTextField(
+            LulDatePickerField(
                 value = form.startDate,
                 onValueChange = onStartDateChange,
                 label = { Text(stringResource(R.string.create_task_field_start_date)) },
-                modifier = Modifier.fillMaxWidth(),
+                hint = stringResource(R.string.create_task_start_date_hint),
                 isError = form.showValidationErrors && form.fieldErrors.startDate != null,
-                supportingText = {
-                    if (form.showValidationErrors && form.fieldErrors.startDate != null) {
-                        Text(form.fieldErrors.startDate!!.toMessage())
-                    } else {
-                        Text(
-                            stringResource(R.string.create_task_start_date_hint),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
+                errorMessage = if (form.showValidationErrors && form.fieldErrors.startDate != null) {
+                    form.fieldErrors.startDate!!.toMessage()
+                } else {
+                    null
                 },
-                colors = fieldColors,
-                singleLine = true,
+                fieldColors = fieldColors,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
 
@@ -1093,17 +1115,12 @@ private fun LabeledOptionDropdown(
 
 @Composable
 private fun ErrorBanner(message: String, onDismiss: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp))
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(Icons.Outlined.ErrorOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-        Spacer(Modifier.width(8.dp))
-        Text(message, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
-        TextButton(onClick = onDismiss) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LulInlineErrorBanner(message = message)
+        TextButton(
+            onClick = onDismiss,
+            modifier = Modifier.align(Alignment.End),
+        ) {
             Text(stringResource(R.string.login_dismiss), color = MaterialTheme.colorScheme.primary)
         }
     }

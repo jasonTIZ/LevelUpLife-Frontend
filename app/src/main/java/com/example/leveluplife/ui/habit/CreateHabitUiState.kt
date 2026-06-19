@@ -14,6 +14,7 @@ data class CreateHabitUiState(
     val disciplines: List<HabitDisciplineDto> = emptyList(),
     val isDisciplinesLoading: Boolean = false,
     val tasks: List<HabitTaskFormState> = listOf(HabitTaskFormState()),
+    val habitTitleError: String? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
     val success: Boolean = false,

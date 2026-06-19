@@ -51,7 +51,11 @@ class DefaultHabitRepository(private val api: HabitsApi) : HabitRepository {
         val response = api.createHabit(request)
         when {
             response.isSuccessful -> Result.success(requireNotNull(response.body()))
-            response.code() == 400 -> Result.failure(Exception("Validación fallida: ${response.body()?.message}"))
+            response.code() == 400 -> {
+                val errorBody = response.errorBody()?.string()
+                val summary = HabitTaskApiErrorParser.parse400(errorBody).summary
+                Result.failure(Exception("Validación fallida: $summary"))
+            }
             response.code() == 500 -> Result.failure(Exception("Error del servidor: ${response.body()?.message}"))
             else -> Result.failure(Exception("HTTP ${response.code()}"))
         }

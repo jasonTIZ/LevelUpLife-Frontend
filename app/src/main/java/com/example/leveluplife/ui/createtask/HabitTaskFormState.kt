@@ -101,6 +101,7 @@ data class HabitTaskFormState(
 
         return CreateHabitTaskRequest(
             habitId = habitId,
+            habitDisciplineId = selectedDisciplineId,
             title = title.trim(),
             description = description.trim().ifBlank { null },
             difficulty = difficulty!!,
@@ -135,6 +136,7 @@ data class HabitTaskFormState(
             timerSecondsDefined = task.timerCriteria?.numSecondsDefined?.toString().orEmpty(),
             timerSecondsLong = task.timerCriteria?.numSecondsLong?.toString().orEmpty(),
             timerPauseAllowed = task.timerCriteria?.typePauseIsAllowed ?: false,
+            selectedDisciplineId = task.resolvedDisciplineId,
         )
 
         fun applyTemplate(current: HabitTaskFormState, template: TaskFormTemplate): HabitTaskFormState =

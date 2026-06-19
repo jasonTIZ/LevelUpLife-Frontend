@@ -109,7 +109,7 @@
     <string name="create_task_field_period_length">Duración</string>
     <string name="create_task_field_period_unit">Periodo</string>
     <string name="create_task_field_start_date">Fecha de inicio</string>
-    <string name="create_task_start_date_hint">Formato AAAA-MM-DD · hoy o una fecha futura</string>
+    <string name="create_task_start_date_hint">Elegí hoy o una fecha futura en el calendario</string>
     <string name="update_task_start_date_hint">Si no la cambiás, se mantiene la fecha original. Al modificarla, elegí hoy o una fecha futura.</string>
     <string name="create_task_partial_allowed">Permitir progreso parcial</string>
     <string name="create_task_preview_title">Vista previa</string>
