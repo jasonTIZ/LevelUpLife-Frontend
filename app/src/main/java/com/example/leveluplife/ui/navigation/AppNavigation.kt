@@ -137,6 +137,7 @@ fun AppNavigation(
                     container.profileRepository,
                     container.profileCache,
                     container.profileAvatarStorage,
+                    container.tokenStore,
                 ),
             )
             ProfileScreen(

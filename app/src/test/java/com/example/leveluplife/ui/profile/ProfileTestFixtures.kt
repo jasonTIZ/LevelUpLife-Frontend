@@ -67,6 +67,15 @@ class FakeProfileCache(
         _profile.value = current.copy(avatarUri = avatarUri, bio = bio)
     }
 
+    override suspend fun clearMemory() {
+        _profile.value = null
+        etag = null
+    }
+
+    override suspend fun clear() {
+        clearMemory()
+    }
+
     override fun currentEtag(): String? = etag
 }
 

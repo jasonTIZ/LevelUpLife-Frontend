@@ -4,6 +4,9 @@ import com.example.leveluplife.data.error.AuthError
 import com.example.leveluplife.data.error.AuthErrorMapper
 import com.example.leveluplife.data.network.AuthApi
 import com.example.leveluplife.data.network.dto.LoginRequest
+import com.example.leveluplife.data.player.ProfileCache
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 interface AuthRepository {
@@ -16,6 +19,7 @@ interface AuthRepository {
 class DefaultAuthRepository(
     private val api: AuthApi,
     private val tokenStore: TokenStore,
+    private val profileCache: ProfileCache,
     private val json: Json,
 ) : AuthRepository {
 
@@ -26,9 +30,8 @@ class DefaultAuthRepository(
                 ?: return Result.failure(AuthErrorException(AuthError.Unknown("empty_body")))
             val data = body.data
                 ?: return Result.failure(AuthErrorException(AuthError.Unknown("missing_data")))
-            // El backend solo devuelve el JWT; sacamos el id del claim `sub`
-            // y caemos en el username como fallback si el token no se pudiera decodificar.
             val userId = JwtUtils.extractSub(data.token) ?: data.userName
+            profileCache.clearMemory()
             val session = AuthSession(
                 accessToken = data.token,
                 refreshToken = null,
@@ -46,7 +49,12 @@ class DefaultAuthRepository(
 
     override fun isLoggedIn(): Boolean = tokenStore.hasSession()
 
-    override fun logout() = tokenStore.clear()
+    override fun logout() {
+        tokenStore.clear()
+        runBlocking(Dispatchers.IO) {
+            profileCache.clearMemory()
+        }
+    }
 
     override fun currentTokens(): Pair<String?, String?> =
         tokenStore.accessToken() to tokenStore.refreshToken()

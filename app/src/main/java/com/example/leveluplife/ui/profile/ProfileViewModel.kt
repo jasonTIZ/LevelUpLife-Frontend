@@ -3,6 +3,7 @@ package com.example.leveluplife.ui.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.leveluplife.data.auth.TokenStore
 import com.example.leveluplife.data.player.PlayerProfile
 import com.example.leveluplife.data.player.ProfileAvatarStorage
 import com.example.leveluplife.data.player.ProfileCache
@@ -26,20 +27,19 @@ class ProfileViewModel(
     private val profileRepository: ProfileRepository,
     private val profileCache: ProfileCache,
     private val avatarStorage: ProfileAvatarStorage,
+    private val tokenStore: TokenStore,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileUiState())
     val state: StateFlow<ProfileUiState> = _state.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            profileCache.loadPersisted()
-            loadProfile()
-        }
+        loadProfile()
     }
 
     fun loadProfile() {
         viewModelScope.launch {
+            profileCache.loadPersisted()
             _state.update { it.copy(isLoading = true, bannerError = null) }
             profileRepository.fetchProfile()
                 .onSuccess { result ->
@@ -52,7 +52,8 @@ class ProfileViewModel(
                         return@launch
                     }
                     val cached = profileCache.profile.value
-                    if (cached != null) {
+                    val sessionUserId = tokenStore.userId()
+                    if (cached != null && !sessionUserId.isNullOrBlank() && cached.playerUserId == sessionUserId) {
                         val etag = profileCache.currentEtag().orEmpty()
                         applyProfile(cached, etag)
                         _state.update { it.copy(isLoading = false) }
@@ -383,11 +384,17 @@ class ProfileViewModel(
         private val profileRepository: ProfileRepository,
         private val profileCache: ProfileCache,
         private val avatarStorage: ProfileAvatarStorage,
+        private val tokenStore: TokenStore,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
-                return ProfileViewModel(profileRepository, profileCache, avatarStorage) as T
+                return ProfileViewModel(
+                    profileRepository,
+                    profileCache,
+                    avatarStorage,
+                    tokenStore,
+                ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
         }

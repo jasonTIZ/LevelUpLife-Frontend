@@ -54,16 +54,19 @@ class AppContainer(applicationContext: Context) {
     private val habitTasksApi: HabitTasksApi by lazy { NetworkModule.provideHabitTasksApi(retrofit) }
     private val playerApi: PlayerApi by lazy { NetworkModule.providePlayerApi(retrofit) }
 
-    val profileAvatarStorage: ProfileAvatarStorage by lazy { LocalProfileAvatarStorage(appContext) }
+    val profileAvatarStorage: ProfileAvatarStorage by lazy {
+        LocalProfileAvatarStorage(appContext, tokenStore)
+    }
 
     val profileCache: ProfileCache by lazy {
-        DefaultProfileCache(appContext, profileAvatarStorage)
+        DefaultProfileCache(appContext, profileAvatarStorage, tokenStore)
     }
 
     val authRepository: AuthRepository by lazy {
         DefaultAuthRepository(
             api = authApi,
             tokenStore = tokenStore,
+            profileCache = profileCache,
             json = NetworkModule.jsonParser(),
         )
     }
@@ -84,6 +87,7 @@ class AppContainer(applicationContext: Context) {
         DefaultProfileRepository(
             api = playerApi,
             profileCache = profileCache,
+            avatarStorage = profileAvatarStorage,
             json = NetworkModule.jsonParser(),
         )
     }

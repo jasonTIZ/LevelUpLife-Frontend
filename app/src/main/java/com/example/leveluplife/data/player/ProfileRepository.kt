@@ -27,6 +27,7 @@ interface ProfileRepository {
 class DefaultProfileRepository(
     private val api: PlayerApi,
     private val profileCache: ProfileCache,
+    private val avatarStorage: ProfileAvatarStorage,
     private val json: Json,
 ) : ProfileRepository {
 
@@ -39,9 +40,15 @@ class DefaultProfileRepository(
                 Result.failure(ProfileException(ProfileError.Unknown("Empty profile response.")))
             } else {
                 val cached = profileCache.profile.value
+                val mergeLocalExtras = cached != null
+                val avatarUri = when {
+                    mergeLocalExtras && !cached?.avatarUri.isNullOrBlank() -> cached.avatarUri
+                    mergeLocalExtras -> avatarStorage.resolveDisplayUri(null)
+                    else -> null
+                }
                 val profile = body.toDomain(
-                    avatarUri = cached?.avatarUri,
-                    bio = cached?.bio.orEmpty(),
+                    avatarUri = avatarUri,
+                    bio = if (mergeLocalExtras) cached?.bio.orEmpty() else "",
                 )
                 profileCache.update(profile, etag)
                 Result.success(ProfileFetchResult(profile = profile, etag = etag))
@@ -88,9 +95,15 @@ class DefaultProfileRepository(
                 Result.failure(ProfileException(ProfileError.Unknown("Empty update response.")))
             } else {
                 val cached = profileCache.profile.value
+                val mergeLocalExtras = cached != null
+                val avatarUri = when {
+                    mergeLocalExtras && !cached?.avatarUri.isNullOrBlank() -> cached.avatarUri
+                    mergeLocalExtras -> avatarStorage.resolveDisplayUri(null)
+                    else -> null
+                }
                 val profile = body.player.toDomain(
-                    avatarUri = cached?.avatarUri,
-                    bio = cached?.bio.orEmpty(),
+                    avatarUri = avatarUri,
+                    bio = if (mergeLocalExtras) cached?.bio.orEmpty() else "",
                 )
                 profileCache.update(profile, newEtag.ifBlank { null })
                 Result.success(profile)
