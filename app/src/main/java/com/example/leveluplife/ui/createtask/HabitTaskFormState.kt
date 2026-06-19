@@ -29,6 +29,7 @@ data class HabitTaskFormState(
     val timerSecondsLong: String = "",
     val timerPauseAllowed: Boolean = false,
     val selectedTemplateId: String? = null,
+    val selectedDisciplineId: Int? = null,
     val fieldErrors: HabitTaskFormErrors = HabitTaskFormErrors(),
     val showValidationErrors: Boolean = false,
     val submitError: String? = null,
@@ -247,6 +248,12 @@ object HabitTaskFormHandlers {
             selectedHabitId = habitId,
             fieldErrors = state.fieldErrors.copy(habitId = null),
             showValidationErrors = false,
+            submitError = null,
+        )
+
+    fun onDisciplineChange(state: HabitTaskFormState, disciplineId: Int): HabitTaskFormState =
+        state.copy(
+            selectedDisciplineId = disciplineId,
             submitError = null,
         )
 }

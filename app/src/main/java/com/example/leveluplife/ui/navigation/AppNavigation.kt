@@ -270,6 +270,7 @@ fun AppNavigation(
                 factory = CreateHabitViewModel.Factory(
                     container.habitRepository as HabitRepository,
                     container.habitDisciplineRepository,
+                    container.habitCategoryRepository,
                 ),
             )
             CreateHabitScreen(

@@ -85,6 +85,13 @@
     <string name="create_task_retry">Reintentar</string>
     <string name="create_task_submit">Crear tarea</string>
     <string name="create_task_templates_label">Plantillas rápidas</string>
+    <string name="create_habit_category_label">Categoría</string>
+    <string name="create_habit_categories_loading">Cargando categorías…</string>
+    <string name="create_habit_categories_empty">Sin categorías disponibles</string>
+    <string name="create_habit_discipline_label">Disciplina</string>
+    <string name="create_habit_disciplines_loading">Cargando disciplinas…</string>
+    <string name="create_habit_disciplines_empty">Sin disciplinas disponibles</string>
+    <string name="create_habit_title_section_label">Hábito</string>
     <string name="create_task_section_basic">Información básica</string>
     <string name="create_task_section_goal">Meta / criterio</string>
     <string name="create_task_section_planning">Planificación</string>

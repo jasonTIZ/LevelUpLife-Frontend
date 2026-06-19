@@ -65,8 +65,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitDto
+import com.example.leveluplife.data.network.dto.HabitDisciplineDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.domain.validation.HabitTaskFieldError
+import com.example.leveluplife.ui.components.DisciplineChipsRow
+import com.example.leveluplife.ui.components.SelectableChip
 
 object CreateHabitTaskTestTags {
     const val SUBMIT_BUTTON = "create_task_submit_button"
@@ -559,6 +562,9 @@ internal fun HabitTaskEmbeddedForm(
     onApplyTemplate: (TaskFormTemplate) -> Unit,
     onDismissError: () -> Unit,
     modifier: Modifier = Modifier,
+    taskDisciplines: List<HabitDisciplineDto>? = null,
+    isTaskDisciplinesLoading: Boolean = false,
+    onDisciplineSelected: ((Int) -> Unit)? = null,
 ) {
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -598,6 +604,15 @@ internal fun HabitTaskEmbeddedForm(
             selectedTemplateId = form.selectedTemplateId,
             onApplyTemplate = onApplyTemplate,
         )
+
+        if (taskDisciplines != null && onDisciplineSelected != null) {
+            DisciplineChipsRow(
+                disciplines = taskDisciplines,
+                selectedId = form.selectedDisciplineId,
+                isLoading = isTaskDisciplinesLoading,
+                onSelect = onDisciplineSelected,
+            )
+        }
 
         FormSection(title = stringResource(R.string.create_task_section_basic)) {
             OutlinedTextField(
@@ -790,39 +805,13 @@ private fun QuickTemplatesRow(
         ) {
             TaskFormTemplates.all.forEach { template ->
                 val selected = selectedTemplateId == template.id
-                TemplateChip(
+                SelectableChip(
                     label = template.label,
                     selected = selected,
                     onClick = { onApplyTemplate(template) },
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun TemplateChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val backgroundColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        color = backgroundColor,
-        border = BorderStroke(1.dp, borderColor),
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }
 
