@@ -420,14 +420,14 @@ private fun DeactivateTaskConfirmDialog(
                         checked = state.consequencesAcknowledged,
                         onCheckedChange = onAcknowledgedChange,
                         colors = CheckboxDefaults.colors(
-                            checkedColor = PurplePrimary,
-                            uncheckedColor = DarkOnSurfaceVariant,
+                            checkedColor = MaterialTheme.colorScheme.primary,
+                            uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
                     )
                     Text(
                         text = stringResource(R.string.deactivate_task_confirm_ack),
                         style = MaterialTheme.typography.bodySmall,
-                        color = DarkOnBackground,
+                        color = MaterialTheme.colorScheme.onBackground,
                     )
                 }
             }
@@ -453,7 +453,11 @@ private fun DeactivateTaskConfirmDialog(
                     } else {
                         stringResource(R.string.deactivate_task_confirm_button)
                     },
-                    color = if (state.consequencesAcknowledged) DangerRed else DarkOnSurfaceVariant,
+                    color = if (state.consequencesAcknowledged) {
+                        DangerRed
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 )
             }
         },
