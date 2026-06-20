@@ -50,6 +50,7 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.ui.components.LulErrorAlertDialog
 import com.example.leveluplife.ui.components.LulPrimaryButton
+import com.example.leveluplife.ui.components.TimerPreview
 import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.createtask.CreateHabitTaskOptions
 
@@ -370,6 +371,42 @@ private fun HabitTaskDetailContent(
                             )
                         }
                     }
+                }
+            }
+        }
+
+        task.timerCriteria?.takeIf { task.completionCriteria == "TIMER" }?.let { timer ->
+            SectionTitle(stringResource(R.string.task_detail_timer_section))
+            Card(
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    DetailRow(
+                        label = stringResource(R.string.task_detail_timer_duration),
+                        value = HabitTaskLabels.formatTimerDuration(timer.numSecondsDefined),
+                    )
+                    timer.numSecondsLong?.takeIf { it > 0 }?.let { threshold ->
+                        DetailRow(
+                            label = stringResource(R.string.task_detail_timer_threshold),
+                            value = HabitTaskLabels.formatTimerDuration(threshold),
+                        )
+                    }
+                    DetailRow(
+                        label = stringResource(R.string.task_detail_timer_pause),
+                        value = if (timer.typePauseIsAllowed) {
+                            stringResource(R.string.task_detail_timer_pause_yes)
+                        } else {
+                            stringResource(R.string.task_detail_timer_pause_no)
+                        },
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    TimerPreview(
+                        durationSeconds = timer.numSecondsDefined,
+                        pauseAllowed = timer.typePauseIsAllowed,
+                        thresholdSeconds = timer.numSecondsLong,
+                    )
                 }
             }
         }
