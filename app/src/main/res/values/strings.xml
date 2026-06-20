@@ -175,7 +175,6 @@
     <string name="evidence_upload_error_invalid">Datos inválidos. Verificá el archivo seleccionado.</string>
     <string name="evidence_upload_error_file">No se pudo leer el archivo seleccionado.</string>
 
-
     <string name="update_task_title">Editar tarea</string>
     <string name="update_task_subtitle">Actualizá los requisitos de la tarea</string>
     <string name="update_task_submit">Guardar cambios</string>
@@ -330,4 +329,18 @@
     <string name="profile_logout_confirm_message">Se cerrará tu sesión en este dispositivo. Tendrás que volver a iniciar sesión para entrar.</string>
     <string name="profile_logout_confirm">Cerrar sesión</string>
     <string name="cd_profile_avatar">Avatar de perfil</string>
+
+    <!-- Evidence gallery - delete -->
+    <string name="evidence_gallery_delete_button">Eliminar</string>
+    <string name="evidence_gallery_delete_confirm_title">¿Eliminar evidencia?</string>
+    <string name="evidence_gallery_delete_confirm_message">Esta acción eliminará permanentemente la evidencia del sistema. No es posible recuperarla una vez eliminada.</string>
+    <string name="evidence_gallery_delete_irreversible_ack">Entiendo que esta acción es permanente e irreversible</string>
+    <string name="evidence_gallery_delete_confirm_button">Eliminar</string>
+    <string name="evidence_gallery_delete_cancel">Cancelar</string>
+    <string name="evidence_gallery_delete_confirming">Eliminando…</string>
+    <string name="evidence_gallery_delete_success">Evidencia eliminada correctamente</string>
+    <string name="evidence_gallery_delete_error_forbidden">No tenés permiso para eliminar esta evidencia</string>
+    <string name="evidence_gallery_delete_error_not_found">La evidencia ya no existe</string>
+    <string name="evidence_gallery_delete_error_task_completed">No se puede eliminar la evidencia de una tarea ya completada</string>
+    <string name="evidence_gallery_delete_error_generic">No se pudo eliminar la evidencia</string>
 </resources>

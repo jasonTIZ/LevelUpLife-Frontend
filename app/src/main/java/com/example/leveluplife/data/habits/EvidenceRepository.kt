@@ -15,6 +15,7 @@ import java.util.TimeZone
 
 interface EvidenceRepository {
     suspend fun getTaskEvidences(taskId: Int): Result<List<EvidenceDto>>
+    suspend fun deleteEvidence(taskId: Int, evidenceId: Int): Result<Unit>
     suspend fun uploadEvidence(
         taskId: Int,
         fileUri: String,
@@ -39,6 +40,18 @@ class DefaultEvidenceRepository(
         Result.failure(t)
     }
 
+    override suspend fun deleteEvidence(taskId: Int, evidenceId: Int): Result<Unit> = try {
+        val response = api.deleteEvidence(taskId, evidenceId)
+        when {
+            response.isSuccessful -> Result.success(Unit)
+            response.code() == 403 -> Result.failure(Exception("forbidden"))
+            response.code() == 404 -> Result.failure(Exception("not_found"))
+            else -> Result.failure(Exception("HTTP ${response.code()}"))
+        }
+    } catch (t: Throwable) {
+        Result.failure(t)
+    }
+
     override suspend fun uploadEvidence(
         taskId: Int,
         fileUri: String,
@@ -46,10 +59,8 @@ class DefaultEvidenceRepository(
         healthDataJson: String?,
     ): Result<EvidenceDto> {
         return try {
-            // Step 1: upload the file to get a hosted URL
             val fileUrl = uploadFile(fileUri, mimeType).getOrElse { return Result.failure(it) }
 
-            // Step 2: create the evidence record with the URL
             val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
             sdf.timeZone = TimeZone.getTimeZone("UTC")
             val fecUploaded = sdf.format(Date())

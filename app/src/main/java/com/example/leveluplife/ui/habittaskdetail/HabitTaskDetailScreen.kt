@@ -54,14 +54,13 @@ import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.createtask.CreateHabitTaskOptions
 
 object HabitTaskDetailTestTags {
-    const val COMPLETE_BUTTON = "task_detail_complete_button"
     const val DEACTIVATE_BUTTON = "task_detail_deactivate_button"
     const val CONFIRM_DIALOG = "task_detail_deactivate_confirm_dialog"
     const val CONFIRM_DEACTIVATE_BUTTON = "task_detail_confirm_deactivate_button"
     const val CANCEL_DEACTIVATE_BUTTON = "task_detail_cancel_deactivate_button"
 }
 
-private val GreenSuccess = Color(0xFF4CAF50)
+private val MutedGreen = Color(0xFF4ADE80)
 private val OrangeWarn = Color(0xFFF59E0B)
 private val DangerRed = Color(0xFFEF4444)
 
@@ -181,8 +180,8 @@ fun HabitTaskDetailScreen(
                     habitTitle = state.habitTitle,
                     isCompleting = state.isCompleting,
                     onDone = onDone,
-                    onViewEvidences = onViewEvidences,
                     onComplete = viewModel::completeTask,
+                    onViewEvidences = onViewEvidences,
                     onRequestDeactivate = viewModel::onRequestDeactivate,
                 )
             }
@@ -232,12 +231,10 @@ private fun HabitTaskDetailContent(
     habitTitle: String?,
     isCompleting: Boolean,
     onDone: () -> Unit,
-    onViewEvidences: () -> Unit,
     onComplete: () -> Unit,
+    onViewEvidences: () -> Unit,
     onRequestDeactivate: () -> Unit,
 ) {
-    val canComplete = task.isActive && !task.isCompleted && !isCompleting
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -247,7 +244,7 @@ private fun HabitTaskDetailContent(
     ) {
         Card(
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -276,8 +273,8 @@ private fun HabitTaskDetailContent(
                     if (task.isCompleted) {
                         StatusChip(
                             label = stringResource(R.string.task_detail_status_completed),
-                            background = GreenSuccess.copy(alpha = 0.15f),
-                            textColor = GreenSuccess,
+                            background = MutedGreen.copy(alpha = 0.15f),
+                            textColor = MutedGreen,
                         )
                     }
                     StatusChip(
@@ -305,7 +302,7 @@ private fun HabitTaskDetailContent(
 
         Card(
             shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -344,7 +341,7 @@ private fun HabitTaskDetailContent(
 
         Card(
             shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -387,39 +384,19 @@ private fun HabitTaskDetailContent(
             )
         }
 
-        if (canComplete) {
+        if (task.isActive && !task.isCompleted) {
             LulPrimaryButton(
                 text = stringResource(R.string.complete_task_button),
                 onClick = onComplete,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(HabitTaskDetailTestTags.COMPLETE_BUTTON),
-                enabled = canComplete,
+                enabled = !isCompleting,
+                isLoading = isCompleting,
+                modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = GreenSuccess,
-                    contentColor = Color.White,
-                    disabledContainerColor = GreenSuccess.copy(alpha = 0.5f),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MutedGreen,
+                    disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    disabledContentColor = MutedGreen.copy(alpha = 0.5f),
                 ),
-            )
-        } else if (isCompleting) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = 2.dp,
-                    modifier = Modifier.size(28.dp),
-                )
-            }
-        } else if (task.isCompleted) {
-            Text(
-                text = stringResource(R.string.complete_task_already_completed),
-                style = MaterialTheme.typography.bodyMedium,
-                color = GreenSuccess,
-                fontWeight = FontWeight.Medium,
             )
         }
 
@@ -431,15 +408,17 @@ private fun HabitTaskDetailContent(
                     .fillMaxWidth()
                     .testTag(HabitTaskDetailTestTags.DEACTIVATE_BUTTON),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = DangerRed,
-                    contentColor = Color.White,
-                    disabledContainerColor = DangerRed.copy(alpha = 0.5f),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                 ),
                 trailingIcon = Icons.Outlined.WarningAmber,
             )
         }
 
         Spacer(Modifier.height(8.dp))
+
 
         TextButton(
             onClick = onDone,
