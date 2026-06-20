@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.TaskAlt
@@ -396,41 +397,15 @@ internal fun HabitTaskFormContent(
         }
 
         FormSection(title = stringResource(R.string.create_task_section_goal)) {
-            if (!showTemplates && form.completionCriteria == "TIMER") {
-                ReadOnlyMetaField(
-                    label = stringResource(R.string.create_task_field_criteria_type),
-                    value = stringResource(R.string.create_task_option_criteria_timer),
-                    fieldColors = fieldColors,
-                )
-                ReadOnlyMetaField(
-                    label = stringResource(R.string.create_task_field_timer_seconds),
-                    value = form.timerSecondsDefined.ifBlank { "—" },
-                    fieldColors = fieldColors,
-                )
-                if (form.showValidationErrors && form.fieldErrors.timerSeconds != null) {
-                    Text(
-                        text = form.fieldErrors.timerSeconds!!.toMessage(),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-                if (form.timerPauseAllowed) {
-                    Text(
-                        text = stringResource(R.string.create_task_timer_pause_allowed),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            } else {
-                LabeledOptionDropdown(
-                    label = stringResource(R.string.create_task_field_criteria_type),
-                    options = CreateHabitTaskOptions.completionCriteria,
-                    selected = form.completionCriteria,
-                    error = if (form.showValidationErrors) form.fieldErrors.completionCriteria else null,
-                    onSelected = onCompletionCriteriaChange,
-                    fieldColors = fieldColors,
-                )
-            }
+            // Criteria type is editable in both create and edit (#36): the user can switch it.
+            LabeledOptionDropdown(
+                label = stringResource(R.string.create_task_field_criteria_type),
+                options = CreateHabitTaskOptions.completionCriteria,
+                selected = form.completionCriteria,
+                error = if (form.showValidationErrors) form.fieldErrors.completionCriteria else null,
+                onSelected = onCompletionCriteriaChange,
+                fieldColors = fieldColors,
+            )
 
             if (form.completionCriteria == "REPETITIONS") {
                 Row(
@@ -481,7 +456,7 @@ internal fun HabitTaskFormContent(
                 )
             }
 
-            if (form.completionCriteria == "TIMER" && showTemplates) {
+            if (form.completionCriteria == "TIMER") {
                 TimerCriteriaFields(
                     form = form,
                     onTimerSecondsDefinedChange = onTimerSecondsDefinedChange,
@@ -489,6 +464,9 @@ internal fun HabitTaskFormContent(
                     onTimerPauseAllowedChange = onTimerPauseAllowedChange,
                     fieldColors = fieldColors,
                 )
+                if (!showTemplates) {
+                    TimerPropagationNotice()
+                }
             }
         }
 
@@ -1073,6 +1051,30 @@ private fun formatMinutes(totalSeconds: Int): String {
         minutes.toLong().toString()
     } else {
         String.format(java.util.Locale.US, "%.1f", minutes)
+    }
+}
+
+@Composable
+private fun TimerPropagationNotice() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp))
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(
+            Icons.Outlined.Info,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(18.dp),
+        )
+        Text(
+            text = stringResource(R.string.update_task_timer_propagation_notice),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
     }
 }
 

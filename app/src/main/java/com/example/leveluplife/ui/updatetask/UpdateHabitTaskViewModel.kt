@@ -97,22 +97,39 @@ class UpdateHabitTaskViewModel(
     }
 
     private fun syncDisciplineFilter(state: UpdateHabitTaskUiState): UpdateHabitTaskUiState {
+        // If the task has no discipline of its own (created via the habit flow), default
+        // to the parent habit's discipline, matched by name against the loaded list.
+        // The list endpoint only returns the habit's discipline name, not its id.
+        val habit = state.form.habits.firstOrNull { it.id == state.form.selectedHabitId }
         val disciplineId = state.form.selectedDisciplineId
+            ?: habit?.disciplineName?.takeIf { it.isNotBlank() }?.let { name ->
+                state.allDisciplines.firstOrNull { it.name.equals(name, ignoreCase = true) }?.id
+            }
+
         val categoryFromDiscipline = disciplineId?.let { id ->
             state.allDisciplines.firstOrNull { it.id == id }?.categoryId
         }
         val categoryId = state.selectedCategoryId ?: categoryFromDiscipline
-        val filtered = filterDisciplines(state.allDisciplines, categoryId)
-        val form = if (disciplineId != null && filtered.none { it.id == disciplineId }) {
-            state.form.copy(selectedDisciplineId = null)
+        val byCategory = filterDisciplines(state.allDisciplines, categoryId)
+        // Always offer disciplines: if the task's category has none (or can't be
+        // resolved), fall back to all active disciplines so the picker is never empty.
+        val filtered = byCategory.ifEmpty { state.allDisciplines }
+        // Clear only once disciplines have loaded and the id is genuinely absent —
+        // otherwise the initial parallel load would wipe a valid selection.
+        val resolvedDisciplineId = if (
+            disciplineId != null &&
+            state.allDisciplines.isNotEmpty() &&
+            filtered.none { it.id == disciplineId }
+        ) {
+            null
         } else {
-            state.form
+            disciplineId
         }
 
         return state.copy(
             selectedCategoryId = categoryId,
             disciplines = filtered,
-            form = form,
+            form = state.form.copy(selectedDisciplineId = resolvedDisciplineId),
         )
     }
 
@@ -166,6 +183,18 @@ class UpdateHabitTaskViewModel(
 
     fun onPartialAllowedChange(value: Boolean) {
         _state.update { it.copy(form = it.form.copy(isPartialAllowed = value)) }
+    }
+
+    fun onTimerSecondsDefinedChange(value: String) {
+        _state.update { it.copy(form = HabitTaskFormHandlers.onTimerSecondsDefinedChange(it.form, value)) }
+    }
+
+    fun onTimerSecondsLongChange(value: String) {
+        _state.update { it.copy(form = HabitTaskFormHandlers.onTimerSecondsLongChange(it.form, value)) }
+    }
+
+    fun onTimerPauseAllowedChange(value: Boolean) {
+        _state.update { it.copy(form = HabitTaskFormHandlers.onTimerPauseAllowedChange(it.form, value)) }
     }
 
     fun dismissSubmitError() {

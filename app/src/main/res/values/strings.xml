@@ -128,6 +128,7 @@
     <string name="create_task_timer_seconds_hint">Entre 1 y 86400 segundos (máx. 24 h)</string>
     <string name="create_task_timer_threshold_hint">Tiempo extendido opcional, mayor a la duración base</string>
     <string name="create_task_error_timer_threshold">El umbral largo debe superar la duración base</string>
+    <string name="update_task_timer_propagation_notice">Los cambios al cronómetro se aplican de inmediato y solo a esta tarea.</string>
 
     <!-- Timer preview (issue #34) -->
     <string name="timer_preview_title">Vista previa del cronómetro</string>
