@@ -230,6 +230,9 @@ class LoginViewModelTest {
         override suspend fun updateHabit(request: UpdateHabitRequestDto): Result<CreateHabitResponseDto> =
             Result.failure(IllegalStateException("not configured"))
 
+        override suspend fun deleteHabit(habitId: Int): Result<Unit> =
+            Result.failure(IllegalStateException("not configured"))
+
         override suspend fun getHabitById(id: Int): Result<HabitDto> =
             Result.failure(IllegalStateException("not configured"))
 

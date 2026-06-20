@@ -13,6 +13,7 @@ interface HabitRepository {
     suspend fun getActiveHabits(page: Int, pageSize: Int = 10): Result<HabitsPageResponse>
     suspend fun createHabit(request: CreateHabitRequestDto): Result<CreateHabitResponseDto>
     suspend fun updateHabit(request: UpdateHabitRequestDto): Result<CreateHabitResponseDto>
+    suspend fun deleteHabit(habitId: Int): Result<Unit>
     suspend fun getHabitById(id: Int): Result<HabitDto>
     fun setCurrentUserId(userId: Int)
     fun getCurrentUserId(): Int
@@ -81,6 +82,19 @@ class DefaultHabitRepository(
                 val summary = HabitTaskApiErrorParser.parse400(errorBody).summary
                 Result.failure(Exception("Validación fallida: $summary"))
             }
+            response.code() == 401 -> Result.failure(Exception("Sesión expirada. Inicia sesión de nuevo."))
+            response.code() == 404 -> Result.failure(Exception("Hábito no encontrado"))
+            response.code() == 500 -> Result.failure(Exception("Error del servidor: ${response.body()?.message}"))
+            else -> Result.failure(Exception("HTTP ${response.code()}"))
+        }
+    } catch (t: Throwable) {
+        Result.failure(t)
+    }
+
+    override suspend fun deleteHabit(habitId: Int): Result<Unit> = try {
+        val response = api.deleteHabit(habitId)
+        when {
+            response.isSuccessful -> Result.success(Unit)
             response.code() == 401 -> Result.failure(Exception("Sesión expirada. Inicia sesión de nuevo."))
             response.code() == 404 -> Result.failure(Exception("Hábito no encontrado"))
             response.code() == 500 -> Result.failure(Exception("Error del servidor: ${response.body()?.message}"))

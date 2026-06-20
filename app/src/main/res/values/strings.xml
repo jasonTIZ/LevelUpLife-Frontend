@@ -276,6 +276,13 @@
     <string name="habit_detail_description_field">Descripción (opcional)</string>
     <string name="habit_detail_update_success">Hábito actualizado</string>
 
+    <!-- Home: eliminar hábito -->
+    <string name="home_delete_habit_action">Eliminar hábito</string>
+    <string name="home_delete_habit_title">Eliminar hábito</string>
+    <string name="home_delete_habit_message">¿Seguro que deseas eliminar «%1$s»? Se eliminarán también todas sus tareas.</string>
+    <string name="home_delete_habit_confirm">Eliminar</string>
+    <string name="home_delete_habit_cancel">Cancelar</string>
+
     <!-- Settings / deactivate account -->
     <string name="settings_title">Ajustes</string>
     <string name="settings_back">Volver</string>

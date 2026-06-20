@@ -10,4 +10,6 @@ data class HomeUiState(
     val currentPage: Int = 1,
     val totalPages: Int = 1,
     val hasMore: Boolean = false,
+    val deletingHabitId: Int? = null,
+    val deleteError: String? = null,
 )

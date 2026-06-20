@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Person
@@ -83,6 +85,7 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.player.PlayerProfile
 import com.example.leveluplife.data.player.ProfileCache
+import com.example.leveluplife.ui.components.LulConfirmAlertDialog
 import java.util.Calendar
 
 private val StreakInactive = Color(0xFF6B7280)
@@ -106,6 +109,15 @@ fun HomeScreen(
     val state by viewModel.state.collectAsState()
     val cachedProfile by profileCache.profile.collectAsState()
     val listState = rememberLazyListState()
+    val context = LocalContext.current
+    var habitPendingDelete by remember { mutableStateOf<HabitDto?>(null) }
+
+    LaunchedEffect(state.deleteError) {
+        state.deleteError?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            viewModel.onDeleteErrorShown()
+        }
+    }
 
     val shouldLoadMore by remember {
         derivedStateOf {
@@ -223,6 +235,7 @@ fun HomeScreen(
                         HabitCard(
                             habit = habit,
                             onClick = { onHabitClick(habit.id) },
+                            onDelete = { habitPendingDelete = habit },
                         )
                         Spacer(Modifier.height(10.dp))
                     }
@@ -244,6 +257,20 @@ fun HomeScreen(
                 }
             }
         }
+    }
+
+    habitPendingDelete?.let { habit ->
+        LulConfirmAlertDialog(
+            title = stringResource(R.string.home_delete_habit_title),
+            message = stringResource(R.string.home_delete_habit_message, habit.title),
+            confirmText = stringResource(R.string.home_delete_habit_confirm),
+            dismissText = stringResource(R.string.home_delete_habit_cancel),
+            onConfirm = {
+                viewModel.deleteHabit(habit.id)
+                habitPendingDelete = null
+            },
+            onDismiss = { habitPendingDelete = null },
+        )
     }
 }
 
@@ -578,6 +605,7 @@ private fun CalendarWeekCard() {
 private fun HabitCard(
     habit: HabitDto,
     onClick: () -> Unit,
+    onDelete: () -> Unit,
 ) {
     Card(
         shape = RoundedCornerShape(14.dp),
@@ -587,7 +615,7 @@ private fun HabitCard(
             .clickable(onClick = onClick),
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 16.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -624,6 +652,19 @@ private fun HabitCard(
                     )
                 }
             }
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier
+                    .align(Alignment.Top)
+                    .size(36.dp),
+            ) {
+                Icon(
+                    Icons.Filled.Delete,
+                    contentDescription = stringResource(R.string.home_delete_habit_action),
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
         }
     }
 }
@@ -646,6 +687,7 @@ private fun HomeBottomBar(onOpenSettings: () -> Unit, onOpenCoach: () -> Unit) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
+        windowInsets = WindowInsets(0, 0, 0, 0),
     ) {
         items.forEach { item ->
             NavigationBarItem(

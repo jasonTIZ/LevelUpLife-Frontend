@@ -84,6 +84,9 @@ class HabitDetailViewModelTest {
         override suspend fun updateHabit(request: UpdateHabitRequestDto): Result<CreateHabitResponseDto> =
             Result.failure(UnsupportedOperationException())
 
+        override suspend fun deleteHabit(habitId: Int): Result<Unit> =
+            Result.failure(UnsupportedOperationException())
+
         override fun setCurrentUserId(userId: Int) = Unit
 
         override fun getCurrentUserId(): Int = 1
