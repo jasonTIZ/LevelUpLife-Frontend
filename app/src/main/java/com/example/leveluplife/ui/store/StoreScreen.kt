@@ -75,6 +75,7 @@ fun StoreScreen(
     viewModel: StoreViewModel,
     onBack: () -> Unit,
     onOpenInventory: () -> Unit,
+    onItemClick: (RewardItemDto) -> Unit = {},
     onPurchaseSuccess: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -204,6 +205,7 @@ fun StoreScreen(
                             isBuying = item.id == state.buyingItemId,
                             anyBuying = state.buyingItemId != null,
                             onBuy = { viewModel.purchase(item) },
+                            onClick = { onItemClick(item) },
                         )
                     }
                 }
@@ -241,15 +243,18 @@ private fun SectionHeader(typeName: String, typeId: Int?) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RewardItemCard(
     item: RewardItemDto,
     isBuying: Boolean,
     anyBuying: Boolean,
     onBuy: () -> Unit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
+        onClick = onClick,
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = modifier.fillMaxWidth(),
