@@ -18,4 +18,5 @@ data class HabitDetailUiState(
     val isSaving: Boolean = false,
     val saveError: String? = null,
     val updateSuccess: Boolean = false,
+    val aiDifficultyFailed: Boolean = false,
 )

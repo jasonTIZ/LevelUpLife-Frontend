@@ -54,6 +54,7 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaDto
+import com.example.leveluplife.ui.components.LulErrorAlertDialog
 import com.example.leveluplife.ui.components.LulPrimaryButton
 import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.createtask.HabitTaskEmbeddedForm
@@ -87,6 +88,15 @@ fun HabitDetailScreen(
             snackbarHostState.showLulSnackbar(updateSuccessMessage)
             viewModel.onUpdateMessageShown()
         }
+    }
+
+    if (state.aiDifficultyFailed) {
+        LulErrorAlertDialog(
+            title = stringResource(R.string.ai_difficulty_failed_title),
+            message = stringResource(R.string.ai_difficulty_failed_message),
+            dismissText = stringResource(R.string.login_dismiss),
+            onDismiss = viewModel::onAiDifficultyAlertShown,
+        )
     }
 
     Scaffold(

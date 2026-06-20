@@ -6,4 +6,5 @@ import kotlinx.serialization.Serializable
 data class CreateHabitResponseDto(
     val success: Boolean,
     val message: String,
+    val aiDifficultyFailed: Boolean = false,
 )

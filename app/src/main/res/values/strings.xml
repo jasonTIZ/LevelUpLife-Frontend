@@ -339,6 +339,10 @@
     <string name="evidence_health_value_exercise">%1$s min de ejercicio</string>
     <string name="evidence_health_value_generic">%1$s %2$s</string>
 
+    <!-- Dificultad por IA -->
+    <string name="ai_difficulty_failed_title">Dificultad asignada automáticamente</string>
+    <string name="ai_difficulty_failed_message">La IA no pudo determinar el nivel de dificultad de la tarea, así que se asignó dificultad media.</string>
+
     <!-- Notificaciones de tareas -->
     <string name="notif_channel_task_reminders">Recordatorios de tareas</string>
     <string name="notif_task_pending_today_title">Tienes una tarea pendiente para hoy</string>

@@ -41,10 +41,23 @@ fun UpdateHabitTaskScreen(
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(state.updatedTask) {
-        state.updatedTask?.let { task ->
+        val task = state.updatedTask ?: return@LaunchedEffect
+        if (!task.aiDifficultyFailed) {
             onTaskUpdated(task)
             viewModel.consumeUpdatedTask()
         }
+    }
+
+    state.updatedTask?.takeIf { it.aiDifficultyFailed }?.let { task ->
+        LulErrorAlertDialog(
+            title = stringResource(R.string.ai_difficulty_failed_title),
+            message = stringResource(R.string.ai_difficulty_failed_message),
+            dismissText = stringResource(R.string.login_dismiss),
+            onDismiss = {
+                onTaskUpdated(task)
+                viewModel.consumeUpdatedTask()
+            },
+        )
     }
 
     if (state.showConflictDialog) {

@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.leveluplife.R
 import com.example.leveluplife.ui.components.CategoryChipsRow
+import com.example.leveluplife.ui.components.LulErrorAlertDialog
 import com.example.leveluplife.ui.components.LulPrimaryButton
 import com.example.leveluplife.ui.createtask.HabitTaskEmbeddedForm
 import kotlinx.coroutines.delay
@@ -40,10 +41,19 @@ fun CreateHabitScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(uiState.success) {
-        if (uiState.success) {
+        if (uiState.success && !uiState.aiDifficultyFailed) {
             delay(1500)
             onHabitCreated()
         }
+    }
+
+    if (uiState.success && uiState.aiDifficultyFailed) {
+        LulErrorAlertDialog(
+            title = stringResource(R.string.ai_difficulty_failed_title),
+            message = stringResource(R.string.ai_difficulty_failed_message),
+            dismissText = stringResource(R.string.login_dismiss),
+            onDismiss = onHabitCreated,
+        )
     }
 
     Box(

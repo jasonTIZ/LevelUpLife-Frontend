@@ -121,6 +121,7 @@ data class HabitTaskDto(
     val evidence: String? = null,
     val repetitionCriteria: RepetitionCriteriaDto? = null,
     val timerCriteria: TimerCriteriaDto? = null,
+    val aiDifficultyFailed: Boolean = false,
 ) {
     val resolvedDisciplineId: Int?
         get() = habitDisciplineId ?: habitDiscipline?.id
