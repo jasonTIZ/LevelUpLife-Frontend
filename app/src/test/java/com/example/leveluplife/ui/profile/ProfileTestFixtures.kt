@@ -111,6 +111,17 @@ class FakeProfileCache(
         )
     }
 
+    override suspend fun addGoldEarned(amount: Int) {
+        if (amount <= 0) return
+        val current = _profile.value ?: return
+        _profile.value = current.copy(gold = current.gold + amount)
+    }
+
+    override suspend fun setGold(gold: Int) {
+        val current = _profile.value ?: return
+        _profile.value = current.copy(gold = gold)
+    }
+
     override fun clearMemory() {
         _profile.value = null
         etag = null
@@ -134,6 +145,7 @@ fun sampleProfile() = PlayerProfile(
     email = "aarontest@leveluplife.com",
     birthdate = "2000-01-15",
     bio = "Hola",
+    gold = 300,
 )
 
 fun validationException() = ProfileException(

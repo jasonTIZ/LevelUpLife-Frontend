@@ -23,14 +23,51 @@ class InventoryViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             repository.getInventory()
-                .onSuccess { items ->
-                    _state.update { it.copy(isLoading = false, items = items) }
+                .onSuccess { response ->
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            items = response.items,
+                            activeEffects = response.activeEffects,
+                        )
+                    }
                 }
                 .onFailure { t ->
                     _state.update { it.copy(isLoading = false, error = t.message) }
                 }
         }
     }
+
+    fun activate(inventoryId: Int) {
+        if (_state.value.activatingItemId != null) return
+        viewModelScope.launch {
+            _state.update {
+                it.copy(activatingItemId = inventoryId, activateError = null, recoveryMessage = null)
+            }
+            repository.activateItem(inventoryId)
+                .onSuccess { response ->
+                    _state.update {
+                        it.copy(
+                            activatingItemId = null,
+                            recoveryMessage = response.recoveryMessage,
+                        )
+                    }
+                    load()
+                }
+                .onFailure { t ->
+                    val errorKey = when (t.message) {
+                        "no_quantity" -> "no_quantity"
+                        "effect_already_active" -> "effect_already_active"
+                        "recovery_no_target" -> "recovery_no_target"
+                        else -> "generic"
+                    }
+                    _state.update { it.copy(activatingItemId = null, activateError = errorKey) }
+                }
+        }
+    }
+
+    fun clearActivateError() = _state.update { it.copy(activateError = null) }
+    fun clearRecoveryMessage() = _state.update { it.copy(recoveryMessage = null) }
 
     class Factory(
         private val repository: RewardRepository,

@@ -91,6 +91,7 @@ class HabitTaskDetailViewModel(
                         levelProgressPercent = response.levelProgressPercent,
                         daysStreak = response.daysStreak,
                     )
+                    profileCache.addGoldEarned(response.xpEarned)
                     _state.update {
                         it.copy(
                             isCompleting = false,

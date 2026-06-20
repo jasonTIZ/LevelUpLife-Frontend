@@ -17,6 +17,7 @@ data class PlayerProfile(
     val experiencePointsRequiredForNextLevel: Int = 0,
     val levelProgressPercent: Double = 0.0,
     val daysStreak: Int = 0,
+    val gold: Int = 0,
 ) {
     val levelProgressFraction: Float
         get() = levelProgressPercent.coerceIn(0.0, 1.0).toFloat()
