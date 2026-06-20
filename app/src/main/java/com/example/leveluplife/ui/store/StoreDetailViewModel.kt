@@ -29,12 +29,12 @@ class StoreDetailViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isPurchasing = true, purchaseError = null, purchaseSuccess = false) }
             repository.purchaseItem(item.id)
-                .onSuccess {
+                .onSuccess { response ->
                     _state.update { it.copy(isPurchasing = false, purchaseSuccess = true) }
                 }
                 .onFailure { t ->
                     val errorKey = when (t.message) {
-                        "insufficient_funds" -> "insufficient_funds"
+                        "insufficient_gold" -> "insufficient_gold"
                         else -> "generic"
                     }
                     _state.update { it.copy(isPurchasing = false, purchaseError = errorKey) }

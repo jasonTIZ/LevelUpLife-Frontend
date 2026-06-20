@@ -438,21 +438,40 @@
     <string name="store_detail_redeem_button">Canjear</string>
     <string name="store_detail_redeem_disabled">No disponible para canjear</string>
     <string name="store_redeem_coming_soon">Funcionalidad de canje próximamente disponible</string>
-    <string name="store_purchase_success">¡Item canjeado correctamente!</string>
-    <string name="store_purchase_success_button">¡Canjeado!</string>
-    <string name="store_purchase_error_insufficient">No tenés suficiente XP para este item</string>
+    <string name="store_purchase_success">¡Item comprado correctamente!</string>
+    <string name="store_purchase_success_button">¡Comprado!</string>
+    <string name="store_purchase_error_insufficient">No tenés suficiente oro para este item</string>
     <string name="store_purchase_error_not_found">Este item ya no está disponible</string>
-    <string name="store_purchase_error_generic">No se pudo completar el canje. Intentá de nuevo.</string>
+    <string name="store_purchase_error_generic">No se pudo completar la compra. Intentá de nuevo.</string>
     <string name="store_cost_gold">%1$d oro</string>
+    <string name="store_player_gold">%1$d oro</string>
     <string name="store_buy_button">Comprar</string>
     <string name="store_buy_success">¡%1$s comprado!</string>
-    <!-- Inventory -->
-    <string name="inventory_title">MI INVENTARIO</string>
+    <!-- Inventory / Mochila -->
+    <string name="inventory_title">MOCHILA</string>
     <string name="inventory_back">Volver</string>
-    <string name="inventory_empty">Tu inventario está vacío</string>
-    <string name="inventory_error">No se pudo cargar el inventario</string>
+    <string name="inventory_empty">Tu mochila está vacía</string>
+    <string name="inventory_error">No se pudo cargar la mochila</string>
     <string name="inventory_retry">Reintentar</string>
     <string name="inventory_quantity">x%1$d</string>
+    <string name="backpack_activate">Activar</string>
+    <string name="backpack_activating">Activando…</string>
+    <string name="backpack_equipped_badge">Equipado</string>
+    <string name="backpack_effects_title">EFECTOS ACTIVOS</string>
+    <string name="backpack_items_title">MIS OBJETOS</string>
+    <string name="backpack_effect_expires">Expira: %1$s</string>
+    <string name="backpack_effect_charges">Cargas: %1$d</string>
+    <string name="backpack_effect_multiplier">x%1$s</string>
+    <string name="backpack_activate_error_no_quantity">No quedan unidades de este item</string>
+    <string name="backpack_activate_error_already_active">Este item ya tiene un efecto activo</string>
+    <string name="backpack_activate_error_recovery">No hay racha o penalización que recuperar</string>
+    <string name="backpack_activate_error_generic">No se pudo activar el item. Intentá de nuevo.</string>
+    <string name="backpack_open_cd">Abrir mochila</string>
+    <!-- Home gold -->
+    <string name="home_gold_chip">%1$d oro</string>
+    <string name="home_gold_content_description">%1$d oro</string>
+    <!-- Task completion -->
+    <string name="task_reward_gold_earned">+%1$d oro</string>
 
     <!-- Evidence gallery - delete -->
     <string name="evidence_gallery_delete_button">Eliminar</string>

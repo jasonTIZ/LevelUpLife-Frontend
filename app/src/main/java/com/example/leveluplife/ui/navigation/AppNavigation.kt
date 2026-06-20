@@ -304,6 +304,9 @@ fun AppNavigation(
                 onOpenStore = {
                     navController.navigate(Routes.STORE) { launchSingleTop = true }
                 },
+                onOpenBackpack = {
+                    navController.navigate(Routes.INVENTORY) { launchSingleTop = true }
+                },
             )
         }
         composable(Routes.PROFILE) {
@@ -539,10 +542,12 @@ fun AppNavigation(
         }
         composable(Routes.STORE) {
             val vm: StoreViewModel = viewModel(
-                factory = StoreViewModel.Factory(container.rewardRepository),
+                factory = StoreViewModel.Factory(container.rewardRepository, container.profileCache),
             )
+            val cachedProfile by container.profileCache.profile.collectAsState()
             StoreScreen(
                 viewModel = vm,
+                playerGold = cachedProfile?.gold ?: 0,
                 onBack = { navController.popBackStack() },
                 onOpenInventory = {
                     navController.navigate(Routes.INVENTORY) { launchSingleTop = true }

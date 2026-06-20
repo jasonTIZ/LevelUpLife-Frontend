@@ -21,12 +21,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Backpack
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -73,6 +73,7 @@ internal val GoldColor = Color(0xFFF59E0B)
 @Composable
 fun StoreScreen(
     viewModel: StoreViewModel,
+    playerGold: Int,
     onBack: () -> Unit,
     onOpenInventory: () -> Unit,
     onItemClick: (RewardItemDto) -> Unit = {},
@@ -95,7 +96,7 @@ fun StoreScreen(
 
     LaunchedEffect(state.buyError) {
         val key = state.buyError ?: return@LaunchedEffect
-        val msg = if (key == "insufficient_funds") errorInsufficient else errorGeneric
+        val msg = if (key == "insufficient_gold") errorInsufficient else errorGeneric
         snackbarHostState.showSnackbar(msg)
         viewModel.clearBuyError()
     }
@@ -120,8 +121,30 @@ fun StoreScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = onOpenInventory) {
-                            Icon(Icons.Filled.ShoppingBag, contentDescription = stringResource(R.string.inventory_title))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(end = 4.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Star,
+                                contentDescription = null,
+                                tint = GoldColor,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = stringResource(R.string.store_player_gold, playerGold),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = GoldColor,
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            IconButton(onClick = onOpenInventory) {
+                                Icon(
+                                    Icons.Filled.Backpack,
+                                    contentDescription = stringResource(R.string.backpack_open_cd),
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -202,6 +225,7 @@ fun StoreScreen(
                     items(groupItems, key = { it.id }) { item ->
                         RewardItemCard(
                             item = item,
+                            playerGold = playerGold,
                             isBuying = item.id == state.buyingItemId,
                             anyBuying = state.buyingItemId != null,
                             onBuy = { viewModel.purchase(item) },
@@ -247,12 +271,16 @@ private fun SectionHeader(typeName: String, typeId: Int?) {
 @Composable
 private fun RewardItemCard(
     item: RewardItemDto,
+    playerGold: Int,
     isBuying: Boolean,
     anyBuying: Boolean,
     onBuy: () -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val cost = item.costGold.toInt()
+    val canAfford = playerGold >= cost
+
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(14.dp),
@@ -296,7 +324,7 @@ private fun RewardItemCard(
                     )
                     Spacer(Modifier.width(2.dp))
                     Text(
-                        text = stringResource(R.string.store_cost_gold, item.costGold.toInt()),
+                        text = stringResource(R.string.store_cost_gold, cost),
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold,
                         color = GoldColor,
@@ -308,7 +336,7 @@ private fun RewardItemCard(
 
             Button(
                 onClick = onBuy,
-                enabled = !isBuying && !anyBuying,
+                enabled = canAfford && !isBuying && !anyBuying && item.isActive,
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .height(36.dp)

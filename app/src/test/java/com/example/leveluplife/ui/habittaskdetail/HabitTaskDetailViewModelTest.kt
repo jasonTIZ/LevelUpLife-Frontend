@@ -99,6 +99,8 @@ class HabitTaskDetailViewModelTest {
 
         assertEquals(1, taskRepo.completeCalls)
         assertEquals(3, profileCache.lastLevel)
+        assertEquals(25, profileCache.lastGoldEarned)
+        assertEquals(25, profileCache.profile.value?.gold)
         assertEquals(25, vm.state.value.reward?.xpEarned)
         assertEquals(2, vm.state.value.reward?.previousLevel)
         assertEquals(3, vm.state.value.reward?.newLevel)
@@ -286,6 +288,7 @@ class HabitTaskDetailViewModelTest {
         )
         override val profile: StateFlow<PlayerProfile?> = _profile
         var lastLevel: Int = level
+        var lastGoldEarned: Int = 0
 
         override suspend fun loadPersisted() = Unit
 
@@ -318,6 +321,15 @@ class HabitTaskDetailViewModelTest {
                 levelProgressPercent = levelProgressPercent,
                 daysStreak = daysStreak ?: _profile.value.daysStreak,
             )
+        }
+
+        override suspend fun addGoldEarned(amount: Int) {
+            lastGoldEarned = amount
+            _profile.value = _profile.value.copy(gold = _profile.value.gold + amount)
+        }
+
+        override suspend fun setGold(gold: Int) {
+            _profile.value = _profile.value.copy(gold = gold)
         }
 
         override fun clearMemory() = Unit

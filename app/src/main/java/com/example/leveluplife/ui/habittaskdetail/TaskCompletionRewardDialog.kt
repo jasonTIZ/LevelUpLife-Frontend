@@ -162,6 +162,13 @@ fun TaskCompletionRewardDialog(
                     color = GoldAccent,
                 )
 
+                Text(
+                    text = stringResource(R.string.task_reward_gold_earned, reward.xpEarned),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = GoldAccent.copy(alpha = 0.85f),
+                )
+
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
