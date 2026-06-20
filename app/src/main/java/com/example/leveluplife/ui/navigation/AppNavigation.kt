@@ -322,7 +322,11 @@ fun AppNavigation(
                 .getStateFlow<String?>(Routes.ARG_TASK_DEACTIVATED_MESSAGE, null)
                 .collectAsState()
             val vm: HabitDetailViewModel = viewModel(
-                factory = HabitDetailViewModel.Factory(container.habitRepository, habitId),
+                factory = HabitDetailViewModel.Factory(
+                    container.habitRepository,
+                    container.habitDisciplineRepository,
+                    habitId,
+                ),
             )
             HabitDetailScreen(
                 viewModel = vm,
