@@ -9,6 +9,7 @@ import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.network.dto.HabitsPageResponse
 import com.example.leveluplife.data.network.dto.PaginationDto
+import com.example.leveluplife.data.network.dto.UpdateHabitRequestDto
 import com.example.leveluplife.domain.validation.HabitTaskFieldError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -129,6 +130,9 @@ class CreateHabitTaskViewModelTest {
             Result.failure(UnsupportedOperationException())
 
         override suspend fun createHabit(request: CreateHabitRequestDto): Result<CreateHabitResponseDto> =
+            Result.failure(UnsupportedOperationException())
+
+        override suspend fun updateHabit(request: UpdateHabitRequestDto): Result<CreateHabitResponseDto> =
             Result.failure(UnsupportedOperationException())
 
         override fun setCurrentUserId(userId: Int) = Unit

@@ -19,14 +19,19 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -49,7 +54,9 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaDto
+import com.example.leveluplife.ui.components.LulPrimaryButton
 import com.example.leveluplife.ui.components.showLulSnackbar
+import com.example.leveluplife.ui.createtask.HabitTaskEmbeddedForm
 import com.example.leveluplife.ui.habittaskdetail.HabitTaskLabels
 
 private val GreenSuccess = Color(0xFF4CAF50)
@@ -66,12 +73,20 @@ fun HabitDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val updateSuccessMessage = stringResource(R.string.habit_detail_update_success)
 
     LaunchedEffect(infoMessage) {
         val message = infoMessage?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
         viewModel.refreshHabit()
         snackbarHostState.showLulSnackbar(message)
         onInfoMessageShown()
+    }
+
+    LaunchedEffect(state.updateSuccess) {
+        if (state.updateSuccess) {
+            snackbarHostState.showLulSnackbar(updateSuccessMessage)
+            viewModel.onUpdateMessageShown()
+        }
     }
 
     Scaffold(
@@ -104,6 +119,26 @@ fun HabitDetailScreen(
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f),
                 )
+
+                if (state.habit != null) {
+                    if (state.isEditing) {
+                        IconButton(onClick = viewModel::cancelEditing) {
+                            Icon(
+                                Icons.Filled.Close,
+                                contentDescription = stringResource(R.string.habit_detail_cancel),
+                                tint = MaterialTheme.colorScheme.onBackground,
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = viewModel::startEditing) {
+                            Icon(
+                                Icons.Filled.Edit,
+                                contentDescription = stringResource(R.string.habit_detail_edit_action),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                }
             }
 
             when {
@@ -139,6 +174,11 @@ fun HabitDetailScreen(
                         }
                     }
                 }
+
+                state.isEditing && state.habit != null -> HabitEditContent(
+                    state = state,
+                    viewModel = viewModel,
+                )
 
                 state.habit != null -> HabitDetailContent(
                     habit = requireNotNull(state.habit),
@@ -181,6 +221,149 @@ private fun HabitDetailContent(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+        }
+
+        item { Spacer(Modifier.height(8.dp)) }
+    }
+}
+
+@Composable
+private fun HabitEditContent(
+    state: HabitDetailUiState,
+    viewModel: HabitDetailViewModel,
+) {
+    val habit = requireNotNull(state.habit)
+    val activeTasks = habit.tasks.filter { it.isActive }
+
+    LazyColumn(
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item { SectionTitle(stringResource(R.string.habit_detail_edit_section)) }
+
+        item {
+            val meta = listOfNotNull(
+                habit.categoryName.takeIf { it.isNotBlank() },
+                habit.disciplineName.takeIf { it.isNotBlank() },
+            ).joinToString(" · ")
+            if (meta.isNotBlank()) {
+                Text(
+                    text = meta,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        item {
+            OutlinedTextField(
+                value = state.editTitle,
+                onValueChange = viewModel::setEditTitle,
+                label = { Text(stringResource(R.string.habit_detail_title_field)) },
+                placeholder = { Text(stringResource(R.string.habit_detail_title_placeholder)) },
+                modifier = Modifier.fillMaxWidth(),
+                isError = state.editTitleError != null,
+                supportingText = state.editTitleError?.let { error ->
+                    { Text(error, color = MaterialTheme.colorScheme.error) }
+                },
+                singleLine = true,
+            )
+        }
+
+        item {
+            OutlinedTextField(
+                value = state.editDescription,
+                onValueChange = viewModel::setEditDescription,
+                label = { Text(stringResource(R.string.habit_detail_description_field)) },
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 3,
+            )
+        }
+
+        if (activeTasks.isNotEmpty()) {
+            item { SectionTitle(stringResource(R.string.habit_detail_tasks_section)) }
+            itemsIndexed(activeTasks) { index, task ->
+                TaskCriteriaCard(
+                    taskNumber = index + 1,
+                    task = task,
+                    onClick = {},
+                )
+            }
+        }
+
+        item { SectionTitle(stringResource(R.string.habit_detail_new_tasks_section)) }
+
+        itemsIndexed(state.newTasks) { index, taskForm ->
+            HabitTaskEmbeddedForm(
+                form = taskForm,
+                taskNumber = index + 1,
+                canRemove = true,
+                onRemove = { viewModel.removeNewTask(index) },
+                taskDisciplines = state.disciplines,
+                isTaskDisciplinesLoading = state.isDisciplinesLoading,
+                onDisciplineSelected = { viewModel.onTaskDisciplineChange(index, it) },
+                onTitleChange = { viewModel.onTaskTitleChange(index, it) },
+                onDescriptionChange = { viewModel.onTaskDescriptionChange(index, it) },
+                onDifficultyChange = { viewModel.onTaskDifficultyChange(index, it) },
+                onFrequencyChange = { viewModel.onTaskFrequencyChange(index, it) },
+                onPeriodLengthChange = { viewModel.onTaskPeriodLengthChange(index, it) },
+                onPeriodUnitChange = { viewModel.onTaskPeriodUnitChange(index, it) },
+                onStartDateChange = { viewModel.onTaskStartDateChange(index, it) },
+                onCompletionCriteriaChange = { viewModel.onTaskCompletionCriteriaChange(index, it) },
+                onRepetitionsChange = { viewModel.onTaskRepetitionsChange(index, it) },
+                onMeasurementUnitChange = { viewModel.onTaskMeasurementUnitChange(index, it) },
+                onEvidenceChange = { viewModel.onTaskEvidenceChange(index, it) },
+                onPartialAllowedChange = { viewModel.onTaskPartialAllowedChange(index, it) },
+                onTimerSecondsDefinedChange = { viewModel.onTaskTimerSecondsDefinedChange(index, it) },
+                onTimerSecondsLongChange = { viewModel.onTaskTimerSecondsLongChange(index, it) },
+                onTimerPauseAllowedChange = { viewModel.onTaskTimerPauseAllowedChange(index, it) },
+                onApplyTemplate = { viewModel.applyTaskTemplate(index, it) },
+                onDismissError = { viewModel.dismissTaskError(index) },
+            )
+        }
+
+        item {
+            Button(
+                onClick = viewModel::addNewTask,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(imageVector = Icons.Filled.Add, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.habit_detail_add_task))
+            }
+        }
+
+        state.saveError?.let { error ->
+            item {
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+
+        item {
+            LulPrimaryButton(
+                text = if (state.isSaving) {
+                    stringResource(R.string.habit_detail_saving)
+                } else {
+                    stringResource(R.string.habit_detail_save)
+                },
+                onClick = viewModel::saveEdits,
+                enabled = !state.isSaving,
+                isLoading = state.isSaving,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
+        item {
+            TextButton(
+                onClick = viewModel::cancelEditing,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.habit_detail_cancel))
             }
         }
 

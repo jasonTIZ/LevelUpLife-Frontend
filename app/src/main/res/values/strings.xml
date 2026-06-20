@@ -265,6 +265,17 @@
     <string name="habit_detail_no_repetition_criteria">Sin criterios de repetición</string>
     <string name="habit_detail_task_default_title">Tarea %1$d</string>
     <string name="habit_detail_task_subtitle">%1$s · %2$s · %3$s</string>
+    <string name="habit_detail_edit_action">Editar</string>
+    <string name="habit_detail_save">Guardar cambios</string>
+    <string name="habit_detail_cancel">Cancelar</string>
+    <string name="habit_detail_saving">Guardando…</string>
+    <string name="habit_detail_edit_section">EDITAR HÁBITO</string>
+    <string name="habit_detail_new_tasks_section">NUEVAS TAREAS</string>
+    <string name="habit_detail_add_task">Agregar tarea</string>
+    <string name="habit_detail_title_field">Título del hábito</string>
+    <string name="habit_detail_title_placeholder">Ej. Ejercicio diario</string>
+    <string name="habit_detail_description_field">Descripción (opcional)</string>
+    <string name="habit_detail_update_success">Hábito actualizado</string>
 
     <!-- Settings / deactivate account -->
     <string name="settings_title">Ajustes</string>
