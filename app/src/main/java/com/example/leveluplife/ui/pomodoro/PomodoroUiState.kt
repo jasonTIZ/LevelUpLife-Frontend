@@ -28,6 +28,7 @@ data class PomodoroTimerConfig(
 data class PomodoroUiState(
     val mode: PomodoroMode = PomodoroMode.FREE,
     val freeMinutesInput: String = "25",
+    val freeError: String? = null,
     val config: PomodoroTimerConfig? = null,
     // "from task" pickers
     val isLoadingHabits: Boolean = false,

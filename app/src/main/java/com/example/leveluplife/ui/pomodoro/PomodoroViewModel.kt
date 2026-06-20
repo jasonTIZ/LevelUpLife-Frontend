@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.leveluplife.data.habits.HabitRepository
+import com.example.leveluplife.data.network.dto.TaskCompletionCriteria
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,18 +38,28 @@ class PomodoroViewModel(
 
     fun onFreeMinutesChange(value: String) {
         val digits = value.filter { it.isDigit() }.take(4)
-        _state.update { it.copy(freeMinutesInput = digits) }
+        _state.update { it.copy(freeMinutesInput = digits, freeError = null) }
     }
 
     fun setFreeMinutes(minutes: Int) {
-        _state.update { it.copy(freeMinutesInput = minutes.toString()) }
+        _state.update { it.copy(freeMinutesInput = minutes.toString(), freeError = null) }
         startFreeTimer()
     }
 
     fun startFreeTimer() {
-        val minutes = _state.value.freeMinutesInput.toIntOrNull()?.coerceIn(1, MAX_FREE_MINUTES) ?: return
+        val minutes = _state.value.freeMinutesInput.toIntOrNull()
+        if (minutes == null || minutes < 1 || minutes > MAX_FREE_MINUTES) {
+            _state.update {
+                it.copy(
+                    freeError = "Ingresá una duración entre 1 y $MAX_FREE_MINUTES minutos.",
+                    config = null,
+                )
+            }
+            return
+        }
         _state.update {
             it.copy(
+                freeError = null,
                 config = PomodoroTimerConfig(
                     durationSeconds = minutes * 60,
                     pauseAllowed = true,
@@ -94,7 +105,11 @@ class PomodoroViewModel(
             habitRepository.getHabitById(habitId)
                 .onSuccess { habit ->
                     val timerTasks = habit.tasks
-                        .filter { it.completionCriteria == "TIMER" && it.timerCriteria != null }
+                        .filter { task ->
+                            task.isActive &&
+                                task.completionCriteria == TaskCompletionCriteria.TIMER.name &&
+                                task.timerCriteria?.statusTimerCriteriaIsActive == true
+                        }
                         .map { task ->
                             val timer = task.timerCriteria!!
                             PomodoroTimerTask(

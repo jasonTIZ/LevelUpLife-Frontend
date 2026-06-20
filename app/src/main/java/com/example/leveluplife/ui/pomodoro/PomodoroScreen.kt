@@ -87,6 +87,7 @@ fun PomodoroScreen(
                 when (state.mode) {
                     PomodoroMode.FREE -> FreeModeContent(
                         minutesInput = state.freeMinutesInput,
+                        error = state.freeError,
                         onMinutesChange = viewModel::onFreeMinutesChange,
                         onQuickPick = viewModel::setFreeMinutes,
                         onStart = viewModel::startFreeTimer,
@@ -220,6 +221,7 @@ private fun ActiveTimer(
 @Composable
 private fun FreeModeContent(
     minutesInput: String,
+    error: String?,
     onMinutesChange: (String) -> Unit,
     onQuickPick: (Int) -> Unit,
     onStart: () -> Unit,
@@ -245,6 +247,10 @@ private fun FreeModeContent(
             label = { Text(stringResource(R.string.pomodoro_free_minutes)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            isError = error != null,
+            supportingText = if (error != null) {
+                { Text(error, color = MaterialTheme.colorScheme.error) }
+            } else null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
