@@ -10,6 +10,7 @@ import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
 import com.example.leveluplife.data.network.dto.CreateHabitResponseDto
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitsPageResponse
+import com.example.leveluplife.data.network.dto.UpdateHabitRequestDto
 import com.example.leveluplife.domain.validation.FieldError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -224,6 +225,9 @@ class LoginViewModelTest {
             Result.failure(IllegalStateException("not configured"))
 
         override suspend fun createHabit(request: CreateHabitRequestDto): Result<CreateHabitResponseDto> =
+            Result.failure(IllegalStateException("not configured"))
+
+        override suspend fun updateHabit(request: UpdateHabitRequestDto): Result<CreateHabitResponseDto> =
             Result.failure(IllegalStateException("not configured"))
 
         override suspend fun getHabitById(id: Int): Result<HabitDto> =

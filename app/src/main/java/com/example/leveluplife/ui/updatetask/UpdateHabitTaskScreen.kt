@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -24,9 +25,6 @@ import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.ui.components.LulErrorAlertDialog
 import com.example.leveluplife.ui.createtask.HabitTaskFormBottomBar
 import com.example.leveluplife.ui.createtask.HabitTaskFormContent
-import com.example.leveluplife.ui.theme.DarkBackground
-import com.example.leveluplife.ui.theme.DarkOnSurfaceVariant
-import com.example.leveluplife.ui.theme.PurplePrimary
 
 object UpdateHabitTaskTestTags {
     const val CONFLICT_DIALOG = "update_task_conflict_dialog"
@@ -67,7 +65,7 @@ fun UpdateHabitTaskScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = DarkBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (!state.isLoading && state.loadError == null) {
                 HabitTaskFormBottomBar(
@@ -86,7 +84,7 @@ fun UpdateHabitTaskScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator(color = PurplePrimary, modifier = Modifier.size(44.dp))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, modifier = Modifier.size(44.dp))
             }
 
             state.loadError != null -> Box(
@@ -96,10 +94,10 @@ fun UpdateHabitTaskScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(state.loadError ?: "", color = DarkOnSurfaceVariant)
+                    Text(state.loadError ?: "", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(12.dp))
                     TextButton(onClick = viewModel::loadTask) {
-                        Text(stringResource(R.string.create_task_retry), color = PurplePrimary)
+                        Text(stringResource(R.string.create_task_retry), color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }

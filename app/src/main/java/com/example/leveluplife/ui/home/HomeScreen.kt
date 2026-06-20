@@ -102,6 +102,7 @@ fun HomeScreen(
     onOpenPomodoro: () -> Unit = {},
     onHabitClick: (habitId: Int) -> Unit = {},
     onCreateHabit: () -> Unit = {},
+    onOpenCoach: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -137,7 +138,13 @@ fun HomeScreen(
                 Icon(Icons.Filled.Add, contentDescription = "Create Habit")
             }
         },
-        bottomBar = { HomeBottomBar(onOpenSettings = onOpenSettings, onOpenPomodoro = onOpenPomodoro) },
+        bottomBar = {
+            HomeBottomBar(
+                onOpenSettings = onOpenSettings,
+                onOpenPomodoro = onOpenPomodoro,
+                onOpenCoach = onOpenCoach,
+            )
+        },
     ) { innerPadding ->
         LazyColumn(
             state = listState,
@@ -637,10 +644,14 @@ private data class NavItem(
 )
 
 @Composable
-private fun HomeBottomBar(onOpenSettings: () -> Unit, onOpenPomodoro: () -> Unit) {
+private fun HomeBottomBar(
+    onOpenSettings: () -> Unit,
+    onOpenPomodoro: () -> Unit,
+    onOpenCoach: () -> Unit,
+) {
     val items = listOf(
         NavItem("INICIO", Icons.Filled.Home, true, onClick = {}),
-        NavItem("COACH", Icons.Filled.Chat, false, onClick = {}),
+        NavItem("COACH", Icons.Filled.Chat, false, onClick = onOpenCoach),
         NavItem("POMODORO", Icons.Filled.Timer, false, onClick = onOpenPomodoro),
         NavItem("TIENDA", Icons.Filled.ShoppingBag, false, onClick = {}),
         NavItem("AJUSTES", Icons.Filled.Settings, false, onClick = onOpenSettings),

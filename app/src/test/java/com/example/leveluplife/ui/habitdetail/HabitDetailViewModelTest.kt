@@ -1,13 +1,16 @@
 package com.example.leveluplife.ui.habitdetail
 
+import com.example.leveluplife.data.habits.HabitDisciplineRepository
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
+import com.example.leveluplife.data.network.dto.HabitDisciplineDto
 import com.example.leveluplife.data.network.dto.CreateHabitResponseDto
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.network.dto.HabitsPageResponse
 import com.example.leveluplife.data.network.dto.PaginationDto
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaDto
+import com.example.leveluplife.data.network.dto.UpdateHabitRequestDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -53,7 +56,11 @@ class HabitDetailViewModelTest {
                 ),
             ),
         )
-        val vm = HabitDetailViewModel(FakeHabitRepository(habitDetail = Result.success(habit)), habitId = 5)
+        val vm = HabitDetailViewModel(
+            FakeHabitRepository(habitDetail = Result.success(habit)),
+            FakeHabitDisciplineRepository(),
+            habitId = 5,
+        )
         advanceUntilIdle()
 
         val state = vm.state.value
@@ -74,8 +81,18 @@ class HabitDetailViewModelTest {
         override suspend fun createHabit(request: CreateHabitRequestDto): Result<CreateHabitResponseDto> =
             Result.failure(UnsupportedOperationException())
 
+        override suspend fun updateHabit(request: UpdateHabitRequestDto): Result<CreateHabitResponseDto> =
+            Result.failure(UnsupportedOperationException())
+
         override fun setCurrentUserId(userId: Int) = Unit
 
         override fun getCurrentUserId(): Int = 1
+    }
+
+    private class FakeHabitDisciplineRepository : HabitDisciplineRepository {
+        override suspend fun getAll(): Result<List<HabitDisciplineDto>> = Result.success(emptyList())
+
+        override suspend fun getById(id: Int): Result<HabitDisciplineDto> =
+            Result.failure(UnsupportedOperationException())
     }
 }
