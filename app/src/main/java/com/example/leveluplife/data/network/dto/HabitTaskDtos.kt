@@ -104,6 +104,8 @@ data class HabitTaskDto(
     val id: Int,
     val habitId: Int = 0,
     val habitDisciplineId: Int? = null,
+    @SerialName("habitDiscipline")
+    val habitDiscipline: HabitDisciplineDto? = null,
     val title: String = "",
     val description: String? = null,
     val xpValue: Int = 0,
@@ -119,4 +121,10 @@ data class HabitTaskDto(
     val evidence: String? = null,
     val repetitionCriteria: RepetitionCriteriaDto? = null,
     val timerCriteria: TimerCriteriaDto? = null,
-)
+) {
+    val resolvedDisciplineId: Int?
+        get() = habitDisciplineId ?: habitDiscipline?.id
+
+    val resolvedCategoryId: Int?
+        get() = habitDiscipline?.categoryId
+}

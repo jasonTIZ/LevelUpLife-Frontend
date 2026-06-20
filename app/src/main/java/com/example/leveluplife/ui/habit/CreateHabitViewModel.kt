@@ -3,19 +3,26 @@ package com.example.leveluplife.ui.habit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.leveluplife.data.categories.HabitCategoryRepository
 import com.example.leveluplife.data.habits.HabitDisciplineRepository
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
 import com.example.leveluplife.data.network.dto.CreateHabitTaskRequestDto
+import com.example.leveluplife.data.network.dto.HabitCategoryDto
+import com.example.leveluplife.data.network.dto.HabitDisciplineDto
 import com.example.leveluplife.data.network.dto.MeasurementUnit
 import com.example.leveluplife.data.network.dto.CreateTimerCriteriaRequest
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaRequestDto
-import com.example.leveluplife.domain.validation.HabitTaskValidators
 import com.example.leveluplife.data.network.dto.TaskCompletionCriteria
 import com.example.leveluplife.data.network.dto.TaskDifficulty
 import com.example.leveluplife.data.network.dto.TaskEvidence
 import com.example.leveluplife.data.network.dto.TaskFrequency
 import com.example.leveluplife.data.network.dto.TaskPeriodUnit
+import com.example.leveluplife.domain.validation.FieldError
+import com.example.leveluplife.domain.validation.HabitTaskFieldError
+import com.example.leveluplife.domain.validation.HabitTaskFormErrors
+import com.example.leveluplife.domain.validation.HabitTaskValidationOptions
+import com.example.leveluplife.domain.validation.HabitTaskValidators
 import com.example.leveluplife.domain.validation.Validators
 import com.example.leveluplife.ui.createtask.HabitTaskFormHandlers
 import com.example.leveluplife.ui.createtask.HabitTaskFormState
@@ -24,20 +31,25 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class CreateHabitViewModel(
     private val repository: HabitRepository,
     private val disciplineRepository: HabitDisciplineRepository,
+    private val categoryRepository: HabitCategoryRepository,
 ) : ViewModel() {
 
     companion object {
+        private const val CATEGORY_PAGE_SIZE = 100
+
         fun Factory(
             repository: HabitRepository,
             disciplineRepository: HabitDisciplineRepository,
+            categoryRepository: HabitCategoryRepository,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return CreateHabitViewModel(repository, disciplineRepository) as T
+                return CreateHabitViewModel(repository, disciplineRepository, categoryRepository) as T
             }
         }
     }
@@ -46,7 +58,46 @@ class CreateHabitViewModel(
     val uiState: StateFlow<CreateHabitUiState> = _uiState.asStateFlow()
 
     init {
+        loadCategories()
         loadDisciplines()
+    }
+
+    private fun loadCategories() {
+        _uiState.value = _uiState.value.copy(isCategoriesLoading = true)
+        viewModelScope.launch {
+            val allCategories = mutableListOf<HabitCategoryDto>()
+            var page = 1
+            var hasMore = true
+
+            while (hasMore) {
+                val result = categoryRepository.getActiveCategories(page = page, pageSize = CATEGORY_PAGE_SIZE)
+                val response = result.getOrNull()
+                if (response == null) {
+                    _uiState.value = syncDisciplinesForCategory(
+                        _uiState.value.copy(isCategoriesLoading = false),
+                    )
+                    return@launch
+                }
+
+                allCategories.addAll(response.categories.filter { it.isActive })
+                val pagination = response.resolvedPagination
+                val currentPage = pagination?.currentPage ?: page
+                val totalPages = pagination?.totalPages ?: currentPage
+                hasMore = currentPage < totalPages
+                page = currentPage + 1
+            }
+
+            val activeCategories = allCategories.distinctBy { it.id }
+            val selectedCategoryId = _uiState.value.selectedCategoryId ?: activeCategories.firstOrNull()?.id
+
+            _uiState.value = syncDisciplinesForCategory(
+                _uiState.value.copy(
+                    categories = activeCategories,
+                    selectedCategoryId = selectedCategoryId,
+                    isCategoriesLoading = false,
+                ),
+            )
+        }
     }
 
     private fun loadDisciplines() {
@@ -54,9 +105,12 @@ class CreateHabitViewModel(
         viewModelScope.launch {
             disciplineRepository.getAll()
                 .onSuccess { list ->
-                    _uiState.value = _uiState.value.copy(
-                        disciplines = list.filter { it.isActive },
-                        isDisciplinesLoading = false,
+                    val activeDisciplines = list.filter { it.isActive }
+                    _uiState.value = syncDisciplinesForCategory(
+                        _uiState.value.copy(
+                            allDisciplines = activeDisciplines,
+                            isDisciplinesLoading = false,
+                        ),
                     )
                 }
                 .onFailure {
@@ -65,16 +119,54 @@ class CreateHabitViewModel(
         }
     }
 
+    private fun syncDisciplinesForCategory(state: CreateHabitUiState): CreateHabitUiState {
+        val categoryId = state.selectedCategoryId ?: state.categories.firstOrNull()?.id
+        val filtered = filterDisciplines(state.allDisciplines, categoryId)
+        return state.copy(
+            selectedCategoryId = categoryId,
+            disciplines = filtered,
+            tasks = clearInvalidTaskDisciplines(state.tasks, filtered),
+        )
+    }
+
+    private fun filterDisciplines(
+        allDisciplines: List<HabitDisciplineDto>,
+        categoryId: Int?,
+    ): List<HabitDisciplineDto> {
+        if (categoryId == null) return emptyList()
+        return allDisciplines.filter { it.categoryId == categoryId && it.isActive }
+    }
+
+    private fun clearInvalidTaskDisciplines(
+        tasks: List<HabitTaskFormState>,
+        filteredDisciplines: List<HabitDisciplineDto>,
+    ): List<HabitTaskFormState> = tasks.map { task ->
+        if (task.selectedDisciplineId != null &&
+            filteredDisciplines.none { it.id == task.selectedDisciplineId }
+        ) {
+            task.copy(selectedDisciplineId = null)
+        } else {
+            task
+        }
+    }
+
+    fun setCategoryId(categoryId: Int) {
+        val currentState = _uiState.value
+        val filtered = filterDisciplines(currentState.allDisciplines, categoryId)
+
+        _uiState.value = currentState.copy(
+            selectedCategoryId = categoryId,
+            disciplines = filtered,
+            tasks = clearInvalidTaskDisciplines(currentState.tasks, filtered),
+        )
+    }
+
     fun setTitle(title: String) {
-        _uiState.value = _uiState.value.copy(title = title)
+        _uiState.value = _uiState.value.copy(title = title, habitTitleError = null, error = null)
     }
 
     fun setDescription(description: String) {
-        _uiState.value = _uiState.value.copy(description = description)
-    }
-
-    fun setDisciplineId(disciplineId: Int) {
-        _uiState.value = _uiState.value.copy(disciplineId = disciplineId)
+        _uiState.value = _uiState.value.copy(description = description, error = null)
     }
 
     fun addTask() {
@@ -94,6 +186,9 @@ class CreateHabitViewModel(
         tasks[index] = update(tasks[index])
         _uiState.value = _uiState.value.copy(tasks = tasks)
     }
+
+    fun onTaskDisciplineChange(index: Int, disciplineId: Int) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onDisciplineChange(it, disciplineId) }
 
     fun onTaskTitleChange(index: Int, value: String) =
         updateTaskForm(index) { HabitTaskFormHandlers.onTitleChange(it, value) }
@@ -149,61 +244,119 @@ class CreateHabitViewModel(
     fun createHabit() {
         val state = _uiState.value
         val userId = repository.getCurrentUserId()
-        val validationError = validateHabit(state, userId)
-        if (validationError != null) {
-            _uiState.value = state.copy(error = validationError)
+        val validation = validateHabit(state, userId)
+        if (validation.error != null) {
+            _uiState.value = state.copy(
+                tasks = validation.tasks,
+                habitTitleError = validation.habitTitleError,
+                error = validation.error,
+            )
             return
         }
 
-        _uiState.value = state.copy(isLoading = true, error = null)
+        _uiState.value = state.copy(
+            tasks = validation.tasks,
+            isLoading = true,
+            error = null,
+            habitTitleError = null,
+        )
 
         viewModelScope.launch {
-            val request = buildCreateHabitRequest(state, userId)
+            val request = buildCreateHabitRequest(_uiState.value, userId)
             val result = repository.createHabit(request)
 
             _uiState.value = when {
-                result.isSuccess -> state.copy(isLoading = false, success = true)
-                result.isFailure -> state.copy(isLoading = false, error = result.exceptionOrNull()?.message)
-                else -> state.copy(isLoading = false, error = "Unknown error")
+                result.isSuccess -> _uiState.value.copy(isLoading = false, success = true)
+                result.isFailure -> _uiState.value.copy(
+                    isLoading = false,
+                    error = result.exceptionOrNull()?.message,
+                )
+                else -> _uiState.value.copy(isLoading = false, error = "Unknown error")
             }
         }
     }
 
-    private fun validateHabit(state: CreateHabitUiState, userId: Int): String? {
-        if (Validators.validateHabitTitle(state.title) != null) return "Título inválido"
-        if (Validators.validateHabitDescription(state.description) != null) return "Descripción muy larga"
-        if (state.disciplineId == null) return "Selecciona una disciplina"
-        if (state.tasks.isEmpty()) return "Agrega al menos una tarea"
-        for ((index, task) in state.tasks.withIndex()) {
-            val taskError = validateTask(task)
-            if (taskError != null) return "Tarea ${index + 1}: $taskError"
+    private data class HabitValidationResult(
+        val tasks: List<HabitTaskFormState>,
+        val habitTitleError: String?,
+        val error: String?,
+    )
+
+    private fun validateHabit(state: CreateHabitUiState, userId: Int): HabitValidationResult {
+        val habitTitleError = mapHabitTitleError(Validators.validateHabitTitle(state.title.trim()))
+        val updatedTasks = state.tasks.map(::validateTaskFormState)
+        val taskSummary = updatedTasks.withIndex().firstNotNullOfOrNull { (index, task) ->
+            taskValidationSummary(task, index)
         }
-        if (userId < 1) return "Usuario inválido"
-        return null
+
+        val error = when {
+            habitTitleError != null -> habitTitleError
+            Validators.validateHabitDescription(state.description) != null -> "Descripción muy larga"
+            state.tasks.isEmpty() -> "Agrega al menos una tarea"
+            taskSummary != null -> taskSummary
+            userId < 1 -> "Usuario inválido"
+            else -> null
+        }
+
+        return HabitValidationResult(
+            tasks = updatedTasks,
+            habitTitleError = habitTitleError,
+            error = error,
+        )
     }
 
-    private fun validateTask(task: HabitTaskFormState): String? {
-        if (task.title.isBlank()) return "El título es requerido"
-        if (task.startDate.isBlank()) return "La fecha de inicio es requerida"
-        val periodLength = task.periodLength.toIntOrNull()
-        if (periodLength == null || periodLength < 1) return "Período inválido"
-        if (task.completionCriteria == "REPETITIONS") {
-            val reps = task.repetitions.toIntOrNull()
-            if (reps == null || reps < 1) return "Repeticiones inválidas"
+    private fun validateTaskFormState(task: HabitTaskFormState): HabitTaskFormState {
+        val sanitized = task.sanitizedForValidation()
+        if (sanitized.selectedDisciplineId == null) {
+            return sanitized.copy(
+                showValidationErrors = true,
+                submitError = "Selecciona una disciplina",
+            )
         }
-        if (task.completionCriteria == "EVIDENCE" && task.evidence.isNullOrBlank()) {
-            return "Tipo de evidencia requerido"
+
+        val fieldErrors = HabitTaskValidators.validateForm(
+            sanitized.toFormInput().copy(habitId = 1),
+            HabitTaskValidationOptions(today = LocalDate.now()),
+        ).copy(habitId = null)
+
+        return if (fieldErrors.hasErrors) {
+            sanitized.copy(
+                fieldErrors = fieldErrors,
+                showValidationErrors = true,
+                submitError = null,
+            )
+        } else {
+            sanitized.copy(
+                fieldErrors = HabitTaskFormErrors(),
+                showValidationErrors = false,
+                submitError = null,
+            )
         }
-        if (task.completionCriteria == "TIMER") {
-            val input = task.toFormInput()
-            if (HabitTaskValidators.validateTimerSeconds(input) != null) {
-                return "Duración inválida (1 a ${HabitTaskValidators.TIMER_SECONDS_MAX} segundos)"
-            }
-            if (HabitTaskValidators.validateTimerLong(input) != null) {
-                return "El umbral largo debe superar la duración base"
-            }
+    }
+
+    private fun taskValidationSummary(task: HabitTaskFormState, index: Int): String? {
+        task.submitError?.let { return "Tarea ${index + 1}: $it" }
+        if (!task.fieldErrors.hasErrors) return null
+
+        return when {
+            task.fieldErrors.title is HabitTaskFieldError.TooShort ->
+                "Tarea ${index + 1}: el título debe tener al menos ${Validators.TASK_TITLE_MIN} caracteres"
+            task.fieldErrors.title != null -> "Tarea ${index + 1}: revisa el título"
+            task.fieldErrors.startDate != null -> "Tarea ${index + 1}: revisa la fecha de inicio"
+            task.fieldErrors.timerSeconds != null ->
+                "Tarea ${index + 1}: duración inválida (1 a ${HabitTaskValidators.TIMER_SECONDS_MAX} segundos)"
+            task.fieldErrors.timerLong != null ->
+                "Tarea ${index + 1}: el umbral largo debe superar la duración base"
+            else -> "Tarea ${index + 1}: revisa los campos marcados"
         }
-        return null
+    }
+
+    private fun mapHabitTitleError(error: FieldError?): String? = when (error) {
+        null -> null
+        FieldError.Required -> "El título del hábito es obligatorio"
+        is FieldError.TooShort -> "El título del hábito debe tener al menos ${Validators.HABIT_TITLE_MIN} caracteres"
+        is FieldError.TooLong -> "El título del hábito es demasiado largo"
+        else -> "Título del hábito inválido"
     }
 
     private fun buildCreateHabitRequest(state: CreateHabitUiState, userId: Int): CreateHabitRequestDto {
@@ -212,7 +365,7 @@ class CreateHabitViewModel(
             CreateHabitTaskRequestDto(
                 title = task.title.trim(),
                 description = task.description.trim().ifBlank { null },
-                habitDisciplineId = null,
+                habitDisciplineId = task.selectedDisciplineId,
                 weekDays = null,
                 difficulty = TaskDifficulty.valueOf(task.difficulty ?: "MEDIUM"),
                 frequency = TaskFrequency.valueOf(task.frequency ?: "WEEKLY"),
@@ -248,7 +401,7 @@ class CreateHabitViewModel(
         return CreateHabitRequestDto(
             title = state.title,
             description = state.description.ifEmpty { null },
-            disciplineId = state.disciplineId!!,
+            disciplineId = state.tasks.first().selectedDisciplineId!!,
             userId = userId,
             tasks = tasks,
         )

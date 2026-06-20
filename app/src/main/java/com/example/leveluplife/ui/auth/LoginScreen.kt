@@ -10,10 +10,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -128,6 +130,7 @@ fun LoginScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LoginContent(
     state: LoginUiState,
@@ -146,6 +149,8 @@ private fun LoginContent(
 
     LaunchedEffect(Unit) { runCatching { emailFocus.requestFocus() } }
 
+    val imeVisible = WindowInsets.isImeVisible
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -155,8 +160,6 @@ private fun LoginContent(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .navigationBarsPadding()
-                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 16.dp),
         ) {
@@ -298,32 +301,33 @@ private fun LoginContent(
             Spacer(Modifier.height(40.dp))
         }
 
-        // Footer "¿NO TIENES CUENTA? REGÍSTRATE"
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 24.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.login_no_account),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 12.sp,
-                letterSpacing = 1.sp,
-            )
-            Spacer(Modifier.width(6.dp))
-            TextButton(
-                onClick = onNavigateToRegister,
-                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+        if (!imeVisible) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = stringResource(R.string.login_register_cta),
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
+                    text = stringResource(R.string.login_no_account),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     letterSpacing = 1.sp,
                 )
+                Spacer(Modifier.width(6.dp))
+                TextButton(
+                    onClick = onNavigateToRegister,
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.login_register_cta),
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        letterSpacing = 1.sp,
+                    )
+                }
             }
         }
 

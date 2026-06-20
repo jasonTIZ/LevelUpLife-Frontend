@@ -110,6 +110,11 @@ fun UpdateHabitTaskScreen(
                 onBack = onBack,
                 showTemplates = false,
                 showHabitPicker = false,
+                showDisciplinePicker = true,
+                showCategoryPicker = false,
+                taskDisciplines = state.disciplines,
+                isTaskDisciplinesLoading = state.isDisciplinesLoading,
+                onDisciplineSelected = viewModel::onDisciplineChange,
                 onHabitSelected = {},
                 onTitleChange = viewModel::onTitleChange,
                 onDescriptionChange = viewModel::onDescriptionChange,
@@ -128,6 +133,7 @@ fun UpdateHabitTaskScreen(
                 onTimerPauseAllowedChange = {},
                 onApplyTemplate = {},
                 onDismissError = viewModel::dismissSubmitError,
+                preservedStartDate = state.originalStartDate,
             )
         }
     }

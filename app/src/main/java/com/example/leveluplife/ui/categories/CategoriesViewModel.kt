@@ -21,10 +21,6 @@ class CategoriesViewModel(
 
     private var searchJob: Job? = null
 
-    init {
-        loadCategories()
-    }
-
     fun onSearchQueryChange(query: String) {
         _state.update { it.copy(searchQuery = query) }
         searchJob?.cancel()

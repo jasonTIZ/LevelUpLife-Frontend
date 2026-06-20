@@ -1,11 +1,13 @@
 package com.example.leveluplife.ui.updatetask
 
+import com.example.leveluplife.data.habits.HabitDisciplineRepository
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskConflictFailure
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
 import com.example.leveluplife.data.network.dto.CreateHabitResponseDto
 import com.example.leveluplife.data.network.dto.CreateHabitTaskRequest
+import com.example.leveluplife.data.network.dto.HabitDisciplineDto
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.network.dto.HabitsPageResponse
@@ -46,7 +48,7 @@ class UpdateHabitTaskViewModelTest {
     @Test
     fun `loadTask populates form from repository`() = runTest(testDispatcher) {
         val task = sampleTask(title = "Original")
-        val vm = UpdateHabitTaskViewModel(42, FakeHabitRepository(), FakeHabitTaskRepository(task = task))
+        val vm = createViewModel(FakeHabitTaskRepository(task = task))
 
         advanceUntilIdle()
 
@@ -58,11 +60,33 @@ class UpdateHabitTaskViewModelTest {
     }
 
     @Test
+    fun `loadTask with nested habitDiscipline exposes filtered disciplines`() = runTest(testDispatcher) {
+        val task = sampleTask(title = "Original").copy(
+            habitDisciplineId = null,
+            habitDiscipline = HabitDisciplineDto(
+                id = 1,
+                categoryId = 1,
+                name = "Ejercicio",
+                description = "Actividad física",
+                isActive = true,
+            ),
+        )
+        val vm = createViewModel(FakeHabitTaskRepository(task = task))
+
+        advanceUntilIdle()
+
+        val state = vm.state.value
+        assertEquals(1, state.form.selectedDisciplineId)
+        assertEquals(1, state.selectedCategoryId)
+        assertEquals(1, state.disciplines.size)
+    }
+
+    @Test
     fun `submit with valid form calls update and emits updated task`() = runTest(testDispatcher) {
         val task = sampleTask(title = "Original")
         val updated = task.copy(title = "Actualizada")
         val taskRepo = FakeHabitTaskRepository(task = task, updateResult = Result.success(updated))
-        val vm = UpdateHabitTaskViewModel(42, FakeHabitRepository(), taskRepo)
+        val vm = createViewModel(taskRepo)
 
         advanceUntilIdle()
 
@@ -79,7 +103,7 @@ class UpdateHabitTaskViewModelTest {
     @Test
     fun `submit with invalid form shows validation errors and skips repository`() = runTest(testDispatcher) {
         val taskRepo = FakeHabitTaskRepository(task = sampleTask())
-        val vm = UpdateHabitTaskViewModel(42, FakeHabitRepository(), taskRepo)
+        val vm = createViewModel(taskRepo)
 
         advanceUntilIdle()
 
@@ -97,7 +121,7 @@ class UpdateHabitTaskViewModelTest {
         val task = sampleTask(title = "Original", startDate = "2026-05-20")
         val updated = task.copy(title = "Solo título cambiado")
         val taskRepo = FakeHabitTaskRepository(task = task, updateResult = Result.success(updated))
-        val vm = UpdateHabitTaskViewModel(42, FakeHabitRepository(), taskRepo)
+        val vm = createViewModel(taskRepo)
 
         advanceUntilIdle()
 
@@ -114,7 +138,7 @@ class UpdateHabitTaskViewModelTest {
     @Test
     fun `submit with past start date shows validation error`() = runTest(testDispatcher) {
         val taskRepo = FakeHabitTaskRepository(task = sampleTask())
-        val vm = UpdateHabitTaskViewModel(42, FakeHabitRepository(), taskRepo)
+        val vm = createViewModel(taskRepo)
 
         advanceUntilIdle()
 
@@ -134,7 +158,7 @@ class UpdateHabitTaskViewModelTest {
             task = sampleTask(),
             updateResult = Result.failure(HabitTaskConflictFailure("conflict")),
         )
-        val vm = UpdateHabitTaskViewModel(42, FakeHabitRepository(), taskRepo)
+        val vm = createViewModel(taskRepo)
 
         advanceUntilIdle()
 
@@ -150,6 +174,7 @@ class UpdateHabitTaskViewModelTest {
     private fun sampleTask(title: String = "Tarea", startDate: String = "2026-05-26") = HabitTaskDto(
         id = 42,
         habitId = 1,
+        habitDisciplineId = 1,
         title = title,
         description = "Desc",
         difficulty = "MEDIUM",
@@ -164,6 +189,31 @@ class UpdateHabitTaskViewModelTest {
             isPartialAllowed = true,
         ),
     )
+
+    private fun createViewModel(taskRepo: FakeHabitTaskRepository): UpdateHabitTaskViewModel =
+        UpdateHabitTaskViewModel(
+            taskId = 42,
+            habitRepository = FakeHabitRepository(),
+            habitTaskRepository = taskRepo,
+            disciplineRepository = FakeHabitDisciplineRepository(),
+        )
+
+    private class FakeHabitDisciplineRepository : HabitDisciplineRepository {
+        override suspend fun getAll(): Result<List<HabitDisciplineDto>> = Result.success(
+            listOf(
+                HabitDisciplineDto(
+                    id = 1,
+                    categoryId = 1,
+                    name = "Ejercicio",
+                    description = "Actividad física",
+                    isActive = true,
+                ),
+            ),
+        )
+
+        override suspend fun getById(id: Int): Result<HabitDisciplineDto> =
+            Result.failure(UnsupportedOperationException())
+    }
 
     private class FakeHabitRepository : HabitRepository {
         override suspend fun getActiveHabits(page: Int, pageSize: Int): Result<HabitsPageResponse> =

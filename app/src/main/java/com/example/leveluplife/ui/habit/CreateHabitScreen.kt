@@ -13,9 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -24,12 +21,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.leveluplife.data.network.dto.HabitDisciplineDto
+import com.example.leveluplife.R
+import com.example.leveluplife.ui.components.CategoryChipsRow
 import com.example.leveluplife.ui.components.LulPrimaryButton
 import com.example.leveluplife.ui.createtask.HabitTaskEmbeddedForm
 import kotlinx.coroutines.delay
@@ -70,7 +67,7 @@ fun CreateHabitScreen(
                 uiState = uiState,
                 onTitleChange = { viewModel.setTitle(it) },
                 onDescriptionChange = { viewModel.setDescription(it) },
-                onDisciplineSelected = { viewModel.setDisciplineId(it) },
+                onCategorySelected = { viewModel.setCategoryId(it) },
             )
 
             Divider()
@@ -86,6 +83,9 @@ fun CreateHabitScreen(
                     taskNumber = index + 1,
                     canRemove = uiState.tasks.size > 1,
                     onRemove = { viewModel.removeTask(index) },
+                    taskDisciplines = uiState.disciplines,
+                    isTaskDisciplinesLoading = uiState.isDisciplinesLoading,
+                    onDisciplineSelected = { viewModel.onTaskDisciplineChange(index, it) },
                     onTitleChange = { viewModel.onTaskTitleChange(index, it) },
                     onDescriptionChange = { viewModel.onTaskDescriptionChange(index, it) },
                     onDifficultyChange = { viewModel.onTaskDifficultyChange(index, it) },
@@ -133,23 +133,39 @@ fun CreateHabitScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitFormSection(
     uiState: CreateHabitUiState,
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
-    onDisciplineSelected: (Int) -> Unit,
+    onCategorySelected: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        CategoryChipsRow(
+            categories = uiState.categories,
+            selectedId = uiState.selectedCategoryId,
+            isLoading = uiState.isCategoriesLoading,
+            onSelect = onCategorySelected,
+        )
+
+        Text(
+            text = stringResource(R.string.create_habit_title_section_label),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+
         OutlinedTextField(
             value = uiState.title,
             onValueChange = onTitleChange,
             label = { Text("Título del hábito") },
             placeholder = { Text("Ej. Ejercicio diario") },
             modifier = Modifier.fillMaxWidth(),
-            isError = uiState.error != null,
+            isError = uiState.habitTitleError != null,
+            supportingText = uiState.habitTitleError?.let { error ->
+                { Text(error, color = MaterialTheme.colorScheme.error) }
+            },
             singleLine = true,
         )
 
@@ -160,63 +176,5 @@ fun HabitFormSection(
             modifier = Modifier.fillMaxWidth(),
             maxLines = 3,
         )
-
-        DisciplineDropdown(
-            disciplines = uiState.disciplines,
-            selectedId = uiState.disciplineId,
-            isLoading = uiState.isDisciplinesLoading,
-            onSelect = onDisciplineSelected,
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DisciplineDropdown(
-    disciplines: List<HabitDisciplineDto>,
-    selectedId: Int?,
-    isLoading: Boolean,
-    onSelect: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selected = disciplines.firstOrNull { it.id == selectedId }
-    val label = when {
-        isLoading -> "Cargando disciplinas…"
-        disciplines.isEmpty() -> "Sin disciplinas disponibles"
-        else -> "Disciplina"
-    }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { if (!isLoading && disciplines.isNotEmpty()) expanded = !expanded },
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        OutlinedTextField(
-            value = selected?.name ?: "",
-            onValueChange = {},
-            label = { Text(label) },
-            readOnly = true,
-            modifier = Modifier.fillMaxWidth().menuAnchor(),
-            trailingIcon = {
-                if (!isLoading && disciplines.isNotEmpty()) {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                }
-            },
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            disciplines.forEach { discipline ->
-                androidx.compose.material3.DropdownMenuItem(
-                    text = { Text(discipline.name) },
-                    onClick = {
-                        onSelect(discipline.id)
-                        expanded = false
-                    },
-                )
-            }
-        }
     }
 }
