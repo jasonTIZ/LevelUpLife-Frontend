@@ -41,6 +41,8 @@ import com.example.leveluplife.ui.updatetask.UpdateHabitTaskScreen
 import com.example.leveluplife.ui.updatetask.UpdateHabitTaskViewModel
 import com.example.leveluplife.ui.home.HomeScreen
 import com.example.leveluplife.ui.home.HomeViewModel
+import com.example.leveluplife.ui.pomodoro.PomodoroScreen
+import com.example.leveluplife.ui.pomodoro.PomodoroViewModel
 import com.example.leveluplife.ui.profile.ProfileScreen
 import com.example.leveluplife.ui.profile.ProfileViewModel
 import com.example.leveluplife.ui.settings.SettingsScreen
@@ -58,6 +60,7 @@ object Routes {
     const val DASHBOARD = "dashboard"
     const val CREATE_HABIT = "create_habit"
     const val CATEGORIES = "categories"
+    const val POMODORO = "pomodoro"
     const val PROFILE = "profile"
     const val SETTINGS = "settings"
     const val HABIT_DETAIL = "habit_detail/{habitId}"
@@ -243,6 +246,9 @@ fun AppNavigation(
                 onOpenCategories = {
                     navController.navigate(Routes.CATEGORIES) { launchSingleTop = true }
                 },
+                onOpenPomodoro = {
+                    navController.navigate(Routes.POMODORO) { launchSingleTop = true }
+                },
                 onHabitClick = { habitId ->
                     navController.navigate(Routes.habitDetail(habitId))
                 },
@@ -302,6 +308,15 @@ fun AppNavigation(
                 onCategoryClick = {
                     // Navegación al detalle de categoría: fuera de alcance de esta tarea.
                 },
+            )
+        }
+        composable(Routes.POMODORO) {
+            val vm: PomodoroViewModel = viewModel(
+                factory = PomodoroViewModel.Factory(container.habitRepository),
+            )
+            PomodoroScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
             )
         }
         composable(Routes.SETTINGS) {

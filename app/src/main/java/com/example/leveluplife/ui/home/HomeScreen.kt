@@ -35,12 +35,13 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -98,6 +99,7 @@ fun HomeScreen(
     onOpenProfile: () -> Unit,
     onOpenSettings: () -> Unit = {},
     onOpenCategories: () -> Unit = {},
+    onOpenPomodoro: () -> Unit = {},
     onHabitClick: (habitId: Int) -> Unit = {},
     onCreateHabit: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -135,7 +137,7 @@ fun HomeScreen(
                 Icon(Icons.Filled.Add, contentDescription = "Create Habit")
             }
         },
-        bottomBar = { HomeBottomBar(onOpenSettings = onOpenSettings) },
+        bottomBar = { HomeBottomBar(onOpenSettings = onOpenSettings, onOpenPomodoro = onOpenPomodoro) },
     ) { innerPadding ->
         LazyColumn(
             state = listState,
@@ -635,10 +637,11 @@ private data class NavItem(
 )
 
 @Composable
-private fun HomeBottomBar(onOpenSettings: () -> Unit) {
+private fun HomeBottomBar(onOpenSettings: () -> Unit, onOpenPomodoro: () -> Unit) {
     val items = listOf(
         NavItem("INICIO", Icons.Filled.Home, true, onClick = {}),
         NavItem("COACH", Icons.Filled.Chat, false, onClick = {}),
+        NavItem("POMODORO", Icons.Filled.Timer, false, onClick = onOpenPomodoro),
         NavItem("TIENDA", Icons.Filled.ShoppingBag, false, onClick = {}),
         NavItem("AJUSTES", Icons.Filled.Settings, false, onClick = onOpenSettings),
     )

@@ -150,6 +150,22 @@
     <string name="task_detail_timer_pause">Pausas</string>
     <string name="task_detail_timer_pause_yes">Permitidas</string>
     <string name="task_detail_timer_pause_no">No permitidas</string>
+
+    <!-- Pomodoro (standalone timer) -->
+    <string name="pomodoro_title">Pomodoro</string>
+    <string name="pomodoro_mode_free">Libre</string>
+    <string name="pomodoro_mode_task">Desde tarea</string>
+    <string name="pomodoro_free_label">Elige una duración</string>
+    <string name="pomodoro_free_minutes">Minutos</string>
+    <string name="pomodoro_free_start">Iniciar cronómetro</string>
+    <string name="pomodoro_minutes_short">%1$d min</string>
+    <string name="pomodoro_task_pick_habit">Elige un hábito</string>
+    <string name="pomodoro_task_pick_task">Elige una tarea con cronómetro</string>
+    <string name="pomodoro_task_none">Este hábito no tiene tareas con cronómetro</string>
+    <string name="pomodoro_no_habits">No tienes hábitos activos</string>
+    <string name="pomodoro_change">Cambiar tiempo</string>
+    <string name="pomodoro_source_free">Cronómetro libre</string>
+    <string name="pomodoro_retry">Reintentar</string>
     <string name="create_task_timer_examples_label">Ejemplos rápidos</string>
     <string name="create_task_timer_minutes_format">≈ %1$s min</string>
     <string name="create_task_timer_example_1min">1 min</string>
