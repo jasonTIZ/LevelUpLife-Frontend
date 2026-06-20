@@ -34,6 +34,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Backpack
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Delete
@@ -87,6 +88,7 @@ import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.player.PlayerProfile
 import com.example.leveluplife.data.player.ProfileCache
 import com.example.leveluplife.ui.components.LulConfirmAlertDialog
+import com.example.leveluplife.ui.rewards.GoldColor
 import java.util.Calendar
 
 private val StreakInactive = Color(0xFF6B7280)
@@ -107,6 +109,7 @@ fun HomeScreen(
     onCreateHabit: () -> Unit = {},
     onOpenCoach: () -> Unit = {},
     onOpenStore: () -> Unit = {},
+    onOpenBackpack: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -175,6 +178,7 @@ fun HomeScreen(
                     onOpenProfile = onOpenProfile,
                     displayName = cachedProfile?.userName,
                     onOpenCategories = onOpenCategories,
+                    onOpenBackpack = onOpenBackpack,
                 )
                 Spacer(Modifier.height(12.dp))
                 PlayerLevelCard(profile = cachedProfile)
@@ -289,6 +293,7 @@ private fun HomeHeader(
     onOpenProfile: () -> Unit,
     displayName: String?,
     onOpenCategories: () -> Unit,
+    onOpenBackpack: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -331,6 +336,14 @@ private fun HomeHeader(
                     .size(46.dp),
             ) {
                 Icon(Icons.Filled.Category, contentDescription = "Categorías", tint = MaterialTheme.colorScheme.onBackground)
+            }
+            IconButton(
+                onClick = onOpenBackpack,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
+                    .size(46.dp),
+            ) {
+                Icon(Icons.Filled.Backpack, contentDescription = stringResource(R.string.backpack_open_cd), tint = MaterialTheme.colorScheme.onBackground)
             }
             IconButton(
                 onClick = onOpenProfile,
@@ -396,6 +409,7 @@ private fun PlayerLevelCard(profile: PlayerProfile?) {
 private fun EngagementStatsRow(profile: PlayerProfile?) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         StreakChip(daysStreak = profile?.daysStreak ?: 0)
+        GoldChip(gold = profile?.gold ?: 0)
         TotalXpChip(totalXp = profile?.totalExperiencePoints ?: 0)
     }
 }
@@ -450,6 +464,30 @@ private fun StreakChip(daysStreak: Int) {
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant
             },
+            fontWeight = FontWeight.Bold,
+            fontSize = 13.sp,
+        )
+    }
+}
+
+@Composable
+private fun GoldChip(gold: Int) {
+    Row(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50.dp))
+            .padding(horizontal = 14.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Star,
+            contentDescription = stringResource(R.string.home_gold_content_description, gold),
+            tint = GoldColor,
+            modifier = Modifier.size(18.dp),
+        )
+        Text(
+            text = stringResource(R.string.home_gold_chip, gold),
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold,
             fontSize = 13.sp,
         )

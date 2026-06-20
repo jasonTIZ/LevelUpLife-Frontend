@@ -166,6 +166,7 @@ private fun GetPlayerProfileResponseDto.toDomain(apiBaseUrl: String): PlayerProf
     experiencePointsRequiredForNextLevel = experiencePointsRequiredForNextLevel,
     levelProgressPercent = levelProgressPercent,
     daysStreak = daysStreak,
+    gold = gold,
 )
 
 private fun PlayerProfileDto.toDomain(apiBaseUrl: String): PlayerProfile = PlayerProfile(

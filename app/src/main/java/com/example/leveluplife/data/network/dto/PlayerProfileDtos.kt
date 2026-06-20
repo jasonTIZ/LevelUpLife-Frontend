@@ -13,6 +13,7 @@ data class GetPlayerProfileResponseDto(
     val experiencePointsRequiredForNextLevel: Int = 0,
     val levelProgressPercent: Double = 0.0,
     val daysStreak: Int = 0,
+    val gold: Int = 0,
     @SerialName("statusIsActive") val statusIsActive: Boolean = true,
     @SerialName("PlayerUserLastLogin") val playerUserLastLogin: String? = null,
     @SerialName("bio") val bio: String? = null,

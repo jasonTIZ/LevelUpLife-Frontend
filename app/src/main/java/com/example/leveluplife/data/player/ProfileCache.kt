@@ -31,6 +31,8 @@ interface ProfileCache {
         levelProgressPercent: Double,
         daysStreak: Int? = null,
     )
+    suspend fun addGoldEarned(amount: Int)
+    suspend fun setGold(gold: Int)
     /** Clears in-memory state only; per-user disk cache is kept for the same account on re-login. */
     fun clearMemory()
     /** Wipes all persisted profile entries (tests / account reset). */
@@ -99,6 +101,18 @@ class DefaultProfileCache(
         )
     }
 
+    override suspend fun addGoldEarned(amount: Int) {
+        if (amount <= 0) return
+        val current = _profile.value ?: return
+        update(current.copy(gold = current.gold + amount))
+    }
+
+    override suspend fun setGold(gold: Int) {
+        val current = _profile.value ?: return
+        if (current.gold == gold) return
+        update(current.copy(gold = gold))
+    }
+
     override fun clearMemory() {
         etag = null
         _profile.value = null
@@ -138,6 +152,7 @@ class DefaultProfileCache(
                 experiencePointsRequiredForNextLevel = prefs[scopedKey(userId, Suffix.XP_REQUIRED)]?.toIntOrNull() ?: 0,
                 levelProgressPercent = prefs[scopedKey(userId, Suffix.LEVEL_PROGRESS)]?.toDoubleOrNull() ?: 0.0,
                 daysStreak = prefs[scopedKey(userId, Suffix.DAYS_STREAK)]?.toIntOrNull() ?: 0,
+                gold = prefs[scopedKey(userId, Suffix.GOLD)]?.toIntOrNull() ?: 0,
             ),
             etag = prefs[scopedKey(userId, Suffix.ETAG)],
         )
@@ -167,6 +182,7 @@ class DefaultProfileCache(
         prefs[scopedKey(userId, Suffix.XP_REQUIRED)] = profile.experiencePointsRequiredForNextLevel.toString()
         prefs[scopedKey(userId, Suffix.LEVEL_PROGRESS)] = profile.levelProgressPercent.toString()
         prefs[scopedKey(userId, Suffix.DAYS_STREAK)] = profile.daysStreak.toString()
+        prefs[scopedKey(userId, Suffix.GOLD)] = profile.gold.toString()
         etag?.let { prefs[scopedKey(userId, Suffix.ETAG)] = it }
     }
 
@@ -226,6 +242,7 @@ class DefaultProfileCache(
         const val XP_REQUIRED = "xp_required"
         const val LEVEL_PROGRESS = "level_progress"
         const val DAYS_STREAK = "days_streak"
+        const val GOLD = "gold"
     }
 
     private companion object {
