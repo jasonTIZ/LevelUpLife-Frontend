@@ -83,6 +83,33 @@ class HomeViewModel(
         }
     }
 
+    fun deleteHabit(habitId: Int) {
+        viewModelScope.launch {
+            _state.update { it.copy(deletingHabitId = habitId, deleteError = null) }
+            habitRepository.deleteHabit(habitId)
+                .onSuccess {
+                    _state.update {
+                        it.copy(
+                            deletingHabitId = null,
+                            habits = it.habits.filter { habit -> habit.id != habitId },
+                        )
+                    }
+                }
+                .onFailure { t ->
+                    _state.update {
+                        it.copy(
+                            deletingHabitId = null,
+                            deleteError = t.message ?: "No se pudo eliminar el hábito",
+                        )
+                    }
+                }
+        }
+    }
+
+    fun onDeleteErrorShown() {
+        _state.update { it.copy(deleteError = null) }
+    }
+
     class Factory(
         private val habitRepository: HabitRepository,
         private val profileRepository: ProfileRepository,
