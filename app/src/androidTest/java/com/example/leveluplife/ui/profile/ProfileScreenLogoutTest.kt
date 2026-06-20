@@ -84,6 +84,28 @@ class ProfileScreenLogoutTest {
 
         override suspend fun updateLocalExtras(avatarUri: String?, bio: String) = Unit
 
+        override suspend fun updateLevel(level: Int) {
+            _profile.value = _profile.value?.copy(level = level)
+        }
+
+        override suspend fun updateGameplayProgress(
+            level: Int,
+            totalExperiencePoints: Int,
+            experiencePointsInCurrentLevel: Int,
+            experiencePointsRequiredForNextLevel: Int,
+            levelProgressPercent: Double,
+            daysStreak: Int?,
+        ) {
+            _profile.value = _profile.value?.copy(
+                level = level,
+                totalExperiencePoints = totalExperiencePoints,
+                experiencePointsInCurrentLevel = experiencePointsInCurrentLevel,
+                experiencePointsRequiredForNextLevel = experiencePointsRequiredForNextLevel,
+                levelProgressPercent = levelProgressPercent,
+                daysStreak = daysStreak ?: _profile.value?.daysStreak ?: 0,
+            )
+        }
+
         override fun clearMemory() {
             _profile.value = null
         }

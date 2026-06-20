@@ -82,7 +82,7 @@ class LoginViewModel(
                             bannerError = null,
                         )
                     }
-                    habitRepository.setCurrentUserId(session.user.id.toInt())
+                    session.user.id.toIntOrNull()?.let { habitRepository.setCurrentUserId(it) }
                 }
                 .onFailure { throwable ->
                     val authError = (throwable as? AuthErrorException)?.authError

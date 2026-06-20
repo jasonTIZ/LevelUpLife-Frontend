@@ -27,7 +27,7 @@ class DefaultHabitCategoryRepository(
             response.code() == 400 -> Result.success(
                 HabitCategoriesPageResponse(
                     success = true,
-                    categories = emptyList(),
+                    data = emptyList(),
                     pagination = PaginationDto(
                         currentPage = page,
                         pageSize = pageSize,

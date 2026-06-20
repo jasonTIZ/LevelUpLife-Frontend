@@ -64,9 +64,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.leveluplife.R
+import com.example.leveluplife.data.network.dto.HabitCategoryDto
+import com.example.leveluplife.data.network.dto.HabitDisciplineDto
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.domain.validation.HabitTaskFieldError
+import com.example.leveluplife.ui.components.CategoryChipsRow
+import com.example.leveluplife.ui.components.DisciplineChipsRow
+import com.example.leveluplife.ui.components.LulDatePickerField
+import com.example.leveluplife.ui.components.SelectableChip
 
 object CreateHabitTaskTestTags {
     const val SUBMIT_BUTTON = "create_task_submit_button"
@@ -151,6 +157,9 @@ fun CreateHabitTaskScreen(
                 onMeasurementUnitChange = viewModel::onMeasurementUnitChange,
                 onEvidenceChange = viewModel::onEvidenceChange,
                 onPartialAllowedChange = viewModel::onPartialAllowedChange,
+                onTimerSecondsDefinedChange = viewModel::onTimerSecondsDefinedChange,
+                onTimerSecondsLongChange = viewModel::onTimerSecondsLongChange,
+                onTimerPauseAllowedChange = viewModel::onTimerPauseAllowedChange,
                 onApplyTemplate = viewModel::applyTemplate,
                 onDismissError = viewModel::dismissSubmitError,
             )
@@ -268,8 +277,21 @@ internal fun HabitTaskFormContent(
     onMeasurementUnitChange: (String) -> Unit,
     onEvidenceChange: (String) -> Unit,
     onPartialAllowedChange: (Boolean) -> Unit,
+    onTimerSecondsDefinedChange: (String) -> Unit,
+    onTimerSecondsLongChange: (String) -> Unit,
+    onTimerPauseAllowedChange: (Boolean) -> Unit,
     onApplyTemplate: (TaskFormTemplate) -> Unit,
     onDismissError: () -> Unit,
+    showDisciplinePicker: Boolean = false,
+    showCategoryPicker: Boolean = false,
+    taskCategories: List<HabitCategoryDto> = emptyList(),
+    selectedCategoryId: Int? = null,
+    isCategoriesLoading: Boolean = false,
+    onCategorySelected: (Int) -> Unit = {},
+    taskDisciplines: List<HabitDisciplineDto> = emptyList(),
+    isTaskDisciplinesLoading: Boolean = false,
+    onDisciplineSelected: (Int) -> Unit = {},
+    preservedStartDate: String? = null,
 ) {
     val scroll = rememberScrollState()
     val fieldColors = OutlinedTextFieldDefaults.colors(
@@ -302,6 +324,23 @@ internal fun HabitTaskFormContent(
             )
         }
 
+        if (showDisciplinePicker) {
+            if (showCategoryPicker) {
+                CategoryChipsRow(
+                    categories = taskCategories,
+                    selectedId = selectedCategoryId,
+                    isLoading = isCategoriesLoading,
+                    onSelect = onCategorySelected,
+                )
+            }
+            DisciplineChipsRow(
+                disciplines = taskDisciplines,
+                selectedId = form.selectedDisciplineId,
+                isLoading = isTaskDisciplinesLoading,
+                onSelect = onDisciplineSelected,
+            )
+        }
+
         FormSection(title = stringResource(R.string.create_task_section_basic)) {
             if (showHabitPicker) {
                 HabitDropdown(
@@ -319,13 +358,15 @@ internal fun HabitTaskFormContent(
                 )
             }
 
-            val categoryLabel = form.selectedHabit?.categoryName?.takeIf { it.isNotBlank() }
-                ?: stringResource(R.string.create_task_category_unknown)
-            ReadOnlyMetaField(
-                label = stringResource(R.string.create_task_field_category),
-                value = categoryLabel,
-                fieldColors = fieldColors,
-            )
+            if (!showCategoryPicker) {
+                val categoryLabel = form.selectedHabit?.categoryName?.takeIf { it.isNotBlank() }
+                    ?: stringResource(R.string.create_task_category_unknown)
+                ReadOnlyMetaField(
+                    label = stringResource(R.string.create_task_field_category),
+                    value = categoryLabel,
+                    fieldColors = fieldColors,
+                )
+            }
 
             OutlinedTextField(
                 value = form.title,
@@ -438,6 +479,16 @@ internal fun HabitTaskFormContent(
                     fieldColors = fieldColors,
                 )
             }
+
+            if (form.completionCriteria == "TIMER" && showTemplates) {
+                TimerCriteriaFields(
+                    form = form,
+                    onTimerSecondsDefinedChange = onTimerSecondsDefinedChange,
+                    onTimerSecondsLongChange = onTimerSecondsLongChange,
+                    onTimerPauseAllowedChange = onTimerPauseAllowedChange,
+                    fieldColors = fieldColors,
+                )
+            }
         }
 
         FormSection(title = stringResource(R.string.create_task_section_planning)) {
@@ -488,31 +539,21 @@ internal fun HabitTaskFormContent(
                 )
             }
 
-            OutlinedTextField(
+            LulDatePickerField(
                 value = form.startDate,
                 onValueChange = onStartDateChange,
                 label = { Text(stringResource(R.string.create_task_field_start_date)) },
-                modifier = Modifier.fillMaxWidth(),
-                isError = form.showValidationErrors && form.fieldErrors.startDate != null,
-                supportingText = {
-                    if (form.showValidationErrors && form.fieldErrors.startDate != null) {
-                        Text(form.fieldErrors.startDate!!.toMessage())
+                hint = stringResource(
+                    if (showTemplates) {
+                        R.string.create_task_start_date_hint
                     } else {
-                        Text(
-                            stringResource(
-                                if (showTemplates) {
-                                    R.string.create_task_start_date_hint
-                                } else {
-                                    R.string.update_task_start_date_hint
-                                },
-                            ),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                },
-                colors = fieldColors,
-                singleLine = true,
+                        R.string.update_task_start_date_hint
+                    },
+                ),
+                isError = form.showValidationErrors && form.fieldErrors.startDate != null,
+                preservedIsoDate = preservedStartDate,
+                fieldColors = fieldColors,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
 
@@ -529,9 +570,7 @@ internal fun HabitTaskFormContent(
             )
         }
 
-        if (form.submitError != null) {
-            ErrorBanner(message = form.submitError ?: "", onDismiss = onDismissError)
-        }
+        HabitTaskFormErrorDialog(form = form, onDismiss = onDismissError)
 
         Spacer(Modifier.height(8.dp))
     }
@@ -556,9 +595,15 @@ internal fun HabitTaskEmbeddedForm(
     onMeasurementUnitChange: (String) -> Unit,
     onEvidenceChange: (String) -> Unit,
     onPartialAllowedChange: (Boolean) -> Unit,
+    onTimerSecondsDefinedChange: (String) -> Unit,
+    onTimerSecondsLongChange: (String) -> Unit,
+    onTimerPauseAllowedChange: (Boolean) -> Unit,
     onApplyTemplate: (TaskFormTemplate) -> Unit,
     onDismissError: () -> Unit,
     modifier: Modifier = Modifier,
+    taskDisciplines: List<HabitDisciplineDto>? = null,
+    isTaskDisciplinesLoading: Boolean = false,
+    onDisciplineSelected: ((Int) -> Unit)? = null,
 ) {
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -598,6 +643,15 @@ internal fun HabitTaskEmbeddedForm(
             selectedTemplateId = form.selectedTemplateId,
             onApplyTemplate = onApplyTemplate,
         )
+
+        if (taskDisciplines != null && onDisciplineSelected != null) {
+            DisciplineChipsRow(
+                disciplines = taskDisciplines,
+                selectedId = form.selectedDisciplineId,
+                isLoading = isTaskDisciplinesLoading,
+                onSelect = onDisciplineSelected,
+            )
+        }
 
         FormSection(title = stringResource(R.string.create_task_section_basic)) {
             OutlinedTextField(
@@ -682,6 +736,16 @@ internal fun HabitTaskEmbeddedForm(
                     fieldColors = fieldColors,
                 )
             }
+
+            if (form.completionCriteria == "TIMER") {
+                TimerCriteriaFields(
+                    form = form,
+                    onTimerSecondsDefinedChange = onTimerSecondsDefinedChange,
+                    onTimerSecondsLongChange = onTimerSecondsLongChange,
+                    onTimerPauseAllowedChange = onTimerPauseAllowedChange,
+                    fieldColors = fieldColors,
+                )
+            }
         }
 
         FormSection(title = stringResource(R.string.create_task_section_planning)) {
@@ -732,25 +796,14 @@ internal fun HabitTaskEmbeddedForm(
                 )
             }
 
-            OutlinedTextField(
+            LulDatePickerField(
                 value = form.startDate,
                 onValueChange = onStartDateChange,
                 label = { Text(stringResource(R.string.create_task_field_start_date)) },
-                modifier = Modifier.fillMaxWidth(),
+                hint = stringResource(R.string.create_task_start_date_hint),
                 isError = form.showValidationErrors && form.fieldErrors.startDate != null,
-                supportingText = {
-                    if (form.showValidationErrors && form.fieldErrors.startDate != null) {
-                        Text(form.fieldErrors.startDate!!.toMessage())
-                    } else {
-                        Text(
-                            stringResource(R.string.create_task_start_date_hint),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                },
-                colors = fieldColors,
-                singleLine = true,
+                fieldColors = fieldColors,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
 
@@ -764,9 +817,7 @@ internal fun HabitTaskEmbeddedForm(
             TaskPreviewCard(form = form)
         }
 
-        if (form.submitError != null) {
-            ErrorBanner(message = form.submitError ?: "", onDismiss = onDismissError)
-        }
+        HabitTaskFormErrorDialog(form = form, onDismiss = onDismissError)
     }
 }
 
@@ -790,39 +841,13 @@ private fun QuickTemplatesRow(
         ) {
             TaskFormTemplates.all.forEach { template ->
                 val selected = selectedTemplateId == template.id
-                TemplateChip(
+                SelectableChip(
                     label = template.label,
                     selected = selected,
                     onClick = { onApplyTemplate(template) },
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun TemplateChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val backgroundColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        color = backgroundColor,
-        border = BorderStroke(1.dp, borderColor),
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }
 
@@ -897,6 +922,136 @@ private fun PartialAllowedRow(
                 uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
             ),
         )
+    }
+}
+
+@Composable
+internal fun TimerCriteriaFields(
+    form: HabitTaskFormState,
+    onTimerSecondsDefinedChange: (String) -> Unit,
+    onTimerSecondsLongChange: (String) -> Unit,
+    onTimerPauseAllowedChange: (Boolean) -> Unit,
+    fieldColors: androidx.compose.material3.TextFieldColors,
+) {
+    val seconds = form.timerSecondsDefined.toIntOrNull()
+
+    OutlinedTextField(
+        value = form.timerSecondsDefined,
+        onValueChange = onTimerSecondsDefinedChange,
+        label = { Text(stringResource(R.string.create_task_field_timer_seconds)) },
+        modifier = Modifier.fillMaxWidth(),
+        isError = form.showValidationErrors && form.fieldErrors.timerSeconds != null,
+        supportingText = {
+            val err = form.fieldErrors.timerSeconds
+            when {
+                form.showValidationErrors && err != null -> Text(err.toMessage())
+                seconds != null && seconds > 0 -> Text(
+                    text = stringResource(R.string.create_task_timer_minutes_format, formatMinutes(seconds)),
+                    color = MaterialTheme.colorScheme.secondary,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                else -> Text(
+                    text = stringResource(R.string.create_task_timer_seconds_hint),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        },
+        colors = fieldColors,
+        singleLine = true,
+    )
+
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            text = stringResource(R.string.create_task_timer_examples_label),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TimerExampleChip(R.string.create_task_timer_example_1min, "60", form.timerSecondsDefined, onTimerSecondsDefinedChange)
+            TimerExampleChip(R.string.create_task_timer_example_5min, "300", form.timerSecondsDefined, onTimerSecondsDefinedChange)
+            TimerExampleChip(R.string.create_task_timer_example_25min, "1500", form.timerSecondsDefined, onTimerSecondsDefinedChange)
+        }
+    }
+
+    OutlinedTextField(
+        value = form.timerSecondsLong,
+        onValueChange = onTimerSecondsLongChange,
+        label = { Text(stringResource(R.string.create_task_field_timer_threshold)) },
+        modifier = Modifier.fillMaxWidth(),
+        isError = form.showValidationErrors && form.fieldErrors.timerLong != null,
+        supportingText = {
+            val err = form.fieldErrors.timerLong
+            if (form.showValidationErrors && err != null) {
+                Text(err.toMessage())
+            } else {
+                Text(
+                    text = stringResource(R.string.create_task_timer_threshold_hint),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        },
+        colors = fieldColors,
+        singleLine = true,
+    )
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.create_task_timer_pause_label),
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f).padding(end = 8.dp),
+        )
+        Switch(
+            checked = form.timerPauseAllowed,
+            onCheckedChange = onTimerPauseAllowedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
+        )
+    }
+}
+
+@Composable
+private fun TimerExampleChip(
+    labelRes: Int,
+    seconds: String,
+    currentValue: String,
+    onSelect: (String) -> Unit,
+) {
+    val selected = currentValue == seconds
+    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val backgroundColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface
+    Surface(
+        onClick = { onSelect(seconds) },
+        shape = RoundedCornerShape(10.dp),
+        color = backgroundColor,
+        border = BorderStroke(1.dp, borderColor),
+    ) {
+        Text(
+            text = stringResource(labelRes),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
+        )
+    }
+}
+
+private fun formatMinutes(totalSeconds: Int): String {
+    val minutes = totalSeconds / 60.0
+    return if (minutes == minutes.toLong().toDouble()) {
+        minutes.toLong().toString()
+    } else {
+        String.format(java.util.Locale.US, "%.1f", minutes)
     }
 }
 
@@ -1098,24 +1253,6 @@ private fun LabeledOptionDropdown(
                     },
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun ErrorBanner(message: String, onDismiss: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp))
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(Icons.Outlined.ErrorOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-        Spacer(Modifier.width(8.dp))
-        Text(message, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.weight(1f))
-        TextButton(onClick = onDismiss) {
-            Text(stringResource(R.string.login_dismiss), color = MaterialTheme.colorScheme.primary)
         }
     }
 }

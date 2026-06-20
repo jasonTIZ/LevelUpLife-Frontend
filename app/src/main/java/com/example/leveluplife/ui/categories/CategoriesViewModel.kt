@@ -21,10 +21,6 @@ class CategoriesViewModel(
 
     private var searchJob: Job? = null
 
-    init {
-        loadCategories()
-    }
-
     fun onSearchQueryChange(query: String) {
         _state.update { it.copy(searchQuery = query) }
         searchJob?.cancel()
@@ -41,13 +37,13 @@ class CategoriesViewModel(
             }
             categoryRepository.getActiveCategories(page = 1, search = currentSearch())
                 .onSuccess { response ->
-                    val pagination = response.pagination
+                    val pagination = response.resolvedPagination
                     val page = pagination?.currentPage ?: 1
                     val total = pagination?.totalPages ?: 1
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            categories = response.categories ?: emptyList(),
+                            categories = response.categories,
                             currentPage = page,
                             totalPages = total,
                             hasMore = page < total,
@@ -68,13 +64,13 @@ class CategoriesViewModel(
             _state.update { it.copy(isLoadingMore = true) }
             categoryRepository.getActiveCategories(page = nextPage, search = currentSearch())
                 .onSuccess { response ->
-                    val pagination = response.pagination
+                    val pagination = response.resolvedPagination
                     val page = pagination?.currentPage ?: nextPage
                     val total = pagination?.totalPages ?: current.totalPages
                     _state.update {
                         it.copy(
                             isLoadingMore = false,
-                            categories = it.categories + (response.categories ?: emptyList()),
+                            categories = it.categories + response.categories,
                             currentPage = page,
                             totalPages = total,
                             hasMore = page < total,

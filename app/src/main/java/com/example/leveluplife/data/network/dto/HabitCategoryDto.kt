@@ -1,6 +1,5 @@
 package com.example.leveluplife.data.network.dto
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -10,14 +9,19 @@ data class HabitCategoryDto(
     val description: String = "",
     val imageUrl: String? = null,
     val habitsCount: Int = 0,
-    val isActive: Boolean = false,
+    val isActive: Boolean = true,
 )
 
 @Serializable
 data class HabitCategoriesPageResponse(
     val success: Boolean = false,
-    @SerialName("data")
-    val categories: List<HabitCategoryDto>? = null,
+    val data: List<HabitCategoryDto>? = null,
     val pagination: PaginationDto? = null,
     val message: String? = null,
-)
+) {
+    val categories: List<HabitCategoryDto>
+        get() = data.orEmpty()
+
+    val resolvedPagination: PaginationDto?
+        get() = pagination
+}

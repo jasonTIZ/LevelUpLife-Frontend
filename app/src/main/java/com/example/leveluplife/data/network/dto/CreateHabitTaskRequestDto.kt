@@ -17,6 +17,7 @@ data class CreateHabitTaskRequestDto(
     @SerialName("completionCriteria") val completionCriteria: TaskCompletionCriteria,
     val evidence: TaskEvidence? = null,
     @SerialName("repetitionCriteria") val repetitionCriteria: RepetitionCriteriaRequestDto? = null,
+    @SerialName("timerCriteria") val timerCriteria: CreateTimerCriteriaRequest? = null,
     @SerialName("xpValue") val xpValue: Int? = null,
     @SerialName("isActive") val isActive: Boolean? = null
 )

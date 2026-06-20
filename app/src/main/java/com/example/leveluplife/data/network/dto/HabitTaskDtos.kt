@@ -4,6 +4,25 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class CompleteHabitTaskRequest(
+    val completedAt: String,
+)
+
+@Serializable
+data class CompleteHabitTaskResponse(
+    val xpEarned: Int = 0,
+    val previousLevel: Int = 1,
+    val newLevel: Int = 1,
+    val totalExperiencePoints: Int = 0,
+    val experiencePointsInCurrentLevel: Int = 0,
+    val experiencePointsRequiredForNextLevel: Int = 0,
+    val levelProgressPercent: Double = 0.0,
+    val leveledUp: Boolean = false,
+    val streakUpdated: Boolean = false,
+    val daysStreak: Int = 0,
+)
+
+@Serializable
 data class CreateRepetitionCriteriaRequest(
     val repetitions: Int,
     val measurementUnit: String,
@@ -85,6 +104,8 @@ data class HabitTaskDto(
     val id: Int,
     val habitId: Int = 0,
     val habitDisciplineId: Int? = null,
+    @SerialName("habitDiscipline")
+    val habitDiscipline: HabitDisciplineDto? = null,
     val title: String = "",
     val description: String? = null,
     val xpValue: Int = 0,
@@ -100,4 +121,10 @@ data class HabitTaskDto(
     val evidence: String? = null,
     val repetitionCriteria: RepetitionCriteriaDto? = null,
     val timerCriteria: TimerCriteriaDto? = null,
-)
+) {
+    val resolvedDisciplineId: Int?
+        get() = habitDisciplineId ?: habitDiscipline?.id
+
+    val resolvedCategoryId: Int?
+        get() = habitDiscipline?.categoryId
+}

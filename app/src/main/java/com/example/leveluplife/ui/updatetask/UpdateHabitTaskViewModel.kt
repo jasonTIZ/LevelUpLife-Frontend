@@ -3,10 +3,12 @@ package com.example.leveluplife.ui.updatetask
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.leveluplife.data.habits.HabitDisciplineRepository
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskConflictFailure
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.habits.HabitTaskValidationFailure
+import com.example.leveluplife.data.network.dto.HabitDisciplineDto
 import com.example.leveluplife.domain.validation.HabitTaskValidationOptions
 import com.example.leveluplife.domain.validation.HabitTaskValidators
 import com.example.leveluplife.ui.createtask.HabitTaskFormHandlers
@@ -23,13 +25,35 @@ class UpdateHabitTaskViewModel(
     private val taskId: Int,
     private val habitRepository: HabitRepository,
     private val habitTaskRepository: HabitTaskRepository,
+    private val disciplineRepository: HabitDisciplineRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(UpdateHabitTaskUiState())
     val state: StateFlow<UpdateHabitTaskUiState> = _state.asStateFlow()
 
     init {
+        loadDisciplines()
         loadTask()
+    }
+
+    private fun loadDisciplines() {
+        _state.update { it.copy(isDisciplinesLoading = true) }
+        viewModelScope.launch {
+            disciplineRepository.getAll()
+                .onSuccess { list ->
+                    _state.update { current ->
+                        syncDisciplineFilter(
+                            current.copy(
+                                allDisciplines = list.filter { it.isActive },
+                                isDisciplinesLoading = false,
+                            ),
+                        )
+                    }
+                }
+                .onFailure {
+                    _state.update { it.copy(isDisciplinesLoading = false) }
+                }
+        }
     }
 
     fun loadTask() {
@@ -42,11 +66,14 @@ class UpdateHabitTaskViewModel(
             val habits = habitsResult.getOrNull()?.habits.orEmpty()
             taskResult
                 .onSuccess { task ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            form = HabitTaskFormState.fromTask(task, habits),
-                            originalStartDate = task.startDate.trim(),
+                    _state.update { current ->
+                        syncDisciplineFilter(
+                            current.copy(
+                                isLoading = false,
+                                form = HabitTaskFormState.fromTask(task, habits),
+                                originalStartDate = task.startDate.trim(),
+                                selectedCategoryId = task.resolvedCategoryId ?: current.selectedCategoryId,
+                            ),
                         )
                     }
                 }
@@ -59,6 +86,38 @@ class UpdateHabitTaskViewModel(
                     }
                 }
         }
+    }
+
+    private fun filterDisciplines(
+        allDisciplines: List<HabitDisciplineDto>,
+        categoryId: Int?,
+    ): List<HabitDisciplineDto> {
+        if (categoryId == null) return emptyList()
+        return allDisciplines.filter { it.categoryId == categoryId && it.isActive }
+    }
+
+    private fun syncDisciplineFilter(state: UpdateHabitTaskUiState): UpdateHabitTaskUiState {
+        val disciplineId = state.form.selectedDisciplineId
+        val categoryFromDiscipline = disciplineId?.let { id ->
+            state.allDisciplines.firstOrNull { it.id == id }?.categoryId
+        }
+        val categoryId = state.selectedCategoryId ?: categoryFromDiscipline
+        val filtered = filterDisciplines(state.allDisciplines, categoryId)
+        val form = if (disciplineId != null && filtered.none { it.id == disciplineId }) {
+            state.form.copy(selectedDisciplineId = null)
+        } else {
+            state.form
+        }
+
+        return state.copy(
+            selectedCategoryId = categoryId,
+            disciplines = filtered,
+            form = form,
+        )
+    }
+
+    fun onDisciplineChange(disciplineId: Int) {
+        _state.update { it.copy(form = HabitTaskFormHandlers.onDisciplineChange(it.form, disciplineId)) }
     }
 
     fun onTitleChange(value: String) {
@@ -123,6 +182,18 @@ class UpdateHabitTaskViewModel(
 
     fun submit() {
         val sanitizedForm = _state.value.form.sanitizedForValidation()
+        if (sanitizedForm.selectedDisciplineId == null) {
+            _state.update {
+                it.copy(
+                    form = sanitizedForm.copy(
+                        submitError = "Selecciona una disciplina",
+                        showValidationErrors = true,
+                    ),
+                )
+            }
+            return
+        }
+
         val validationOptions = HabitTaskValidationOptions(
             today = LocalDate.now(),
             preservedStartDate = _state.value.originalStartDate,
@@ -168,7 +239,10 @@ class UpdateHabitTaskViewModel(
                             isSubmitting = false,
                             updatedTask = task,
                             originalStartDate = task.startDate.trim(),
-                        )
+                            form = HabitTaskFormState.fromTask(task, it.form.habits),
+                        ).let { updated ->
+                            syncDisciplineFilter(updated)
+                        }
                     }
                 }
                 .onFailure { t ->
@@ -215,11 +289,17 @@ class UpdateHabitTaskViewModel(
         private val taskId: Int,
         private val habitRepository: HabitRepository,
         private val habitTaskRepository: HabitTaskRepository,
+        private val disciplineRepository: HabitDisciplineRepository,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             require(modelClass.isAssignableFrom(UpdateHabitTaskViewModel::class.java))
-            return UpdateHabitTaskViewModel(taskId, habitRepository, habitTaskRepository) as T
+            return UpdateHabitTaskViewModel(
+                taskId,
+                habitRepository,
+                habitTaskRepository,
+                disciplineRepository,
+            ) as T
         }
     }
 }

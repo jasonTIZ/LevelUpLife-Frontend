@@ -219,7 +219,11 @@ fun AppNavigation(
         }
         composable(Routes.DASHBOARD) { backStackEntry ->
             val vm: HomeViewModel = viewModel(
-                factory = HomeViewModel.Factory(container.habitRepository as HabitRepository),
+                factory = HomeViewModel.Factory(
+                    container.habitRepository as HabitRepository,
+                    container.profileRepository,
+                    container.profileCache,
+                ),
             )
             val shouldRefresh by backStackEntry.savedStateHandle
                 .getStateFlow(Routes.ARG_REFRESH_HABITS, false)
@@ -276,14 +280,17 @@ fun AppNavigation(
                 factory = CreateHabitViewModel.Factory(
                     container.habitRepository as HabitRepository,
                     container.habitDisciplineRepository,
+                    container.habitCategoryRepository,
                 ),
             )
             CreateHabitScreen(
                 viewModel = vm,
                 onHabitCreated = {
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set(Routes.ARG_REFRESH_HABITS, true)
+                    runCatching {
+                        navController.getBackStackEntry(Routes.DASHBOARD)
+                            .savedStateHandle
+                            .set(Routes.ARG_REFRESH_HABITS, true)
+                    }
                     navController.popBackStack()
                 },
             )
@@ -292,6 +299,9 @@ fun AppNavigation(
             val vm: CategoriesViewModel = viewModel(
                 factory = CategoriesViewModel.Factory(container.habitCategoryRepository),
             )
+            LaunchedEffect(Unit) {
+                vm.loadCategories()
+            }
             CategoriesScreen(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },
@@ -382,6 +392,7 @@ fun AppNavigation(
                     taskId,
                     container.habitRepository,
                     container.habitTaskRepository,
+                    container.habitDisciplineRepository,
                 ),
             )
             UpdateHabitTaskScreen(
@@ -429,6 +440,7 @@ fun AppNavigation(
                     taskId = taskId,
                     habitTaskRepository = container.habitTaskRepository,
                     habitRepository = container.habitRepository,
+                    profileCache = container.profileCache,
                     initialTask = initialTask,
                 ),
             )

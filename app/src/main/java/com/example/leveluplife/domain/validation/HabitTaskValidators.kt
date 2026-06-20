@@ -12,6 +12,7 @@ sealed class HabitTaskFieldError {
     object InvalidOption : HabitTaskFieldError()
     object CriteriaRequired : HabitTaskFieldError()
     object EvidenceRequired : HabitTaskFieldError()
+    object TimerThresholdTooSmall : HabitTaskFieldError()
 }
 
 data class HabitTaskValidationOptions(
@@ -34,6 +35,7 @@ data class HabitTaskFormInput(
     val evidence: String?,
     val isPartialAllowed: Boolean,
     val timerSecondsDefined: String,
+    val timerSecondsLong: String = "",
 )
 
 data class HabitTaskFormErrors(
@@ -49,6 +51,7 @@ data class HabitTaskFormErrors(
     val measurementUnit: HabitTaskFieldError? = null,
     val evidence: HabitTaskFieldError? = null,
     val timerSeconds: HabitTaskFieldError? = null,
+    val timerLong: HabitTaskFieldError? = null,
 ) {
     val hasErrors: Boolean
         get() = listOfNotNull(
@@ -64,6 +67,7 @@ data class HabitTaskFormErrors(
             measurementUnit,
             evidence,
             timerSeconds,
+            timerLong,
         ).isNotEmpty()
 }
 
@@ -101,6 +105,7 @@ object HabitTaskValidators {
         measurementUnit = validateMeasurementUnit(input),
         evidence = validateEvidence(input),
         timerSeconds = validateTimerSeconds(input),
+        timerLong = validateTimerLong(input),
     )
 
     fun validateHabitId(habitId: Int?): HabitTaskFieldError? =
@@ -184,5 +189,16 @@ object HabitTaskValidators {
             parsed > TIMER_SECONDS_MAX -> HabitTaskFieldError.InvalidNumber
             else -> null
         }
+    }
+
+    /** Optional long threshold: when present it must be valid and exceed the base duration. */
+    fun validateTimerLong(input: HabitTaskFormInput): HabitTaskFieldError? {
+        if (input.completionCriteria != "TIMER") return null
+        if (input.timerSecondsLong.isBlank()) return null
+        val parsed = input.timerSecondsLong.toIntOrNull() ?: return HabitTaskFieldError.InvalidNumber
+        if (parsed < 1 || parsed > TIMER_SECONDS_MAX) return HabitTaskFieldError.InvalidNumber
+        val base = input.timerSecondsDefined.toIntOrNull()
+        if (base != null && parsed <= base) return HabitTaskFieldError.TimerThresholdTooSmall
+        return null
     }
 }
