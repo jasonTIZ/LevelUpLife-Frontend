@@ -65,14 +65,14 @@ object Routes {
     const val HABIT_DETAIL = "habit_detail/{habitId}"
     const val CREATE_HABIT_TASK = "create_habit_task?habitId={habitId}"
     const val HABIT_TASK_DETAIL = "habit_task_detail/{taskId}"
-    const val TASK_EVIDENCES = "task_evidences/{taskId}"
+    const val TASK_EVIDENCES = "task_evidences/{taskId}?isCompleted={isCompleted}"
     const val EDIT_HABIT_TASK = "edit_habit_task/{taskId}"
     const val COACH = "coach"
 
     fun habitDetail(id: Int) = "habit_detail/$id"
     fun createHabitTask(habitId: Int = -1) = "create_habit_task?habitId=$habitId"
     fun habitTaskDetail(taskId: Int) = "habit_task_detail/$taskId"
-    fun taskEvidences(taskId: Int) = "task_evidences/$taskId"
+    fun taskEvidences(taskId: Int, isCompleted: Boolean = false) = "task_evidences/$taskId?isCompleted=$isCompleted"
     fun editHabitTask(taskId: Int) = "edit_habit_task/$taskId"
 
     const val ARG_REFRESH_HABITS = "refresh_habits"
@@ -450,7 +450,8 @@ fun AppNavigation(
                 onBack = { navController.popBackStack() },
                 onDone = { navController.popBackStack(Routes.DASHBOARD, inclusive = false) },
                 onViewEvidences = {
-                    navController.navigate(Routes.taskEvidences(taskId))
+                    val isCompleted = vm.state.value.task?.isCompleted ?: false
+                    navController.navigate(Routes.taskEvidences(taskId, isCompleted))
                 },
                 onEdit = { loadedTask ->
                     navController.navigate(Routes.editHabitTask(loadedTask.id))
@@ -474,11 +475,15 @@ fun AppNavigation(
         }
         composable(
             route = Routes.TASK_EVIDENCES,
-            arguments = listOf(navArgument("taskId") { type = NavType.IntType }),
+            arguments = listOf(
+                navArgument("taskId") { type = NavType.IntType },
+                navArgument("isCompleted") { type = NavType.BoolType; defaultValue = false },
+            ),
         ) { backStackEntry ->
             val taskId = backStackEntry.arguments?.getInt("taskId") ?: return@composable
+            val isCompleted = backStackEntry.arguments?.getBoolean("isCompleted") ?: false
             val vm: EvidenceGalleryViewModel = viewModel(
-                factory = EvidenceGalleryViewModel.Factory(container.evidenceRepository, taskId),
+                factory = EvidenceGalleryViewModel.Factory(container.evidenceRepository, taskId, isCompleted),
             )
             EvidenceGalleryScreen(
                 viewModel = vm,

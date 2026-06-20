@@ -1,4 +1,4 @@
-package com.example.leveluplife
+﻿package com.example.leveluplife
 
 import android.content.Context
 import android.util.Log
@@ -14,11 +14,11 @@ import com.example.leveluplife.data.coach.ChatStorage
 import com.example.leveluplife.data.coach.CoachRepository
 import com.example.leveluplife.data.coach.DefaultCoachRepository
 import com.example.leveluplife.data.habits.DefaultHabitDisciplineRepository
-import com.example.leveluplife.data.habits.DefaultHabitRepository
 import com.example.leveluplife.data.habits.DefaultHabitTaskRepository
 import com.example.leveluplife.data.habits.DefaultEvidenceRepository
 import com.example.leveluplife.data.habits.EvidenceRepository
 import com.example.leveluplife.data.habits.HabitDisciplineRepository
+import com.example.leveluplife.data.habits.DefaultHabitRepository
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.network.AiApi
@@ -146,3 +146,4 @@ class AppContainer(applicationContext: Context) {
         )
     }
 }
+
