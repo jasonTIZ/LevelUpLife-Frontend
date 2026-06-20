@@ -415,6 +415,45 @@
     <string name="coach_suggestion_1">¿Cómo mejorar mis hábitos de sueño?</string>
     <string name="coach_suggestion_2">¿Qué ejercicios son fáciles de mantener?</string>
     <string name="coach_suggestion_3">Ayúdame a crear una rutina diaria</string>
+    <!-- Store / reward catalog -->
+    <string name="store_title">TIENDA</string>
+    <string name="store_back">Volver</string>
+    <string name="store_search_hint">Buscar items…</string>
+    <string name="store_sort_menu_cd">Ordenar</string>
+    <string name="store_sort_name">Nombre (A–Z)</string>
+    <string name="store_sort_price_asc">Precio: menor a mayor</string>
+    <string name="store_sort_price_desc">Precio: mayor a menor</string>
+    <string name="store_empty">No hay items disponibles</string>
+    <string name="store_error_generic">No se pudieron cargar los items de la tienda</string>
+    <string name="store_retry">Reintentar</string>
+    <string name="store_unavailable_badge">No disponible</string>
+    <string name="store_owned_badge">Obtenido</string>
+    <string name="store_cost_xp">%1$d XP</string>
+    <string name="store_detail_cost">Costo</string>
+    <string name="store_detail_effect">Efecto</string>
+    <string name="store_detail_effect_value">%1$s</string>
+    <string name="store_detail_type">Tipo</string>
+    <string name="store_detail_description_label">DESCRIPCIÓN</string>
+    <string name="store_detail_no_description">Sin descripción disponible</string>
+    <string name="store_detail_redeem_button">Canjear</string>
+    <string name="store_detail_redeem_disabled">No disponible para canjear</string>
+    <string name="store_redeem_coming_soon">Funcionalidad de canje próximamente disponible</string>
+    <string name="store_purchase_success">¡Item canjeado correctamente!</string>
+    <string name="store_purchase_success_button">¡Canjeado!</string>
+    <string name="store_purchase_error_insufficient">No tenés suficiente XP para este item</string>
+    <string name="store_purchase_error_not_found">Este item ya no está disponible</string>
+    <string name="store_purchase_error_generic">No se pudo completar el canje. Intentá de nuevo.</string>
+    <string name="store_cost_gold">%1$d oro</string>
+    <string name="store_buy_button">Comprar</string>
+    <string name="store_buy_success">¡%1$s comprado!</string>
+    <!-- Inventory -->
+    <string name="inventory_title">MI INVENTARIO</string>
+    <string name="inventory_back">Volver</string>
+    <string name="inventory_empty">Tu inventario está vacío</string>
+    <string name="inventory_error">No se pudo cargar el inventario</string>
+    <string name="inventory_retry">Reintentar</string>
+    <string name="inventory_quantity">x%1$d</string>
+
     <!-- Evidence gallery - delete -->
     <string name="evidence_gallery_delete_button">Eliminar</string>
     <string name="evidence_gallery_delete_confirm_title">¿Eliminar evidencia?</string>

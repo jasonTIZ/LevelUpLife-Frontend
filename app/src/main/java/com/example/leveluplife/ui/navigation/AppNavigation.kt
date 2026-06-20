@@ -35,6 +35,10 @@ import com.example.leveluplife.ui.habit.CreateHabitScreen
 import com.example.leveluplife.ui.habit.CreateHabitViewModel
 import com.example.leveluplife.ui.coach.CoachScreen
 import com.example.leveluplife.ui.coach.CoachViewModel
+import com.example.leveluplife.ui.inventory.InventoryScreen
+import com.example.leveluplife.ui.inventory.InventoryViewModel
+import com.example.leveluplife.ui.store.StoreScreen
+import com.example.leveluplife.ui.store.StoreViewModel
 import com.example.leveluplife.ui.evidence.EvidenceGalleryScreen
 import com.example.leveluplife.ui.evidence.EvidenceGalleryViewModel
 import com.example.leveluplife.ui.habitdetail.HabitDetailScreen
@@ -73,6 +77,10 @@ object Routes {
     const val TASK_EVIDENCES = "task_evidences/{taskId}?isCompleted={isCompleted}&evidence={evidence}"
     const val EDIT_HABIT_TASK = "edit_habit_task/{taskId}"
     const val COACH = "coach"
+    const val STORE = "store"
+    const val STORE_DETAIL = "store_detail"
+    const val INVENTORY = "inventory"
+    const val ARG_STORE_ITEM_JSON = "store_item_json"
 
     fun habitDetail(id: Int) = "habit_detail/$id"
     fun createHabitTask(habitId: Int = -1) = "create_habit_task?habitId=$habitId"
@@ -82,6 +90,7 @@ object Routes {
     fun editHabitTask(taskId: Int) = "edit_habit_task/$taskId"
 
     const val ARG_REFRESH_HABITS = "refresh_habits"
+    const val ARG_REFRESH_PLAYER = "refresh_player"
     const val ARG_CREATED_TASK_JSON = "created_task_json"
     const val ARG_TASK_SUCCESS_KIND = "task_success_kind"
     const val TASK_SUCCESS_CREATED = "created"
@@ -243,19 +252,28 @@ fun AppNavigation(
                     container.profileCache,
                 ),
             )
-            val shouldRefresh by backStackEntry.savedStateHandle
-                .getStateFlow(Routes.ARG_REFRESH_HABITS, false)
-                .collectAsState()
-            LaunchedEffect(shouldRefresh) {
-                if (shouldRefresh) {
-                    vm.loadHabits()
-                    backStackEntry.savedStateHandle.remove<Boolean>(Routes.ARG_REFRESH_HABITS)
-                }
-            }
-            val dashboardContext = LocalContext.current
-            LaunchedEffect(Unit) {
-                TaskReminderScheduler.runNow(dashboardContext)
-            }
+  val shouldRefresh by backStackEntry.savedStateHandle
+      .getStateFlow(Routes.ARG_REFRESH_HABITS, false)
+      .collectAsState()
+  val shouldRefreshPlayer by backStackEntry.savedStateHandle
+      .getStateFlow(Routes.ARG_REFRESH_PLAYER, false)
+      .collectAsState()
+  val dashboardContext = LocalContext.current
+  LaunchedEffect(Unit) {
+      TaskReminderScheduler.runNow(dashboardContext)
+  }
+  LaunchedEffect(shouldRefresh) {
+      if (shouldRefresh) {
+          vm.loadHabits()
+          backStackEntry.savedStateHandle.remove<Boolean>(Routes.ARG_REFRESH_HABITS)
+      }
+  }
+  LaunchedEffect(shouldRefreshPlayer) {
+      if (shouldRefreshPlayer) {
+          vm.refreshPlayerProgress()
+          backStackEntry.savedStateHandle.remove<Boolean>(Routes.ARG_REFRESH_PLAYER)
+      }
+  }
             HomeScreen(
                 viewModel = vm,
                 profileCache = container.profileCache,
@@ -279,6 +297,9 @@ fun AppNavigation(
                 },
                 onOpenCoach = {
                     navController.navigate(Routes.COACH) { launchSingleTop = true }
+                },
+                onOpenStore = {
+                    navController.navigate(Routes.STORE) { launchSingleTop = true }
                 },
             )
         }
@@ -509,6 +530,34 @@ fun AppNavigation(
                 factory = CoachViewModel.Factory(container.coachRepository, container.tokenStore, container.chatStorage),
             )
             CoachScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(Routes.STORE) {
+            val vm: StoreViewModel = viewModel(
+                factory = StoreViewModel.Factory(container.rewardRepository),
+            )
+            StoreScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+                onOpenInventory = {
+                    navController.navigate(Routes.INVENTORY) { launchSingleTop = true }
+                },
+                onPurchaseSuccess = {
+                    runCatching {
+                        navController.getBackStackEntry(Routes.DASHBOARD)
+                            .savedStateHandle
+                            .set(Routes.ARG_REFRESH_PLAYER, true)
+                    }
+                },
+            )
+        }
+        composable(Routes.INVENTORY) {
+            val vm: InventoryViewModel = viewModel(
+                factory = InventoryViewModel.Factory(container.rewardRepository),
+            )
+            InventoryScreen(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },
             )
