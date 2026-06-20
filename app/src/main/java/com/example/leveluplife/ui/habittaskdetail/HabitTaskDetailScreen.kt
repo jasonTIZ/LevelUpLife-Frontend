@@ -60,7 +60,7 @@ object HabitTaskDetailTestTags {
     const val CANCEL_DEACTIVATE_BUTTON = "task_detail_cancel_deactivate_button"
 }
 
-private val GreenSuccess = Color(0xFF4CAF50)
+private val MutedGreen = Color(0xFF4ADE80)
 private val OrangeWarn = Color(0xFFF59E0B)
 private val DangerRed = Color(0xFFEF4444)
 
@@ -91,6 +91,22 @@ fun HabitTaskDetailScreen(
             onTaskDeactivated(defaultDeactivationMessage)
             viewModel.consumeDeactivatedEvent()
         }
+    }
+
+    state.reward?.let { reward ->
+        TaskCompletionRewardDialog(
+            reward = reward,
+            onDismiss = viewModel::dismissReward,
+        )
+    }
+
+    if (state.completionError != null) {
+        LulErrorAlertDialog(
+            title = stringResource(R.string.error_dialog_title),
+            message = state.completionError ?: "",
+            dismissText = stringResource(R.string.login_dismiss),
+            onDismiss = viewModel::dismissCompletionError,
+        )
     }
 
     if (state.showConfirmDeactivateDialog) {
@@ -162,7 +178,9 @@ fun HabitTaskDetailScreen(
                 state.task != null -> HabitTaskDetailContent(
                     task = state.task!!,
                     habitTitle = state.habitTitle,
+                    isCompleting = state.isCompleting,
                     onDone = onDone,
+                    onComplete = viewModel::completeTask,
                     onViewEvidences = onViewEvidences,
                     onRequestDeactivate = viewModel::onRequestDeactivate,
                 )
@@ -211,7 +229,9 @@ private fun DetailHeader(
 private fun HabitTaskDetailContent(
     task: HabitTaskDto,
     habitTitle: String?,
+    isCompleting: Boolean,
     onDone: () -> Unit,
+    onComplete: () -> Unit,
     onViewEvidences: () -> Unit,
     onRequestDeactivate: () -> Unit,
 ) {
@@ -224,7 +244,7 @@ private fun HabitTaskDetailContent(
     ) {
         Card(
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -253,8 +273,8 @@ private fun HabitTaskDetailContent(
                     if (task.isCompleted) {
                         StatusChip(
                             label = stringResource(R.string.task_detail_status_completed),
-                            background = GreenSuccess.copy(alpha = 0.15f),
-                            textColor = GreenSuccess,
+                            background = MutedGreen.copy(alpha = 0.15f),
+                            textColor = MutedGreen,
                         )
                     }
                     StatusChip(
@@ -282,7 +302,7 @@ private fun HabitTaskDetailContent(
 
         Card(
             shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -321,7 +341,7 @@ private fun HabitTaskDetailContent(
 
         Card(
             shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -364,6 +384,22 @@ private fun HabitTaskDetailContent(
             )
         }
 
+        if (task.isActive && !task.isCompleted) {
+            LulPrimaryButton(
+                text = stringResource(R.string.complete_task_button),
+                onClick = onComplete,
+                enabled = !isCompleting,
+                isLoading = isCompleting,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MutedGreen,
+                    disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    disabledContentColor = MutedGreen.copy(alpha = 0.5f),
+                ),
+            )
+        }
+
         if (task.isActive) {
             LulPrimaryButton(
                 text = stringResource(R.string.deactivate_task_button),
@@ -372,9 +408,10 @@ private fun HabitTaskDetailContent(
                     .fillMaxWidth()
                     .testTag(HabitTaskDetailTestTags.DEACTIVATE_BUTTON),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = DangerRed,
-                    contentColor = Color.White,
-                    disabledContainerColor = DangerRed.copy(alpha = 0.5f),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                 ),
                 trailingIcon = Icons.Outlined.WarningAmber,
             )
