@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -21,6 +22,7 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.auth.SessionEvent
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.network.dto.HabitTaskDto
+import com.example.leveluplife.notifications.TaskReminderScheduler
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
 import com.example.leveluplife.ui.auth.RegisterScreen
@@ -111,6 +113,8 @@ fun AppNavigation(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     json: Json = Json { ignoreUnknownKeys = true },
+    deepLinkTaskId: Int? = null,
+    onDeepLinkHandled: () -> Unit = {},
 ) {
     val startDestination = if (container.authRepository.isLoggedIn()) {
         Routes.DASHBOARD
@@ -154,6 +158,16 @@ fun AppNavigation(
                 SessionEvent.SESSION_LOGIN_SUCCESS -> Unit
             }
         }
+    }
+
+    LaunchedEffect(deepLinkTaskId) {
+        val taskId = deepLinkTaskId ?: return@LaunchedEffect
+        if (container.authRepository.isLoggedIn()) {
+            navController.navigate(Routes.habitTaskDetail(taskId)) {
+                launchSingleTop = true
+            }
+        }
+        onDeepLinkHandled()
     }
 
     Scaffold(
@@ -236,6 +250,10 @@ fun AppNavigation(
                     vm.loadHabits()
                     backStackEntry.savedStateHandle.remove<Boolean>(Routes.ARG_REFRESH_HABITS)
                 }
+            }
+            val dashboardContext = LocalContext.current
+            LaunchedEffect(Unit) {
+                TaskReminderScheduler.runNow(dashboardContext)
             }
             HomeScreen(
                 viewModel = vm,
