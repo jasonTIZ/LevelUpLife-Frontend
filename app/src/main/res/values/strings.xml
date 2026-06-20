@@ -321,6 +321,12 @@
     <string name="home_delete_habit_confirm">Eliminar</string>
     <string name="home_delete_habit_cancel">Cancelar</string>
 
+    <!-- Notificaciones de tareas -->
+    <string name="notif_channel_task_reminders">Recordatorios de tareas</string>
+    <string name="notif_task_pending_today_title">Tienes una tarea pendiente para hoy</string>
+    <string name="notif_task_expired_title">Tarea caducada</string>
+    <string name="notif_task_expired_text">Se te caducó la tarea: %1$s</string>
+
     <!-- Settings / deactivate account -->
     <string name="settings_title">Ajustes</string>
     <string name="settings_back">Volver</string>
