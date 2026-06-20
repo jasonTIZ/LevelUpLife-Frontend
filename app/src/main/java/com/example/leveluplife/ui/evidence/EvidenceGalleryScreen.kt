@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -43,7 +44,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,10 +58,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.health.connect.client.PermissionController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.EvidenceDto
+import com.example.leveluplife.health.HealthConnectManager
+import com.example.leveluplife.health.HealthEvidencePayload
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import java.util.Locale
 import com.example.leveluplife.ui.components.LulErrorAlertDialog
 import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.theme.DarkBackground
@@ -67,6 +77,25 @@ import com.example.leveluplife.ui.theme.DarkSurfaceVariant
 import com.example.leveluplife.ui.theme.PurplePrimary
 
 private val DangerRed = Color(0xFFCF6679)
+private val HealthJson = Json { ignoreUnknownKeys = true }
+
+private fun formatHealthValue(value: Double): String =
+    if (value % 1.0 == 0.0) value.toLong().toString() else String.format(Locale.US, "%.2f", value)
+
+@Composable
+private fun healthEvidenceLabel(healthDataJson: String): String {
+    val payload = remember(healthDataJson) {
+        runCatching { HealthJson.decodeFromString<HealthEvidencePayload>(healthDataJson) }.getOrNull()
+    } ?: return healthDataJson
+    val value = formatHealthValue(payload.value)
+    return when (payload.metric) {
+        "STEPS" -> stringResource(R.string.evidence_health_value_steps, value)
+        "DISTANCE" -> stringResource(R.string.evidence_health_value_distance, value)
+        "CALORIES" -> stringResource(R.string.evidence_health_value_calories, value)
+        "EXERCISE" -> stringResource(R.string.evidence_health_value_exercise, value)
+        else -> stringResource(R.string.evidence_health_value_generic, value, payload.unit)
+    }
+}
 
 @Composable
 fun EvidenceGalleryScreen(
@@ -78,6 +107,8 @@ fun EvidenceGalleryScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
+    val scope = rememberCoroutineScope()
+
     val pickImage = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
     ) { uri ->
@@ -87,12 +118,36 @@ fun EvidenceGalleryScreen(
         }
     }
 
+    var showMetricPicker by remember { mutableStateOf(false) }
+    var pendingMetric by remember { mutableStateOf<HealthConnectManager.Metric?>(null) }
+    val healthUnavailableMessage = stringResource(R.string.evidence_health_unavailable)
+    val healthPermissionDeniedMessage = stringResource(R.string.evidence_health_permission_denied)
+
+    val healthPermissionLauncher = rememberLauncherForActivityResult(
+        contract = PermissionController.createRequestPermissionResultContract(),
+    ) { granted ->
+        val metric = pendingMetric
+        pendingMetric = null
+        if (metric != null && granted.containsAll(viewModel.healthPermissions)) {
+            viewModel.syncHealthMetric(metric)
+        } else {
+            scope.launch { snackbarHostState.showLulSnackbar(healthPermissionDeniedMessage) }
+        }
+    }
+
+    val onPickMetric: (HealthConnectManager.Metric) -> Unit = { metric ->
+        showMetricPicker = false
+        pendingMetric = metric
+        healthPermissionLauncher.launch(viewModel.healthPermissions)
+    }
+
     val deleteSuccessMessage = stringResource(R.string.evidence_gallery_delete_success)
     val successMessage = stringResource(R.string.evidence_upload_success)
     val errorGenericMessage = stringResource(R.string.evidence_upload_error_generic)
     val errorInvalidMessage = stringResource(R.string.evidence_upload_error_invalid)
     val errorFileMessage = stringResource(R.string.evidence_upload_error_file)
     val errorTaskNotFoundMessage = stringResource(R.string.evidence_gallery_error_not_found)
+    val errorHealthReadMessage = stringResource(R.string.evidence_health_read_failed)
 
     LaunchedEffect(state.deleteSuccess) {
         if (state.deleteSuccess) {
@@ -114,6 +169,7 @@ fun EvidenceGalleryScreen(
             error == "cannot_read_file" -> errorFileMessage
             error.startsWith("upload_invalid_fields") -> errorInvalidMessage
             error == "task_not_found" -> errorTaskNotFoundMessage
+            error == "health_read_failed" -> errorHealthReadMessage
             else -> "$errorGenericMessage ($error)"
         }
         snackbarHostState.showLulSnackbar(message, durationMillis = 5_000L)
@@ -148,13 +204,57 @@ fun EvidenceGalleryScreen(
         )
     }
 
+    if (showMetricPicker) {
+        AlertDialog(
+            onDismissRequest = { showMetricPicker = false },
+            title = { Text(stringResource(R.string.evidence_health_pick_title)) },
+            text = {
+                Column {
+                    TextButton(
+                        onClick = { onPickMetric(HealthConnectManager.Metric.STEPS) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.evidence_health_metric_steps)) }
+                    TextButton(
+                        onClick = { onPickMetric(HealthConnectManager.Metric.DISTANCE) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.evidence_health_metric_distance)) }
+                    TextButton(
+                        onClick = { onPickMetric(HealthConnectManager.Metric.CALORIES) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.evidence_health_metric_calories)) }
+                    TextButton(
+                        onClick = { onPickMetric(HealthConnectManager.Metric.EXERCISE) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.evidence_health_metric_exercise)) }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showMetricPicker = false }) {
+                    Text(stringResource(R.string.evidence_health_cancel))
+                }
+            },
+        )
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = DarkBackground,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { if (!state.isUploading) pickImage.launch("image/*") },
+                onClick = {
+                    if (state.isUploading) return@FloatingActionButton
+                    if (viewModel.isHealthConnectTask) {
+                        if (viewModel.isHealthConnectAvailable) {
+                            showMetricPicker = true
+                        } else {
+                            scope.launch { snackbarHostState.showLulSnackbar(healthUnavailableMessage) }
+                        }
+                    } else {
+                        pickImage.launch(viewModel.galleryMimeType)
+                    }
+                },
                 containerColor = PurplePrimary,
                 contentColor = DarkOnBackground,
             ) {
@@ -272,34 +372,52 @@ private fun EvidenceCard(
         colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
     ) {
         Column {
-            SubcomposeAsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(evidence.url)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                error = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(16f / 9f)
-                            .background(DarkBackground),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            Icons.Filled.BrokenImage,
-                            contentDescription = null,
-                            tint = DarkOnSurfaceVariant,
-                            modifier = Modifier.size(32.dp),
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f)
-                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
-            )
+            if (!evidence.url.isNullOrBlank()) {
+                SubcomposeAsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(evidence.url)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    error = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(16f / 9f)
+                                .background(DarkBackground),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Filled.BrokenImage,
+                                contentDescription = null,
+                                tint = DarkOnSurfaceVariant,
+                                modifier = Modifier.size(32.dp),
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(16f / 9f)
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(16f / 9f)
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                        .background(DarkBackground),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Filled.MonitorHeart,
+                        contentDescription = null,
+                        tint = PurplePrimary,
+                        modifier = Modifier.size(32.dp),
+                    )
+                }
+            }
 
             Column(modifier = Modifier.padding(start = 10.dp, end = 4.dp, top = 8.dp, bottom = 4.dp)) {
                 Text(
@@ -313,9 +431,10 @@ private fun EvidenceCard(
                 if (!evidence.healthDataJson.isNullOrBlank()) {
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = evidence.healthDataJson,
-                        fontSize = 10.sp,
-                        color = DarkOnSurfaceVariant,
+                        text = healthEvidenceLabel(evidence.healthDataJson),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = DarkOnBackground,
                         maxLines = 2,
                     )
                 }

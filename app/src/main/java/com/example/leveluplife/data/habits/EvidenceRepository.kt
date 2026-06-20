@@ -22,6 +22,7 @@ interface EvidenceRepository {
         mimeType: String?,
         healthDataJson: String? = null,
     ): Result<EvidenceDto>
+    suspend fun addHealthEvidence(taskId: Int, healthDataJson: String): Result<EvidenceDto>
 }
 
 class DefaultEvidenceRepository(
@@ -91,6 +92,28 @@ class DefaultEvidenceRepository(
         } catch (t: Throwable) {
             Result.failure(t)
         }
+    }
+
+    override suspend fun addHealthEvidence(taskId: Int, healthDataJson: String): Result<EvidenceDto> = try {
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        val request = CreateEvidenceRequest(
+            url = null,
+            healthDataJson = healthDataJson,
+            uploadedAt = sdf.format(Date()),
+        )
+        val response = api.createEvidence(taskId, request)
+        when {
+            response.isSuccessful -> {
+                val body = response.body() ?: return Result.failure(Exception("empty_response"))
+                Result.success(body)
+            }
+            response.code() == 400 -> Result.failure(Exception("upload_invalid_fields"))
+            response.code() == 404 -> Result.failure(Exception("task_not_found"))
+            else -> Result.failure(Exception("HTTP ${response.code()}"))
+        }
+    } catch (t: Throwable) {
+        Result.failure(t)
     }
 
     private suspend fun uploadFile(fileUri: String, mimeType: String?): Result<String> {
