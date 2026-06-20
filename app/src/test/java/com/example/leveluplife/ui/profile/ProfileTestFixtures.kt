@@ -87,6 +87,30 @@ class FakeProfileCache(
         _profile.value = current.copy(avatarUri = avatarUri, bio = bio)
     }
 
+    override suspend fun updateLevel(level: Int) {
+        val current = _profile.value ?: return
+        _profile.value = current.copy(level = level)
+    }
+
+    override suspend fun updateGameplayProgress(
+        level: Int,
+        totalExperiencePoints: Int,
+        experiencePointsInCurrentLevel: Int,
+        experiencePointsRequiredForNextLevel: Int,
+        levelProgressPercent: Double,
+        daysStreak: Int?,
+    ) {
+        val current = _profile.value ?: return
+        _profile.value = current.copy(
+            level = level,
+            totalExperiencePoints = totalExperiencePoints,
+            experiencePointsInCurrentLevel = experiencePointsInCurrentLevel,
+            experiencePointsRequiredForNextLevel = experiencePointsRequiredForNextLevel,
+            levelProgressPercent = levelProgressPercent,
+            daysStreak = daysStreak ?: current.daysStreak,
+        )
+    }
+
     override fun clearMemory() {
         _profile.value = null
         etag = null

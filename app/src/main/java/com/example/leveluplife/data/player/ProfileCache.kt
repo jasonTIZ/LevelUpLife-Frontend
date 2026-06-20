@@ -22,6 +22,15 @@ interface ProfileCache {
     suspend fun loadPersisted()
     suspend fun update(profile: PlayerProfile, etag: String? = null)
     suspend fun updateLocalExtras(avatarUri: String?, bio: String)
+    suspend fun updateLevel(level: Int)
+    suspend fun updateGameplayProgress(
+        level: Int,
+        totalExperiencePoints: Int,
+        experiencePointsInCurrentLevel: Int,
+        experiencePointsRequiredForNextLevel: Int,
+        levelProgressPercent: Double,
+        daysStreak: Int? = null,
+    )
     /** Clears in-memory state only; per-user disk cache is kept for the same account on re-login. */
     fun clearMemory()
     /** Wipes all persisted profile entries (tests / account reset). */
@@ -63,6 +72,33 @@ class DefaultProfileCache(
         update(current.copy(avatarUri = avatarUri, bio = bio))
     }
 
+    override suspend fun updateLevel(level: Int) {
+        val current = _profile.value ?: return
+        if (current.level == level) return
+        update(current.copy(level = level))
+    }
+
+    override suspend fun updateGameplayProgress(
+        level: Int,
+        totalExperiencePoints: Int,
+        experiencePointsInCurrentLevel: Int,
+        experiencePointsRequiredForNextLevel: Int,
+        levelProgressPercent: Double,
+        daysStreak: Int?,
+    ) {
+        val current = _profile.value ?: return
+        update(
+            current.copy(
+                level = level,
+                totalExperiencePoints = totalExperiencePoints,
+                experiencePointsInCurrentLevel = experiencePointsInCurrentLevel,
+                experiencePointsRequiredForNextLevel = experiencePointsRequiredForNextLevel,
+                levelProgressPercent = levelProgressPercent,
+                daysStreak = daysStreak ?: current.daysStreak,
+            ),
+        )
+    }
+
     override fun clearMemory() {
         etag = null
         _profile.value = null
@@ -97,6 +133,11 @@ class DefaultProfileCache(
                 birthdate = prefs[scopedKey(userId, Suffix.BIRTHDATE)],
                 avatarUri = avatarStorage.resolveDisplayUri(prefs[scopedKey(userId, Suffix.AVATAR_URI)]),
                 bio = prefs[scopedKey(userId, Suffix.BIO)].orEmpty(),
+                totalExperiencePoints = prefs[scopedKey(userId, Suffix.TOTAL_XP)]?.toIntOrNull() ?: 0,
+                experiencePointsInCurrentLevel = prefs[scopedKey(userId, Suffix.XP_IN_LEVEL)]?.toIntOrNull() ?: 0,
+                experiencePointsRequiredForNextLevel = prefs[scopedKey(userId, Suffix.XP_REQUIRED)]?.toIntOrNull() ?: 0,
+                levelProgressPercent = prefs[scopedKey(userId, Suffix.LEVEL_PROGRESS)]?.toDoubleOrNull() ?: 0.0,
+                daysStreak = prefs[scopedKey(userId, Suffix.DAYS_STREAK)]?.toIntOrNull() ?: 0,
             ),
             etag = prefs[scopedKey(userId, Suffix.ETAG)],
         )
@@ -121,6 +162,11 @@ class DefaultProfileCache(
         profile.avatarUri?.let { prefs[scopedKey(userId, Suffix.AVATAR_URI)] = it }
             ?: prefs.remove(scopedKey(userId, Suffix.AVATAR_URI))
         prefs[scopedKey(userId, Suffix.BIO)] = profile.bio
+        prefs[scopedKey(userId, Suffix.TOTAL_XP)] = profile.totalExperiencePoints.toString()
+        prefs[scopedKey(userId, Suffix.XP_IN_LEVEL)] = profile.experiencePointsInCurrentLevel.toString()
+        prefs[scopedKey(userId, Suffix.XP_REQUIRED)] = profile.experiencePointsRequiredForNextLevel.toString()
+        prefs[scopedKey(userId, Suffix.LEVEL_PROGRESS)] = profile.levelProgressPercent.toString()
+        prefs[scopedKey(userId, Suffix.DAYS_STREAK)] = profile.daysStreak.toString()
         etag?.let { prefs[scopedKey(userId, Suffix.ETAG)] = it }
     }
 
@@ -175,6 +221,11 @@ class DefaultProfileCache(
         const val AVATAR_URI = "avatar_uri"
         const val BIO = "bio"
         const val ETAG = "etag"
+        const val TOTAL_XP = "total_xp"
+        const val XP_IN_LEVEL = "xp_in_level"
+        const val XP_REQUIRED = "xp_required"
+        const val LEVEL_PROGRESS = "level_progress"
+        const val DAYS_STREAK = "days_streak"
     }
 
     private companion object {

@@ -16,4 +16,5 @@ fun HabitTaskFieldError.toMessage(): String = when (this) {
     HabitTaskFieldError.InvalidOption -> stringResource(R.string.create_task_error_invalid_option)
     HabitTaskFieldError.CriteriaRequired -> stringResource(R.string.create_task_error_criteria_required)
     HabitTaskFieldError.EvidenceRequired -> stringResource(R.string.create_task_error_evidence_required)
+    HabitTaskFieldError.TimerThresholdTooSmall -> stringResource(R.string.create_task_error_timer_threshold)
 }

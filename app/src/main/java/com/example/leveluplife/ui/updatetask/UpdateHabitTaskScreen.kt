@@ -123,6 +123,9 @@ fun UpdateHabitTaskScreen(
                 onMeasurementUnitChange = viewModel::onMeasurementUnitChange,
                 onEvidenceChange = viewModel::onEvidenceChange,
                 onPartialAllowedChange = viewModel::onPartialAllowedChange,
+                onTimerSecondsDefinedChange = {},
+                onTimerSecondsLongChange = {},
+                onTimerPauseAllowedChange = {},
                 onApplyTemplate = {},
                 onDismissError = viewModel::dismissSubmitError,
             )

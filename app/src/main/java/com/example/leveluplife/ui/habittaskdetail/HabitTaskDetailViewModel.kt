@@ -4,20 +4,24 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.leveluplife.data.habits.HabitRepository
+import com.example.leveluplife.data.habits.HabitTaskCompletionFailure
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.habits.HabitTaskValidationFailure
 import com.example.leveluplife.data.network.dto.HabitTaskDto
+import com.example.leveluplife.data.player.ProfileCache
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.time.Instant
 
 class HabitTaskDetailViewModel(
     private val taskId: Int,
     private val habitTaskRepository: HabitTaskRepository,
     private val habitRepository: HabitRepository,
+    private val profileCache: ProfileCache,
     initialTask: HabitTaskDto?,
 ) : ViewModel() {
 
@@ -59,6 +63,70 @@ class HabitTaskDetailViewModel(
                     }
                 }
         }
+    }
+
+    fun completeTask() {
+        val current = _state.value
+        val task = current.task ?: return
+        if (current.isCompleting || task.isCompleted || !task.isActive) return
+
+        val taskSnapshot = task
+
+        _state.update {
+            it.copy(
+                isCompleting = true,
+                completionError = null,
+                task = task.copy(isCompleted = true),
+            )
+        }
+
+        viewModelScope.launch {
+            habitTaskRepository.completeHabitTask(taskId, Instant.now())
+                .onSuccess { response ->
+                    profileCache.updateGameplayProgress(
+                        level = response.newLevel,
+                        totalExperiencePoints = response.totalExperiencePoints,
+                        experiencePointsInCurrentLevel = response.experiencePointsInCurrentLevel,
+                        experiencePointsRequiredForNextLevel = response.experiencePointsRequiredForNextLevel,
+                        levelProgressPercent = response.levelProgressPercent,
+                        daysStreak = response.daysStreak,
+                    )
+                    _state.update {
+                        it.copy(
+                            isCompleting = false,
+                            task = it.task?.copy(isCompleted = true),
+                            reward = TaskCompletionReward(
+                                taskTitle = task.title,
+                                xpEarned = response.xpEarned,
+                                previousLevel = response.previousLevel,
+                                newLevel = response.newLevel,
+                                experiencePointsInCurrentLevel = response.experiencePointsInCurrentLevel,
+                                experiencePointsRequiredForNextLevel = response.experiencePointsRequiredForNextLevel,
+                                levelProgressPercent = response.levelProgressPercent,
+                                leveledUp = response.leveledUp,
+                                streakUpdated = response.streakUpdated,
+                            ),
+                        )
+                    }
+                }
+                .onFailure { t ->
+                    _state.update {
+                        it.copy(
+                            isCompleting = false,
+                            task = taskSnapshot,
+                            completionError = mapCompletionError(t),
+                        )
+                    }
+                }
+        }
+    }
+
+    fun dismissCompletionError() {
+        _state.update { it.copy(completionError = null) }
+    }
+
+    fun dismissReward() {
+        _state.update { it.copy(reward = null) }
     }
 
     fun onRequestDeactivate() {
@@ -123,12 +191,18 @@ class HabitTaskDetailViewModel(
     }
 
     private fun mapNetworkMessage(t: Throwable): String = when (t) {
-        is IOException -> "Sin conexión. Revisa tu red e intenta de nuevo."
+        is IOException -> "Sin conexión. Revisá tu red e intenta de nuevo."
         else -> t.message ?: "No se pudo cargar la tarea."
     }
 
+    private fun mapCompletionError(t: Throwable): String = when (t) {
+        is HabitTaskCompletionFailure -> t.message ?: "No se pudo completar la tarea."
+        is IOException -> "Sin conexión. Revisá tu red e intenta de nuevo."
+        else -> t.message ?: "No se pudo completar la tarea."
+    }
+
     private fun mapSubmitError(t: Throwable): String = when (t) {
-        is IOException -> "Sin conexión. Revisa tu red e intenta de nuevo."
+        is IOException -> "Sin conexión. Revisá tu red e intenta de nuevo."
         is HabitTaskValidationFailure -> t.message ?: "No se pudo completar la operación."
         else -> t.message ?: "No se pudo desactivar la tarea."
     }
@@ -140,6 +214,7 @@ class HabitTaskDetailViewModel(
         private val taskId: Int,
         private val habitTaskRepository: HabitTaskRepository,
         private val habitRepository: HabitRepository,
+        private val profileCache: ProfileCache,
         private val initialTask: HabitTaskDto?,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
@@ -149,6 +224,7 @@ class HabitTaskDetailViewModel(
                 taskId,
                 habitTaskRepository,
                 habitRepository,
+                profileCache,
                 initialTask,
             ) as T
         }

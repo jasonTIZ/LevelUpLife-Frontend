@@ -12,7 +12,15 @@ data class PlayerProfile(
     val birthdate: String? = null,
     val avatarUri: String? = null,
     val bio: String = "",
-)
+    val totalExperiencePoints: Int = 0,
+    val experiencePointsInCurrentLevel: Int = 0,
+    val experiencePointsRequiredForNextLevel: Int = 0,
+    val levelProgressPercent: Double = 0.0,
+    val daysStreak: Int = 0,
+) {
+    val levelProgressFraction: Float
+        get() = levelProgressPercent.coerceIn(0.0, 1.0).toFloat()
+}
 
 data class ProfileFetchResult(
     val profile: PlayerProfile,

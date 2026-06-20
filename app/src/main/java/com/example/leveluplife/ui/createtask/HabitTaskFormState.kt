@@ -61,6 +61,7 @@ data class HabitTaskFormState(
         evidence = evidence,
         isPartialAllowed = isPartialAllowed,
         timerSecondsDefined = timerSecondsDefined,
+        timerSecondsLong = timerSecondsLong,
     )
 
     fun toRequest(): CreateHabitTaskRequest? {
@@ -212,12 +213,39 @@ object HabitTaskFormHandlers {
             repetitions = if (value == "REPETITIONS" && state.repetitions.isBlank()) "3" else state.repetitions,
             measurementUnit = if (value == "REPETITIONS") state.measurementUnit ?: "SERIES" else null,
             evidence = if (value == "EVIDENCE") state.evidence ?: "PHOTO" else null,
+            timerSecondsDefined = if (value == "TIMER" && state.timerSecondsDefined.isBlank()) {
+                "60"
+            } else {
+                state.timerSecondsDefined
+            },
             fieldErrors = state.fieldErrors.copy(
                 completionCriteria = null,
                 repetitions = null,
                 measurementUnit = null,
                 evidence = null,
+                timerSeconds = null,
+                timerLong = null,
             ),
+            submitError = null,
+        )
+
+    fun onTimerSecondsDefinedChange(state: HabitTaskFormState, value: String): HabitTaskFormState =
+        state.copy(
+            timerSecondsDefined = TaskInputSanitizer.digitsOnly(value, maxLength = 5),
+            fieldErrors = state.fieldErrors.copy(timerSeconds = null, timerLong = null),
+            submitError = null,
+        )
+
+    fun onTimerSecondsLongChange(state: HabitTaskFormState, value: String): HabitTaskFormState =
+        state.copy(
+            timerSecondsLong = TaskInputSanitizer.digitsOnly(value, maxLength = 5),
+            fieldErrors = state.fieldErrors.copy(timerLong = null),
+            submitError = null,
+        )
+
+    fun onTimerPauseAllowedChange(state: HabitTaskFormState, value: Boolean): HabitTaskFormState =
+        state.copy(
+            timerPauseAllowed = value,
             submitError = null,
         )
 
