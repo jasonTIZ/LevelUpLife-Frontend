@@ -11,6 +11,7 @@ import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.data.network.dto.HabitsPageResponse
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaDto
+import com.example.leveluplife.data.network.dto.UpdateHabitRequestDto
 import com.example.leveluplife.data.player.PlayerProfile
 import com.example.leveluplife.data.player.ProfileCache
 import kotlinx.coroutines.Dispatchers
@@ -378,6 +379,9 @@ class HabitTaskDetailViewModelTest {
             Result.success(HabitDto(id = habitId, title = "Test habit"))
 
         override suspend fun createHabit(request: CreateHabitRequestDto): Result<CreateHabitResponseDto> =
+            Result.failure(UnsupportedOperationException())
+
+        override suspend fun updateHabit(request: UpdateHabitRequestDto): Result<CreateHabitResponseDto> =
             Result.failure(UnsupportedOperationException())
 
         override fun setCurrentUserId(userId: Int) = Unit
