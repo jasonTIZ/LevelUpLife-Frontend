@@ -72,12 +72,14 @@ class CreateHabitViewModel(
                 val result = categoryRepository.getActiveCategories(page = page, pageSize = CATEGORY_PAGE_SIZE)
                 val response = result.getOrNull()
                 if (response == null) {
-                    _uiState.value = _uiState.value.copy(isCategoriesLoading = false)
+                    _uiState.value = syncDisciplinesForCategory(
+                        _uiState.value.copy(isCategoriesLoading = false),
+                    )
                     return@launch
                 }
 
-                allCategories.addAll(response.categories.orEmpty().filter { it.isActive })
-                val pagination = response.pagination
+                allCategories.addAll(response.categories.filter { it.isActive })
+                val pagination = response.resolvedPagination
                 val currentPage = pagination?.currentPage ?: page
                 val totalPages = pagination?.totalPages ?: currentPage
                 hasMore = currentPage < totalPages
@@ -85,16 +87,14 @@ class CreateHabitViewModel(
             }
 
             val activeCategories = allCategories.distinctBy { it.id }
-            val firstCategoryId = activeCategories.firstOrNull()?.id
-            val currentState = _uiState.value
-            val filtered = filterDisciplines(currentState.allDisciplines, firstCategoryId)
+            val selectedCategoryId = _uiState.value.selectedCategoryId ?: activeCategories.firstOrNull()?.id
 
-            _uiState.value = currentState.copy(
-                categories = activeCategories,
-                selectedCategoryId = firstCategoryId,
-                isCategoriesLoading = false,
-                disciplines = filtered,
-                tasks = clearInvalidTaskDisciplines(currentState.tasks, filtered),
+            _uiState.value = syncDisciplinesForCategory(
+                _uiState.value.copy(
+                    categories = activeCategories,
+                    selectedCategoryId = selectedCategoryId,
+                    isCategoriesLoading = false,
+                ),
             )
         }
     }
@@ -105,19 +105,27 @@ class CreateHabitViewModel(
             disciplineRepository.getAll()
                 .onSuccess { list ->
                     val activeDisciplines = list.filter { it.isActive }
-                    val currentState = _uiState.value
-                    val filtered = filterDisciplines(activeDisciplines, currentState.selectedCategoryId)
-                    _uiState.value = currentState.copy(
-                        allDisciplines = activeDisciplines,
-                        disciplines = filtered,
-                        isDisciplinesLoading = false,
-                        tasks = clearInvalidTaskDisciplines(currentState.tasks, filtered),
+                    _uiState.value = syncDisciplinesForCategory(
+                        _uiState.value.copy(
+                            allDisciplines = activeDisciplines,
+                            isDisciplinesLoading = false,
+                        ),
                     )
                 }
                 .onFailure {
                     _uiState.value = _uiState.value.copy(isDisciplinesLoading = false)
                 }
         }
+    }
+
+    private fun syncDisciplinesForCategory(state: CreateHabitUiState): CreateHabitUiState {
+        val categoryId = state.selectedCategoryId ?: state.categories.firstOrNull()?.id
+        val filtered = filterDisciplines(state.allDisciplines, categoryId)
+        return state.copy(
+            selectedCategoryId = categoryId,
+            disciplines = filtered,
+            tasks = clearInvalidTaskDisciplines(state.tasks, filtered),
+        )
     }
 
     private fun filterDisciplines(

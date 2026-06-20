@@ -72,7 +72,6 @@ import com.example.leveluplife.domain.validation.HabitTaskFieldError
 import com.example.leveluplife.ui.components.CategoryChipsRow
 import com.example.leveluplife.ui.components.DisciplineChipsRow
 import com.example.leveluplife.ui.components.LulDatePickerField
-import com.example.leveluplife.ui.components.LulInlineErrorBanner
 import com.example.leveluplife.ui.components.SelectableChip
 
 object CreateHabitTaskTestTags {
@@ -536,11 +535,6 @@ internal fun HabitTaskFormContent(
                     },
                 ),
                 isError = form.showValidationErrors && form.fieldErrors.startDate != null,
-                errorMessage = if (form.showValidationErrors && form.fieldErrors.startDate != null) {
-                    form.fieldErrors.startDate!!.toMessage()
-                } else {
-                    null
-                },
                 preservedIsoDate = preservedStartDate,
                 fieldColors = fieldColors,
                 modifier = Modifier.fillMaxWidth(),
@@ -560,9 +554,7 @@ internal fun HabitTaskFormContent(
             )
         }
 
-        if (form.submitError != null) {
-            ErrorBanner(message = form.submitError ?: "", onDismiss = onDismissError)
-        }
+        HabitTaskFormErrorDialog(form = form, onDismiss = onDismissError)
 
         Spacer(Modifier.height(8.dp))
     }
@@ -781,11 +773,6 @@ internal fun HabitTaskEmbeddedForm(
                 label = { Text(stringResource(R.string.create_task_field_start_date)) },
                 hint = stringResource(R.string.create_task_start_date_hint),
                 isError = form.showValidationErrors && form.fieldErrors.startDate != null,
-                errorMessage = if (form.showValidationErrors && form.fieldErrors.startDate != null) {
-                    form.fieldErrors.startDate!!.toMessage()
-                } else {
-                    null
-                },
                 fieldColors = fieldColors,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -801,9 +788,7 @@ internal fun HabitTaskEmbeddedForm(
             TaskPreviewCard(form = form)
         }
 
-        if (form.submitError != null) {
-            ErrorBanner(message = form.submitError ?: "", onDismiss = onDismissError)
-        }
+        HabitTaskFormErrorDialog(form = form, onDismiss = onDismissError)
     }
 }
 
@@ -1109,19 +1094,6 @@ private fun LabeledOptionDropdown(
                     },
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun ErrorBanner(message: String, onDismiss: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        LulInlineErrorBanner(message = message)
-        TextButton(
-            onClick = onDismiss,
-            modifier = Modifier.align(Alignment.End),
-        ) {
-            Text(stringResource(R.string.login_dismiss), color = MaterialTheme.colorScheme.primary)
         }
     }
 }

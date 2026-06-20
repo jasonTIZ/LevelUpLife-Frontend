@@ -43,7 +43,6 @@ fun LulDatePickerField(
     label: @Composable () -> Unit,
     hint: String?,
     isError: Boolean,
-    errorMessage: String?,
     modifier: Modifier = Modifier,
     preservedIsoDate: String? = null,
     fieldColors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
@@ -85,7 +84,6 @@ fun LulDatePickerField(
         )
 
         when {
-            isError && !errorMessage.isNullOrBlank() -> LulInlineErrorBanner(message = errorMessage)
             !hint.isNullOrBlank() -> {
                 Text(
                     text = hint,

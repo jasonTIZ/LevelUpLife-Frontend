@@ -35,7 +35,7 @@ class HomeViewModel(
     fun loadHabits() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null, habits = emptyList(), currentPage = 1) }
-            habitRepository.getActiveHabits(page = 1)
+            habitRepository.getActiveHabits(page = 1, pageSize = HABITS_PAGE_SIZE)
                 .onSuccess { response ->
                     val pagination = response.pagination
                     val page = pagination?.currentPage ?: 1
@@ -62,7 +62,7 @@ class HomeViewModel(
         val nextPage = current.currentPage + 1
         viewModelScope.launch {
             _state.update { it.copy(isLoadingMore = true) }
-            habitRepository.getActiveHabits(page = nextPage)
+            habitRepository.getActiveHabits(page = nextPage, pageSize = HABITS_PAGE_SIZE)
                 .onSuccess { response ->
                     val pagination = response.pagination
                     val page = pagination?.currentPage ?: nextPage
@@ -93,5 +93,9 @@ class HomeViewModel(
             require(modelClass.isAssignableFrom(HomeViewModel::class.java))
             return HomeViewModel(habitRepository, profileRepository, profileCache) as T
         }
+    }
+
+    private companion object {
+        const val HABITS_PAGE_SIZE = 50
     }
 }

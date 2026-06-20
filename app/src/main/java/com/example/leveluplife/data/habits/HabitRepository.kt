@@ -1,5 +1,6 @@
 package com.example.leveluplife.data.habits
 
+import com.example.leveluplife.data.auth.TokenStore
 import com.example.leveluplife.data.network.HabitsApi
 import com.example.leveluplife.data.network.dto.CreateHabitRequestDto
 import com.example.leveluplife.data.network.dto.CreateHabitResponseDto
@@ -15,15 +16,21 @@ interface HabitRepository {
     fun getCurrentUserId(): Int
 }
 
-class DefaultHabitRepository(private val api: HabitsApi) : HabitRepository {
+class DefaultHabitRepository(
+    private val api: HabitsApi,
+    private val tokenStore: TokenStore,
+) : HabitRepository {
 
-    private var currentUserId: Int = 1
+    private var explicitUserId: Int? = null
 
     override fun setCurrentUserId(userId: Int) {
-        currentUserId = userId
+        explicitUserId = userId
     }
 
-    override fun getCurrentUserId(): Int = currentUserId
+    override fun getCurrentUserId(): Int =
+        tokenStore.userId()?.toIntOrNull()
+            ?: explicitUserId
+            ?: 1
 
     override suspend fun getActiveHabits(page: Int, pageSize: Int): Result<HabitsPageResponse> = try {
         val response = api.getActiveHabits(page, pageSize)

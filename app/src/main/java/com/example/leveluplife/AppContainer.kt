@@ -98,7 +98,7 @@ class AppContainer(applicationContext: Context) {
     }
 
     val habitRepository: HabitRepository by lazy {
-        DefaultHabitRepository(api = habitsApi)
+        DefaultHabitRepository(api = habitsApi, tokenStore = tokenStore)
     }
 
     val habitCategoryRepository: HabitCategoryRepository by lazy {

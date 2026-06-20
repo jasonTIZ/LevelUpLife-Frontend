@@ -280,9 +280,11 @@ fun AppNavigation(
             CreateHabitScreen(
                 viewModel = vm,
                 onHabitCreated = {
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set(Routes.ARG_REFRESH_HABITS, true)
+                    runCatching {
+                        navController.getBackStackEntry(Routes.DASHBOARD)
+                            .savedStateHandle
+                            .set(Routes.ARG_REFRESH_HABITS, true)
+                    }
                     navController.popBackStack()
                 },
             )
@@ -291,6 +293,9 @@ fun AppNavigation(
             val vm: CategoriesViewModel = viewModel(
                 factory = CategoriesViewModel.Factory(container.habitCategoryRepository),
             )
+            LaunchedEffect(Unit) {
+                vm.loadCategories()
+            }
             CategoriesScreen(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },
