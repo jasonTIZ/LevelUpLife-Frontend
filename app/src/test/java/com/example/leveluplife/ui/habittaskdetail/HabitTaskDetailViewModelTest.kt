@@ -298,7 +298,7 @@ class HabitTaskDetailViewModelTest {
 
         override suspend fun updateLevel(level: Int) {
             lastLevel = level
-            _profile.value = _profile.value?.copy(level = level)
+            _profile.value = _profile.value.copy(level = level)
         }
 
         override suspend fun updateGameplayProgress(
@@ -310,13 +310,13 @@ class HabitTaskDetailViewModelTest {
             daysStreak: Int?,
         ) {
             lastLevel = level
-            _profile.value = _profile.value?.copy(
+            _profile.value = _profile.value.copy(
                 level = level,
                 totalExperiencePoints = totalExperiencePoints,
                 experiencePointsInCurrentLevel = experiencePointsInCurrentLevel,
                 experiencePointsRequiredForNextLevel = experiencePointsRequiredForNextLevel,
                 levelProgressPercent = levelProgressPercent,
-                daysStreak = daysStreak ?: _profile.value?.daysStreak ?: 0,
+                daysStreak = daysStreak ?: _profile.value.daysStreak,
             )
         }
 
