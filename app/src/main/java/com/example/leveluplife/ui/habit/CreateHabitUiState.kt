@@ -18,4 +18,5 @@ data class CreateHabitUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val success: Boolean = false,
+    val aiDifficultyFailed: Boolean = false,
 )

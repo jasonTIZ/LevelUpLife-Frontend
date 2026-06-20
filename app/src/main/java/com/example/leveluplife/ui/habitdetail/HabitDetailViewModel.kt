@@ -197,6 +197,10 @@ class HabitDetailViewModel(
         _state.update { it.copy(updateSuccess = false) }
     }
 
+    fun onAiDifficultyAlertShown() {
+        _state.update { it.copy(aiDifficultyFailed = false) }
+    }
+
     fun saveEdits() {
         val state = _state.value
         val habit = state.habit ?: return
@@ -237,9 +241,15 @@ class HabitDetailViewModel(
             )
             val result = withContext(Dispatchers.IO) { habitRepository.updateHabit(request) }
             result
-                .onSuccess {
+                .onSuccess { response ->
                     _state.update {
-                        it.copy(isSaving = false, isEditing = false, newTasks = emptyList(), updateSuccess = true)
+                        it.copy(
+                            isSaving = false,
+                            isEditing = false,
+                            newTasks = emptyList(),
+                            updateSuccess = true,
+                            aiDifficultyFailed = response.aiDifficultyFailed,
+                        )
                     }
                     refreshHabit()
                 }

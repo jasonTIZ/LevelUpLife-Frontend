@@ -74,6 +74,7 @@ import com.example.leveluplife.ui.components.TimerPreview
 import com.example.leveluplife.ui.components.CategoryChipsRow
 import com.example.leveluplife.ui.components.DisciplineChipsRow
 import com.example.leveluplife.ui.components.LulDatePickerField
+import com.example.leveluplife.ui.components.LulErrorAlertDialog
 import com.example.leveluplife.ui.components.SelectableChip
 
 object CreateHabitTaskTestTags {
@@ -95,10 +96,23 @@ fun CreateHabitTaskScreen(
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(state.createdTask) {
-        state.createdTask?.let { task ->
+        val task = state.createdTask ?: return@LaunchedEffect
+        if (!task.aiDifficultyFailed) {
             onTaskCreated(task)
             viewModel.consumeCreatedTask()
         }
+    }
+
+    state.createdTask?.takeIf { it.aiDifficultyFailed }?.let { task ->
+        LulErrorAlertDialog(
+            title = stringResource(R.string.ai_difficulty_failed_title),
+            message = stringResource(R.string.ai_difficulty_failed_message),
+            dismissText = stringResource(R.string.login_dismiss),
+            onDismiss = {
+                onTaskCreated(task)
+                viewModel.consumeCreatedTask()
+            },
+        )
     }
 
     Scaffold(
@@ -472,15 +486,6 @@ internal fun HabitTaskFormContent(
 
         FormSection(title = stringResource(R.string.create_task_section_planning)) {
             LabeledOptionDropdown(
-                label = stringResource(R.string.create_task_field_difficulty),
-                options = CreateHabitTaskOptions.difficulties,
-                selected = form.difficulty,
-                error = if (form.showValidationErrors) form.fieldErrors.difficulty else null,
-                onSelected = onDifficultyChange,
-                fieldColors = fieldColors,
-            )
-
-            LabeledOptionDropdown(
                 label = stringResource(R.string.create_task_field_frequency),
                 options = CreateHabitTaskOptions.frequencies,
                 selected = form.frequency,
@@ -728,15 +733,6 @@ internal fun HabitTaskEmbeddedForm(
         }
 
         FormSection(title = stringResource(R.string.create_task_section_planning)) {
-            LabeledOptionDropdown(
-                label = stringResource(R.string.create_task_field_difficulty),
-                options = CreateHabitTaskOptions.difficulties,
-                selected = form.difficulty,
-                error = if (form.showValidationErrors) form.fieldErrors.difficulty else null,
-                onSelected = onDifficultyChange,
-                fieldColors = fieldColors,
-            )
-
             LabeledOptionDropdown(
                 label = stringResource(R.string.create_task_field_frequency),
                 options = CreateHabitTaskOptions.frequencies,

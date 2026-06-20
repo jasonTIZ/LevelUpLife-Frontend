@@ -266,7 +266,11 @@ class CreateHabitViewModel(
             val result = repository.createHabit(request)
 
             _uiState.value = when {
-                result.isSuccess -> _uiState.value.copy(isLoading = false, success = true)
+                result.isSuccess -> _uiState.value.copy(
+                    isLoading = false,
+                    success = true,
+                    aiDifficultyFailed = result.getOrNull()?.aiDifficultyFailed ?: false,
+                )
                 result.isFailure -> _uiState.value.copy(
                     isLoading = false,
                     error = result.exceptionOrNull()?.message,
