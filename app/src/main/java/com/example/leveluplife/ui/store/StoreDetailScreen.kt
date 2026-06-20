@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -50,6 +49,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.RewardItemDto
@@ -107,7 +108,7 @@ fun StoreDetailScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState()),
         ) {
-            ItemHeroImage(imageUrl = item.imageUrl, name = item.name)
+            ItemHeroImage(itemId = item.id, typeId = item.typeId, imageUrl = item.imageUrl, name = item.name)
 
             Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
                 Text(
@@ -270,28 +271,32 @@ fun StoreDetailScreen(
 }
 
 @Composable
-private fun ItemHeroImage(imageUrl: String?, name: String) {
-    if (!imageUrl.isNullOrBlank()) {
-        AsyncImage(
+private fun ItemHeroImage(itemId: Int, typeId: Int?, imageUrl: String?, name: String) {
+    val heroMod = Modifier
+        .fillMaxWidth()
+        .height(220.dp)
+        .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
+
+    val localDrawable = drawableForItemId(itemId)
+    when {
+        localDrawable != null -> Image(
+            painter = painterResource(localDrawable),
+            contentDescription = name,
+            contentScale = ContentScale.Crop,
+            modifier = heroMod,
+        )
+        !imageUrl.isNullOrBlank() -> AsyncImage(
             model = imageUrl,
             contentDescription = name,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 9f)
-                .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)),
+            modifier = heroMod,
         )
-    } else {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 9f)
-                .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
+        else -> Box(
+            modifier = heroMod.background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
-                imageVector = Icons.Filled.ShoppingBag,
+                imageVector = iconForTypeId(typeId),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(64.dp),

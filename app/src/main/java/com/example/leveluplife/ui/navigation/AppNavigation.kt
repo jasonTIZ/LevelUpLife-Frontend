@@ -22,6 +22,7 @@ import com.example.leveluplife.R
 import com.example.leveluplife.data.auth.SessionEvent
 import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.network.dto.HabitTaskDto
+import com.example.leveluplife.data.network.dto.RewardItemDto
 import com.example.leveluplife.notifications.TaskReminderScheduler
 import com.example.leveluplife.ui.auth.LoginScreen
 import com.example.leveluplife.ui.auth.LoginViewModel
@@ -37,6 +38,8 @@ import com.example.leveluplife.ui.coach.CoachScreen
 import com.example.leveluplife.ui.coach.CoachViewModel
 import com.example.leveluplife.ui.inventory.InventoryScreen
 import com.example.leveluplife.ui.inventory.InventoryViewModel
+import com.example.leveluplife.ui.store.StoreDetailScreen
+import com.example.leveluplife.ui.store.StoreDetailViewModel
 import com.example.leveluplife.ui.store.StoreScreen
 import com.example.leveluplife.ui.store.StoreViewModel
 import com.example.leveluplife.ui.evidence.EvidenceGalleryScreen
@@ -544,6 +547,14 @@ fun AppNavigation(
                 onOpenInventory = {
                     navController.navigate(Routes.INVENTORY) { launchSingleTop = true }
                 },
+                onItemClick = { item ->
+                    val itemJson = json.encodeToString(RewardItemDto.serializer(), item)
+                    navController.navigate(Routes.STORE_DETAIL)
+                    navController.currentBackStackEntry?.savedStateHandle?.set(
+                        Routes.ARG_STORE_ITEM_JSON,
+                        itemJson,
+                    )
+                },
                 onPurchaseSuccess = {
                     runCatching {
                         navController.getBackStackEntry(Routes.DASHBOARD)
@@ -551,6 +562,23 @@ fun AppNavigation(
                             .set(Routes.ARG_REFRESH_PLAYER, true)
                     }
                 },
+            )
+        }
+        composable(Routes.STORE_DETAIL) { backStackEntry ->
+            val itemJson = backStackEntry.savedStateHandle.get<String>(Routes.ARG_STORE_ITEM_JSON)
+                ?: navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<String>(Routes.ARG_STORE_ITEM_JSON)
+            val item = itemJson?.let {
+                runCatching { json.decodeFromString(RewardItemDto.serializer(), it) }.getOrNull()
+            } ?: return@composable
+            val vm: StoreDetailViewModel = viewModel(
+                factory = StoreDetailViewModel.Factory(container.rewardRepository),
+            )
+            StoreDetailScreen(
+                item = item,
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
             )
         }
         composable(Routes.INVENTORY) {
