@@ -106,6 +106,7 @@ fun HomeScreen(
     onHabitClick: (habitId: Int) -> Unit = {},
     onCreateHabit: () -> Unit = {},
     onOpenCoach: () -> Unit = {},
+    onOpenStore: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -155,6 +156,7 @@ fun HomeScreen(
                 onOpenSettings = onOpenSettings,
                 onOpenPomodoro = onOpenPomodoro,
                 onOpenCoach = onOpenCoach,
+                onOpenStore = onOpenStore,
             )
         },
     ) { innerPadding ->
@@ -689,12 +691,13 @@ private fun HomeBottomBar(
     onOpenSettings: () -> Unit,
     onOpenPomodoro: () -> Unit,
     onOpenCoach: () -> Unit,
+    onOpenStore: () -> Unit,
 ) {
     val items = listOf(
         NavItem("INICIO", Icons.Filled.Home, true, onClick = {}),
         NavItem("COACH", Icons.Filled.Chat, false, onClick = onOpenCoach),
         NavItem("POMODORO", Icons.Filled.Timer, false, onClick = onOpenPomodoro),
-        NavItem("TIENDA", Icons.Filled.ShoppingBag, false, onClick = {}),
+        NavItem("TIENDA", Icons.Filled.ShoppingBag, false, onClick = onOpenStore),
         NavItem("AJUSTES", Icons.Filled.Settings, false, onClick = onOpenSettings),
     )
     NavigationBar(
