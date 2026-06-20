@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -66,23 +67,36 @@ import androidx.compose.ui.unit.sp
 import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.RewardItemDto
 
-private val GoldColor = Color(0xFFF59E0B)
+internal val GoldColor = Color(0xFFF59E0B)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StoreScreen(
     viewModel: StoreViewModel,
     onBack: () -> Unit,
+    onOpenInventory: () -> Unit,
+    onPurchaseSuccess: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val buyMsg = stringResource(R.string.store_buy_snackbar)
 
-    LaunchedEffect(state.purchaseMessage) {
-        val name = state.purchaseMessage ?: return@LaunchedEffect
-        snackbarHostState.showSnackbar(buyMsg.replace("{name}", name))
-        viewModel.clearPurchaseMessage()
+    val successTemplate = stringResource(R.string.store_buy_success)
+    val errorInsufficient = stringResource(R.string.store_purchase_error_insufficient)
+    val errorGeneric = stringResource(R.string.store_purchase_error_generic)
+
+    LaunchedEffect(state.purchaseSuccessName) {
+        val name = state.purchaseSuccessName ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(successTemplate.replace("%1\$s", name))
+        onPurchaseSuccess()
+        viewModel.clearPurchaseSuccess()
+    }
+
+    LaunchedEffect(state.buyError) {
+        val key = state.buyError ?: return@LaunchedEffect
+        val msg = if (key == "insufficient_funds") errorInsufficient else errorGeneric
+        snackbarHostState.showSnackbar(msg)
+        viewModel.clearBuyError()
     }
 
     Scaffold(
@@ -102,6 +116,11 @@ fun StoreScreen(
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.store_back))
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onOpenInventory) {
+                            Icon(Icons.Filled.ShoppingBag, contentDescription = stringResource(R.string.inventory_title))
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -175,18 +194,16 @@ fun StoreScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                state.groupedItems.forEach { (typeName, items) ->
+                state.groupedItems.forEach { (typeName, groupItems) ->
                     item(key = "header_$typeName") {
-                        SectionHeader(
-                            typeName = typeName,
-                            typeId = items.firstOrNull()?.typeId,
-                        )
+                        SectionHeader(typeName = typeName, typeId = groupItems.firstOrNull()?.typeId)
                     }
-                    items(items, key = { it.id }) { item ->
+                    items(groupItems, key = { it.id }) { item ->
                         RewardItemCard(
                             item = item,
-                            isPurchased = item.id in state.purchasedIds,
-                            onBuy = { viewModel.onBuyClick(item) },
+                            isBuying = item.id == state.buyingItemId,
+                            anyBuying = state.buyingItemId != null,
+                            onBuy = { viewModel.purchase(item) },
                         )
                     }
                 }
@@ -227,7 +244,8 @@ private fun SectionHeader(typeName: String, typeId: Int?) {
 @Composable
 private fun RewardItemCard(
     item: RewardItemDto,
-    isPurchased: Boolean,
+    isBuying: Boolean,
+    anyBuying: Boolean,
     onBuy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -266,14 +284,14 @@ private fun RewardItemCard(
                 Spacer(Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Filled.Bolt,
+                        imageVector = Icons.Filled.Star,
                         contentDescription = null,
                         tint = GoldColor,
                         modifier = Modifier.size(14.dp),
                     )
                     Spacer(Modifier.width(2.dp))
                     Text(
-                        text = stringResource(R.string.store_cost_xp, item.costGold.toInt()),
+                        text = stringResource(R.string.store_cost_gold, item.costGold.toInt()),
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold,
                         color = GoldColor,
@@ -285,20 +303,29 @@ private fun RewardItemCard(
 
             Button(
                 onClick = onBuy,
-                enabled = item.isActive && !isPurchased,
+                enabled = !isBuying && !anyBuying,
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.height(36.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp),
+                modifier = Modifier
+                    .height(36.dp)
+                    .width(if (isBuying) 48.dp else 88.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp),
                 colors = ButtonDefaults.buttonColors(
                     disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
                 ),
             ) {
-                Text(
-                    text = if (isPurchased) stringResource(R.string.store_owned_badge)
-                    else stringResource(R.string.store_buy_button),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                )
+                if (isBuying) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.store_buy_button),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
     }
@@ -307,7 +334,7 @@ private fun RewardItemCard(
 @Composable
 private fun ItemImage(itemId: Int, typeId: Int?, name: String) {
     val drawableRes = drawableForItemId(itemId)
-    val size = Modifier
+    val sizeMod = Modifier
         .size(72.dp)
         .clip(RoundedCornerShape(10.dp))
 
@@ -316,11 +343,11 @@ private fun ItemImage(itemId: Int, typeId: Int?, name: String) {
             painter = painterResource(drawableRes),
             contentDescription = name,
             contentScale = ContentScale.Crop,
-            modifier = size,
+            modifier = sizeMod,
         )
     } else {
         Box(
-            modifier = size.background(MaterialTheme.colorScheme.primaryContainer),
+            modifier = sizeMod.background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -334,7 +361,7 @@ private fun ItemImage(itemId: Int, typeId: Int?, name: String) {
 }
 
 @DrawableRes
-private fun drawableForItemId(id: Int): Int? = when (id) {
+internal fun drawableForItemId(id: Int): Int? = when (id) {
     1 -> R.drawable.escudo_1
     2 -> R.drawable.escudo_2
     3 -> R.drawable.escudo_3
@@ -348,7 +375,7 @@ private fun drawableForItemId(id: Int): Int? = when (id) {
     else -> null
 }
 
-private fun iconForTypeId(typeId: Int?): ImageVector = when (typeId) {
+internal fun iconForTypeId(typeId: Int?): ImageVector = when (typeId) {
     1 -> Icons.Filled.Shield
     2 -> Icons.Filled.Bolt
     3 -> Icons.Filled.AddCircle

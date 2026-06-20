@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.leveluplife.data.network.dto.RewardItemDto
-import com.example.leveluplife.data.rewards.PurchasedItemStorage
 import com.example.leveluplife.data.rewards.RewardRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +13,6 @@ import kotlinx.coroutines.launch
 
 class StoreViewModel(
     private val repository: RewardRepository,
-    private val purchasedItemStorage: PurchasedItemStorage,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StoreUiState())
@@ -27,13 +25,7 @@ class StoreViewModel(
             _state.update { it.copy(isLoading = true, error = null) }
             repository.getRewardItems()
                 .onSuccess { items ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            allItems = items,
-                            purchasedIds = purchasedItemStorage.getPurchasedIds(),
-                        )
-                    }
+                    _state.update { it.copy(isLoading = false, allItems = items) }
                 }
                 .onFailure { t ->
                     _state.update { it.copy(isLoading = false, error = t.message) }
@@ -43,24 +35,39 @@ class StoreViewModel(
 
     fun onSearchChange(query: String) = _state.update { it.copy(searchQuery = query) }
 
-    fun onBuyClick(item: RewardItemDto) {
-        _state.update { it.copy(purchaseMessage = item.name) }
+    fun purchase(item: RewardItemDto) {
+        if (_state.value.buyingItemId != null) return
+        viewModelScope.launch {
+            _state.update { it.copy(buyingItemId = item.id, buyError = null, purchaseSuccessName = null) }
+            repository.purchaseItem(item.id)
+                .onSuccess { inventoryItem ->
+                    _state.update {
+                        it.copy(
+                            buyingItemId = null,
+                            purchaseSuccessName = inventoryItem.rewardItemName,
+                        )
+                    }
+                }
+                .onFailure { t ->
+                    val errorKey = when (t.message) {
+                        "insufficient_funds" -> "insufficient_funds"
+                        else -> "generic"
+                    }
+                    _state.update { it.copy(buyingItemId = null, buyError = errorKey) }
+                }
+        }
     }
 
-    fun clearPurchaseMessage() = _state.update { it.copy(purchaseMessage = null) }
-
-    fun onItemPurchased(itemId: Int) {
-        _state.update { it.copy(purchasedIds = it.purchasedIds + itemId) }
-    }
+    fun clearPurchaseSuccess() = _state.update { it.copy(purchaseSuccessName = null) }
+    fun clearBuyError() = _state.update { it.copy(buyError = null) }
 
     class Factory(
         private val repository: RewardRepository,
-        private val purchasedItemStorage: PurchasedItemStorage,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             require(modelClass.isAssignableFrom(StoreViewModel::class.java))
-            return StoreViewModel(repository, purchasedItemStorage) as T
+            return StoreViewModel(repository) as T
         }
     }
 }

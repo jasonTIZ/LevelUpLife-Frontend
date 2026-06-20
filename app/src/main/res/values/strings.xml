@@ -416,8 +416,16 @@
     <string name="store_purchase_error_insufficient">No tenés suficiente XP para este item</string>
     <string name="store_purchase_error_not_found">Este item ya no está disponible</string>
     <string name="store_purchase_error_generic">No se pudo completar el canje. Intentá de nuevo.</string>
+    <string name="store_cost_gold">%1$d oro</string>
     <string name="store_buy_button">Comprar</string>
-    <string name="store_buy_snackbar">¡{name} próximamente disponible para comprar!</string>
+    <string name="store_buy_success">¡%1$s comprado!</string>
+    <!-- Inventory -->
+    <string name="inventory_title">MI INVENTARIO</string>
+    <string name="inventory_back">Volver</string>
+    <string name="inventory_empty">Tu inventario está vacío</string>
+    <string name="inventory_error">No se pudo cargar el inventario</string>
+    <string name="inventory_retry">Reintentar</string>
+    <string name="inventory_quantity">x%1$d</string>
 
     <!-- Evidence gallery - delete -->
     <string name="evidence_gallery_delete_button">Eliminar</string>

@@ -16,10 +16,16 @@ data class RewardItemDto(
 )
 
 @Serializable
-data class RewardItemFilterRequest(
-    val typeId: Int? = null,
-    val name: String? = null,
-    val description: String? = null,
-    val costGold: Double? = null,
+data class PlayerInventoryDto(
+    val id: Int = 0,
+    val playerUserId: Int = 0,
+    val rewardItemId: Int = 0,
+    val rewardItemName: String = "",
+    val rewardItemTypeId: Int? = null,
+    val rewardItemTypeName: String? = null,
+    val costGold: Double = 0.0,
     val effectValue: Double? = null,
+    val quantity: Int = 1,
+    val isEquipped: Boolean = false,
+    val acquiredAt: String = "",
 )

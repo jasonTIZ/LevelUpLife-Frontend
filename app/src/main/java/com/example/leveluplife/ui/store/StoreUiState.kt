@@ -7,8 +7,9 @@ data class StoreUiState(
     val allItems: List<RewardItemDto> = emptyList(),
     val error: String? = null,
     val searchQuery: String = "",
-    val purchasedIds: Set<Int> = emptySet(),
-    val purchaseMessage: String? = null,
+    val buyingItemId: Int? = null,
+    val purchaseSuccessName: String? = null,
+    val buyError: String? = null,
 ) {
     val filteredItems: List<RewardItemDto>
         get() {
@@ -16,7 +17,6 @@ data class StoreUiState(
             return allItems.filter { q.isBlank() || it.name.contains(q, ignoreCase = true) }
         }
 
-    // Preserves backend order; groups appear in the order their first item arrives
     val groupedItems: Map<String, List<RewardItemDto>>
         get() = filteredItems.groupBy { it.typeName ?: "Otros" }
 }

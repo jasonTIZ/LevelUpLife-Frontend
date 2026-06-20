@@ -54,7 +54,6 @@ import coil.compose.AsyncImage
 import com.example.leveluplife.R
 import com.example.leveluplife.data.network.dto.RewardItemDto
 
-private val GoldColor = Color(0xFFF59E0B)
 private val SuccessGreen = Color(0xFF22C55E)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -140,7 +139,7 @@ fun StoreDetailScreen(
                         Icon(Icons.Filled.Bolt, contentDescription = null, tint = GoldColor, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            text = stringResource(R.string.store_cost_xp, item.costGold.toInt()),
+                            text = stringResource(R.string.store_cost_gold, item.costGold.toInt()),
                             fontWeight = FontWeight.Bold,
                             color = GoldColor,
                             style = MaterialTheme.typography.bodyLarge,

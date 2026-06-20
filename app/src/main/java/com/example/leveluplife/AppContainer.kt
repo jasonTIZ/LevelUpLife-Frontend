@@ -25,7 +25,6 @@ import com.example.leveluplife.data.network.AiApi
 import com.example.leveluplife.data.network.AuthApi
 import com.example.leveluplife.data.network.RewardApi
 import com.example.leveluplife.data.rewards.DefaultRewardRepository
-import com.example.leveluplife.data.rewards.PurchasedItemStorage
 import com.example.leveluplife.data.rewards.RewardRepository
 import com.example.leveluplife.data.network.HabitCategoriesApi
 import com.example.leveluplife.data.network.HabitDisciplinesApi
@@ -132,8 +131,6 @@ class AppContainer(applicationContext: Context) {
     val coachRepository: CoachRepository by lazy {
         DefaultCoachRepository(api = aiApi)
     }
-
-    val purchasedItemStorage: PurchasedItemStorage by lazy { PurchasedItemStorage(appContext) }
 
     val rewardRepository: RewardRepository by lazy {
         DefaultRewardRepository(api = rewardApi)
