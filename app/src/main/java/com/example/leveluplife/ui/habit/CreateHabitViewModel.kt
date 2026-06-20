@@ -11,6 +11,7 @@ import com.example.leveluplife.data.network.dto.CreateHabitTaskRequestDto
 import com.example.leveluplife.data.network.dto.HabitCategoryDto
 import com.example.leveluplife.data.network.dto.HabitDisciplineDto
 import com.example.leveluplife.data.network.dto.MeasurementUnit
+import com.example.leveluplife.data.network.dto.CreateTimerCriteriaRequest
 import com.example.leveluplife.data.network.dto.RepetitionCriteriaRequestDto
 import com.example.leveluplife.data.network.dto.TaskCompletionCriteria
 import com.example.leveluplife.data.network.dto.TaskDifficulty
@@ -225,6 +226,15 @@ class CreateHabitViewModel(
     fun onTaskPartialAllowedChange(index: Int, value: Boolean) =
         updateTaskForm(index) { it.copy(isPartialAllowed = value) }
 
+    fun onTaskTimerSecondsDefinedChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onTimerSecondsDefinedChange(it, value) }
+
+    fun onTaskTimerSecondsLongChange(index: Int, value: String) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onTimerSecondsLongChange(it, value) }
+
+    fun onTaskTimerPauseAllowedChange(index: Int, value: Boolean) =
+        updateTaskForm(index) { HabitTaskFormHandlers.onTimerPauseAllowedChange(it, value) }
+
     fun applyTaskTemplate(index: Int, template: TaskFormTemplate) =
         updateTaskForm(index) { HabitTaskFormState.applyTemplate(it, template) }
 
@@ -333,6 +343,10 @@ class CreateHabitViewModel(
                 "Tarea ${index + 1}: el título debe tener al menos ${Validators.TASK_TITLE_MIN} caracteres"
             task.fieldErrors.title != null -> "Tarea ${index + 1}: revisa el título"
             task.fieldErrors.startDate != null -> "Tarea ${index + 1}: revisa la fecha de inicio"
+            task.fieldErrors.timerSeconds != null ->
+                "Tarea ${index + 1}: duración inválida (1 a ${HabitTaskValidators.TIMER_SECONDS_MAX} segundos)"
+            task.fieldErrors.timerLong != null ->
+                "Tarea ${index + 1}: el umbral largo debe superar la duración base"
             else -> "Tarea ${index + 1}: revisa los campos marcados"
         }
     }
@@ -368,6 +382,15 @@ class CreateHabitViewModel(
                         measurementUnit = MeasurementUnit.valueOf(task.measurementUnit ?: "SERIES"),
                         isPartialAllowed = task.isPartialAllowed,
                         isActive = true,
+                    )
+                } else null,
+                timerCriteria = if (criteria == TaskCompletionCriteria.TIMER) {
+                    // Safe to parse directly: validateTask() gates invalid durations before build.
+                    CreateTimerCriteriaRequest(
+                        numSecondsDefined = task.timerSecondsDefined.trim().toInt(),
+                        numSecondsLong = task.timerSecondsLong.trim().toIntOrNull(),
+                        typePauseIsAllowed = task.timerPauseAllowed,
+                        statusTimerCriteriaIsActive = true,
                     )
                 } else null,
                 xpValue = null,

@@ -98,6 +98,9 @@ fun CreateHabitScreen(
                     onMeasurementUnitChange = { viewModel.onTaskMeasurementUnitChange(index, it) },
                     onEvidenceChange = { viewModel.onTaskEvidenceChange(index, it) },
                     onPartialAllowedChange = { viewModel.onTaskPartialAllowedChange(index, it) },
+                    onTimerSecondsDefinedChange = { viewModel.onTaskTimerSecondsDefinedChange(index, it) },
+                    onTimerSecondsLongChange = { viewModel.onTaskTimerSecondsLongChange(index, it) },
+                    onTimerPauseAllowedChange = { viewModel.onTaskTimerPauseAllowedChange(index, it) },
                     onApplyTemplate = { viewModel.applyTaskTemplate(index, it) },
                     onDismissError = { viewModel.dismissTaskError(index) },
                 )

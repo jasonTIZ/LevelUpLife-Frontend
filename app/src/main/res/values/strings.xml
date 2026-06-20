@@ -122,7 +122,17 @@
     <string name="create_task_option_criteria_repetitions">Repeticiones</string>
     <string name="create_task_option_criteria_timer">Cronómetro</string>
     <string name="create_task_field_timer_seconds">Duración (segundos)</string>
+    <string name="create_task_field_timer_threshold">Umbral largo (segundos · opcional)</string>
     <string name="create_task_timer_pause_allowed">Pausas permitidas</string>
+    <string name="create_task_timer_pause_label">Permitir pausas durante la tarea</string>
+    <string name="create_task_timer_seconds_hint">Entre 1 y 86400 segundos (máx. 24 h)</string>
+    <string name="create_task_timer_threshold_hint">Tiempo extendido opcional, mayor a la duración base</string>
+    <string name="create_task_error_timer_threshold">El umbral largo debe superar la duración base</string>
+    <string name="create_task_timer_examples_label">Ejemplos rápidos</string>
+    <string name="create_task_timer_minutes_format">≈ %1$s min</string>
+    <string name="create_task_timer_example_1min">1 min</string>
+    <string name="create_task_timer_example_5min">5 min</string>
+    <string name="create_task_timer_example_25min">25 min</string>
     <string name="create_task_option_criteria_evidence">Evidencia</string>
     <string name="create_task_option_unit_reps">Repeticiones</string>
     <string name="create_task_option_unit_series">Series</string>
