@@ -69,6 +69,7 @@ import com.example.leveluplife.data.network.dto.HabitDisciplineDto
 import com.example.leveluplife.data.network.dto.HabitDto
 import com.example.leveluplife.data.network.dto.HabitTaskDto
 import com.example.leveluplife.domain.validation.HabitTaskFieldError
+import com.example.leveluplife.ui.components.TimerPreview
 import com.example.leveluplife.ui.components.CategoryChipsRow
 import com.example.leveluplife.ui.components.DisciplineChipsRow
 import com.example.leveluplife.ui.components.LulDatePickerField
@@ -1017,6 +1018,26 @@ internal fun TimerCriteriaFields(
                 uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
             ),
         )
+    }
+
+    val previewSeconds = form.timerSecondsDefined.toIntOrNull()
+    if (previewSeconds != null && previewSeconds >= 1) {
+        var showPreview by remember { mutableStateOf(false) }
+        TextButton(onClick = { showPreview = !showPreview }) {
+            Text(
+                text = stringResource(
+                    if (showPreview) R.string.timer_preview_hide else R.string.timer_preview_show,
+                ),
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        if (showPreview) {
+            TimerPreview(
+                durationSeconds = previewSeconds,
+                pauseAllowed = form.timerPauseAllowed,
+                thresholdSeconds = form.timerSecondsLong.toIntOrNull()?.takeIf { it > 0 },
+            )
+        }
     }
 }
 
