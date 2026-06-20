@@ -5,6 +5,7 @@ import com.example.leveluplife.data.network.dto.CompleteHabitTaskResponse
 import com.example.leveluplife.data.network.dto.CreateEvidenceRequest
 import com.example.leveluplife.data.network.dto.CreateHabitTaskRequest
 import com.example.leveluplife.data.network.dto.DeactivateHabitTaskResponse
+import com.example.leveluplife.data.network.dto.DeleteEvidenceResponse
 import com.example.leveluplife.data.network.dto.EvidenceDto
 import com.example.leveluplife.data.network.dto.EvidenceFileUploadResponse
 import com.example.leveluplife.data.network.dto.HabitTaskDto
@@ -38,6 +39,12 @@ interface HabitTasksApi {
     suspend fun uploadEvidenceFile(
         @Part file: MultipartBody.Part,
     ): Response<EvidenceFileUploadResponse>
+
+    @DELETE("api/habit-tasks/{taskId}/evidences/{id}")
+    suspend fun deleteEvidence(
+        @Path("taskId") taskId: Int,
+        @Path("id") evidenceId: Int,
+    ): Response<DeleteEvidenceResponse>
 
     @GET("api/habit-tasks/{taskId}")
     suspend fun getHabitTask(@Path("taskId") taskId: Int): Response<HabitTaskDto>
