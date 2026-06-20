@@ -323,5 +323,6 @@
     <string name="evidence_gallery_delete_success">Evidencia eliminada correctamente</string>
     <string name="evidence_gallery_delete_error_forbidden">No tenés permiso para eliminar esta evidencia</string>
     <string name="evidence_gallery_delete_error_not_found">La evidencia ya no existe</string>
+    <string name="evidence_gallery_delete_error_task_completed">No se puede eliminar la evidencia de una tarea ya completada</string>
     <string name="evidence_gallery_delete_error_generic">No se pudo eliminar la evidencia</string>
 </resources>

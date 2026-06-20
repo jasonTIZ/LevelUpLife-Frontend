@@ -132,10 +132,12 @@ fun EvidenceGalleryScreen(
     if (state.deleteError != null) {
         val forbiddenMessage = stringResource(R.string.evidence_gallery_delete_error_forbidden)
         val notFoundMessage = stringResource(R.string.evidence_gallery_delete_error_not_found)
+        val taskCompletedMessage = stringResource(R.string.evidence_gallery_delete_error_task_completed)
         val genericMessage = stringResource(R.string.evidence_gallery_delete_error_generic)
         val errorMessage = when (state.deleteError) {
             "forbidden" -> forbiddenMessage
             "not_found" -> notFoundMessage
+            "task_completed" -> taskCompletedMessage
             else -> genericMessage
         }
         LulErrorAlertDialog(

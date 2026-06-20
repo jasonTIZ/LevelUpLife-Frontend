@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 class EvidenceGalleryViewModel(
     private val repository: EvidenceRepository,
     private val taskId: Int,
+    private val isTaskCompleted: Boolean,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EvidenceGalleryUiState())
@@ -37,6 +38,10 @@ class EvidenceGalleryViewModel(
     }
 
     fun requestDelete(evidence: EvidenceDto) {
+        if (isTaskCompleted) {
+            _state.update { it.copy(deleteError = "task_completed") }
+            return
+        }
         _state.update { it.copy(pendingDeleteEvidence = evidence, deleteAcknowledged = false) }
     }
 
@@ -113,9 +118,10 @@ class EvidenceGalleryViewModel(
     class Factory(
         private val repository: EvidenceRepository,
         private val taskId: Int,
+        private val isTaskCompleted: Boolean = false,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            EvidenceGalleryViewModel(repository, taskId) as T
+            EvidenceGalleryViewModel(repository, taskId, isTaskCompleted) as T
     }
 }

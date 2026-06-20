@@ -54,7 +54,6 @@ import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.createtask.CreateHabitTaskOptions
 
 object HabitTaskDetailTestTags {
-    const val COMPLETE_BUTTON = "task_detail_complete_button"
     const val DEACTIVATE_BUTTON = "task_detail_deactivate_button"
     const val CONFIRM_DIALOG = "task_detail_deactivate_confirm_dialog"
     const val CONFIRM_DEACTIVATE_BUTTON = "task_detail_confirm_deactivate_button"
@@ -92,22 +91,6 @@ fun HabitTaskDetailScreen(
             onTaskDeactivated(defaultDeactivationMessage)
             viewModel.consumeDeactivatedEvent()
         }
-    }
-
-    state.reward?.let { reward ->
-        TaskCompletionRewardDialog(
-            reward = reward,
-            onDismiss = viewModel::dismissReward,
-        )
-    }
-
-    if (state.completionError != null) {
-        LulErrorAlertDialog(
-            title = stringResource(R.string.error_dialog_title),
-            message = state.completionError ?: "",
-            dismissText = stringResource(R.string.login_dismiss),
-            onDismiss = viewModel::dismissCompletionError,
-        )
     }
 
     if (state.showConfirmDeactivateDialog) {
@@ -179,10 +162,8 @@ fun HabitTaskDetailScreen(
                 state.task != null -> HabitTaskDetailContent(
                     task = state.task!!,
                     habitTitle = state.habitTitle,
-                    isCompleting = state.isCompleting,
                     onDone = onDone,
                     onViewEvidences = onViewEvidences,
-                    onComplete = viewModel::completeTask,
                     onRequestDeactivate = viewModel::onRequestDeactivate,
                 )
             }
@@ -230,14 +211,10 @@ private fun DetailHeader(
 private fun HabitTaskDetailContent(
     task: HabitTaskDto,
     habitTitle: String?,
-    isCompleting: Boolean,
     onDone: () -> Unit,
     onViewEvidences: () -> Unit,
-    onComplete: () -> Unit,
     onRequestDeactivate: () -> Unit,
 ) {
-    val canComplete = task.isActive && !task.isCompleted && !isCompleting
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -387,42 +364,6 @@ private fun HabitTaskDetailContent(
             )
         }
 
-        if (canComplete) {
-            LulPrimaryButton(
-                text = stringResource(R.string.complete_task_button),
-                onClick = onComplete,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(HabitTaskDetailTestTags.COMPLETE_BUTTON),
-                enabled = canComplete,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = GreenSuccess,
-                    contentColor = Color.White,
-                    disabledContainerColor = GreenSuccess.copy(alpha = 0.5f),
-                ),
-            )
-        } else if (isCompleting) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = 2.dp,
-                    modifier = Modifier.size(28.dp),
-                )
-            }
-        } else if (task.isCompleted) {
-            Text(
-                text = stringResource(R.string.complete_task_already_completed),
-                style = MaterialTheme.typography.bodyMedium,
-                color = GreenSuccess,
-                fontWeight = FontWeight.Medium,
-            )
-        }
-
         if (task.isActive) {
             LulPrimaryButton(
                 text = stringResource(R.string.deactivate_task_button),
@@ -440,6 +381,7 @@ private fun HabitTaskDetailContent(
         }
 
         Spacer(Modifier.height(8.dp))
+
 
         TextButton(
             onClick = onDone,
