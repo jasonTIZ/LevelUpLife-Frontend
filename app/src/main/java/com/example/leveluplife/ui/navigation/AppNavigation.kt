@@ -33,6 +33,8 @@ import com.example.leveluplife.ui.habit.CreateHabitScreen
 import com.example.leveluplife.ui.habit.CreateHabitViewModel
 import com.example.leveluplife.ui.coach.CoachScreen
 import com.example.leveluplife.ui.coach.CoachViewModel
+import com.example.leveluplife.ui.store.StoreScreen
+import com.example.leveluplife.ui.store.StoreViewModel
 import com.example.leveluplife.ui.evidence.EvidenceGalleryScreen
 import com.example.leveluplife.ui.evidence.EvidenceGalleryViewModel
 import com.example.leveluplife.ui.habitdetail.HabitDetailScreen
@@ -71,6 +73,9 @@ object Routes {
     const val TASK_EVIDENCES = "task_evidences/{taskId}?isCompleted={isCompleted}"
     const val EDIT_HABIT_TASK = "edit_habit_task/{taskId}"
     const val COACH = "coach"
+    const val STORE = "store"
+    const val STORE_DETAIL = "store_detail"
+    const val ARG_STORE_ITEM_JSON = "store_item_json"
 
     fun habitDetail(id: Int) = "habit_detail/$id"
     fun createHabitTask(habitId: Int = -1) = "create_habit_task?habitId=$habitId"
@@ -260,6 +265,9 @@ fun AppNavigation(
                 },
                 onOpenCoach = {
                     navController.navigate(Routes.COACH) { launchSingleTop = true }
+                },
+                onOpenStore = {
+                    navController.navigate(Routes.STORE) { launchSingleTop = true }
                 },
             )
         }
@@ -488,6 +496,15 @@ fun AppNavigation(
                 factory = CoachViewModel.Factory(container.coachRepository, container.tokenStore, container.chatStorage),
             )
             CoachScreen(
+                viewModel = vm,
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(Routes.STORE) {
+            val vm: StoreViewModel = viewModel(
+                factory = StoreViewModel.Factory(container.rewardRepository, container.purchasedItemStorage),
+            )
+            StoreScreen(
                 viewModel = vm,
                 onBack = { navController.popBackStack() },
             )

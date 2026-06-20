@@ -66,5 +66,7 @@ object NetworkModule {
 
     fun provideAiApi(retrofit: Retrofit): AiApi = retrofit.create(AiApi::class.java)
 
+    fun provideRewardApi(retrofit: Retrofit): RewardApi = retrofit.create(RewardApi::class.java)
+
     fun jsonParser(): Json = json
 }

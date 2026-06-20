@@ -23,6 +23,10 @@ import com.example.leveluplife.data.habits.HabitRepository
 import com.example.leveluplife.data.habits.HabitTaskRepository
 import com.example.leveluplife.data.network.AiApi
 import com.example.leveluplife.data.network.AuthApi
+import com.example.leveluplife.data.network.RewardApi
+import com.example.leveluplife.data.rewards.DefaultRewardRepository
+import com.example.leveluplife.data.rewards.PurchasedItemStorage
+import com.example.leveluplife.data.rewards.RewardRepository
 import com.example.leveluplife.data.network.HabitCategoriesApi
 import com.example.leveluplife.data.network.HabitDisciplinesApi
 import com.example.leveluplife.data.network.HabitTasksApi
@@ -91,6 +95,7 @@ class AppContainer(applicationContext: Context) {
     private val habitDisciplinesApi: HabitDisciplinesApi by lazy { NetworkModule.provideHabitDisciplinesApi(retrofit) }
     private val playerApi: PlayerApi by lazy { NetworkModule.providePlayerApi(retrofit) }
     private val aiApi: AiApi by lazy { NetworkModule.provideAiApi(retrofit) }
+    private val rewardApi: RewardApi by lazy { NetworkModule.provideRewardApi(retrofit) }
 
     val authRepository: AuthRepository by lazy {
         DefaultAuthRepository(
@@ -126,6 +131,12 @@ class AppContainer(applicationContext: Context) {
 
     val coachRepository: CoachRepository by lazy {
         DefaultCoachRepository(api = aiApi)
+    }
+
+    val purchasedItemStorage: PurchasedItemStorage by lazy { PurchasedItemStorage(appContext) }
+
+    val rewardRepository: RewardRepository by lazy {
+        DefaultRewardRepository(api = rewardApi)
     }
 
     val playerRepository: PlayerRepository by lazy {
