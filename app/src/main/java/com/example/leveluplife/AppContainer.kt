@@ -44,6 +44,7 @@ import com.example.leveluplife.data.player.ProfileCache
 import com.example.leveluplife.data.player.ProfileRepository
 import com.example.leveluplife.data.preferences.DebugApiPreferences
 import com.example.leveluplife.data.preferences.ThemePreferences
+import com.example.leveluplife.health.HealthConnectManager
 import com.example.leveluplife.ui.theme.ThemeController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -124,6 +125,10 @@ class AppContainer(applicationContext: Context) {
 
     val evidenceRepository: EvidenceRepository by lazy {
         DefaultEvidenceRepository(api = habitTasksApi, context = appContext)
+    }
+
+    val healthConnectManager: HealthConnectManager by lazy {
+        HealthConnectManager(appContext)
     }
 
     val chatStorage: ChatStorage by lazy { ChatStorage(appContext) }

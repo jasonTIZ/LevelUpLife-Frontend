@@ -322,6 +322,23 @@
     <string name="home_delete_habit_confirm">Eliminar</string>
     <string name="home_delete_habit_cancel">Cancelar</string>
 
+    <!-- Evidencia: Health Connect -->
+    <string name="evidence_health_sync_button">Sincronizar Health Connect</string>
+    <string name="evidence_health_pick_title">¿Qué dato quieres registrar?</string>
+    <string name="evidence_health_metric_steps">Pasos de hoy</string>
+    <string name="evidence_health_metric_distance">Distancia de hoy (km)</string>
+    <string name="evidence_health_metric_calories">Calorías activas de hoy</string>
+    <string name="evidence_health_metric_exercise">Minutos de ejercicio de hoy</string>
+    <string name="evidence_health_cancel">Cancelar</string>
+    <string name="evidence_health_unavailable">Health Connect no está disponible en este dispositivo.</string>
+    <string name="evidence_health_permission_denied">Se necesitan permisos de Health Connect para leer tus datos.</string>
+    <string name="evidence_health_read_failed">No se pudieron leer los datos de Health Connect.</string>
+    <string name="evidence_health_value_steps">%1$s pasos</string>
+    <string name="evidence_health_value_distance">%1$s km recorridos</string>
+    <string name="evidence_health_value_calories">%1$s kcal activas</string>
+    <string name="evidence_health_value_exercise">%1$s min de ejercicio</string>
+    <string name="evidence_health_value_generic">%1$s %2$s</string>
+
     <!-- Notificaciones de tareas -->
     <string name="notif_channel_task_reminders">Recordatorios de tareas</string>
     <string name="notif_task_pending_today_title">Tienes una tarea pendiente para hoy</string>
