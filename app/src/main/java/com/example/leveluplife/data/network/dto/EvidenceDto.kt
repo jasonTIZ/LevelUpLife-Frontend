@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class EvidenceDto(
     @SerialName("id") val id: Int,
     @SerialName("habitTaskId") val taskId: Int,
-    @SerialName("url") val url: String,
+    @SerialName("url") val url: String? = null,
     @SerialName("healthDataJson") val healthDataJson: String? = null,
     @SerialName("uploadedAt") val uploadedAt: String,
 )

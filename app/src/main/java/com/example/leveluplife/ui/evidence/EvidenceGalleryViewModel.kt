@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.leveluplife.data.habits.EvidenceRepository
 import com.example.leveluplife.data.network.dto.EvidenceDto
+import com.example.leveluplife.health.HealthConnectManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,10 +16,17 @@ class EvidenceGalleryViewModel(
     private val repository: EvidenceRepository,
     private val taskId: Int,
     private val isTaskCompleted: Boolean,
+    private val healthConnectManager: HealthConnectManager,
+    evidenceType: String?,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EvidenceGalleryUiState())
     val state: StateFlow<EvidenceGalleryUiState> = _state.asStateFlow()
+
+    val isHealthConnectTask: Boolean = evidenceType == "HEALTH_CONNECT"
+    val isHealthConnectAvailable: Boolean = healthConnectManager.isAvailable()
+    val healthPermissions: Set<String> = healthConnectManager.permissions
+    val galleryMimeType: String = if (evidenceType == "VIDEO") "video/*" else "image/*"
 
     init {
         load()
@@ -107,6 +115,30 @@ class EvidenceGalleryViewModel(
         }
     }
 
+    fun syncHealthMetric(metric: HealthConnectManager.Metric) {
+        viewModelScope.launch {
+            _state.update { it.copy(isUploading = true, uploadError = null) }
+            val reading = runCatching { healthConnectManager.readTodayTotal(metric) }.getOrNull()
+            if (reading == null) {
+                _state.update { it.copy(isUploading = false, uploadError = "health_read_failed") }
+                return@launch
+            }
+            repository.addHealthEvidence(taskId, healthConnectManager.toHealthDataJson(reading))
+                .onSuccess { evidence ->
+                    _state.update { state ->
+                        state.copy(
+                            isUploading = false,
+                            evidences = listOf(evidence) + state.evidences,
+                            uploadSuccess = true,
+                        )
+                    }
+                }
+                .onFailure { t ->
+                    _state.update { it.copy(isUploading = false, uploadError = t.message) }
+                }
+        }
+    }
+
     fun onUploadSuccessShown() {
         _state.update { it.copy(uploadSuccess = false) }
     }
@@ -119,9 +151,17 @@ class EvidenceGalleryViewModel(
         private val repository: EvidenceRepository,
         private val taskId: Int,
         private val isTaskCompleted: Boolean = false,
+        private val healthConnectManager: HealthConnectManager,
+        private val evidenceType: String? = null,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            EvidenceGalleryViewModel(repository, taskId, isTaskCompleted) as T
+            EvidenceGalleryViewModel(
+                repository,
+                taskId,
+                isTaskCompleted,
+                healthConnectManager,
+                evidenceType,
+            ) as T
     }
 }
