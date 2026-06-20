@@ -10,11 +10,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,20 +23,19 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -52,7 +52,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -63,8 +62,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.leveluplife.R
 import com.example.leveluplife.data.error.AuthError
+import com.example.leveluplife.ui.components.LulErrorAlertDialog
+import com.example.leveluplife.ui.components.showLulSnackbar
 import com.example.leveluplife.ui.components.LulLogo
+import com.example.leveluplife.ui.components.LulPrimaryButton
+import com.example.leveluplife.ui.components.LulScreenHeaderLabels
 import com.example.leveluplife.ui.components.ThemeToggleButton
+import com.example.leveluplife.ui.components.blockPasswordWhitespaceKeys
+import com.example.leveluplife.ui.components.passwordInputChangeHandler
 import com.example.leveluplife.ui.theme.ThemeController
 
 object LoginTestTags {
@@ -83,30 +88,49 @@ fun LoginScreen(
     themeController: ThemeController,
     onLoggedIn: () -> Unit,
     onNavigateToRegister: () -> Unit,
+    infoMessage: String? = null,
+    onInfoMessageShown: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
 
-    LaunchedEffect(state.loggedInUser) {
+    LaunchedEffect(state.loggedInUser, systemDark) {
         if (state.loggedInUser != null) {
+            themeController.lockCurrentAppearance(systemDark)
             onLoggedIn()
             viewModel.consumeLoggedIn()
         }
     }
 
-    LoginContent(
-        state = state,
-        themeController = themeController,
-        onEmailChange = viewModel::onEmailChange,
-        onPasswordChange = viewModel::onPasswordChange,
-        onTogglePasswordVisibility = viewModel::onTogglePasswordVisibility,
-        onSubmit = viewModel::onSubmit,
-        onDismissError = viewModel::dismissError,
-        onNavigateToRegister = onNavigateToRegister,
+    LaunchedEffect(infoMessage) {
+        if (!infoMessage.isNullOrBlank()) {
+            snackbarHostState.showLulSnackbar(infoMessage)
+            onInfoMessageShown()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background,
         modifier = modifier,
-    )
+    ) { innerPadding ->
+        LoginContent(
+            state = state,
+            themeController = themeController,
+            onEmailChange = viewModel::onEmailChange,
+            onPasswordChange = viewModel::onPasswordChange,
+            onTogglePasswordVisibility = viewModel::onTogglePasswordVisibility,
+            onSubmit = viewModel::onSubmit,
+            onDismissError = viewModel::dismissError,
+            onNavigateToRegister = onNavigateToRegister,
+            modifier = Modifier.padding(innerPadding),
+        )
+    }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LoginContent(
     state: LoginUiState,
@@ -125,6 +149,8 @@ private fun LoginContent(
 
     LaunchedEffect(Unit) { runCatching { emailFocus.requestFocus() } }
 
+    val imeVisible = WindowInsets.isImeVisible
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -134,8 +160,6 @@ private fun LoginContent(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .navigationBarsPadding()
-                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 16.dp),
         ) {
@@ -153,34 +177,18 @@ private fun LoginContent(
 
             Spacer(Modifier.height(48.dp))
 
-            Text(
-                text = stringResource(R.string.login_welcome),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.semantics { heading() },
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.login_welcome_subtitle),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            LulScreenHeaderLabels(
+                title = stringResource(R.string.login_welcome),
+                subtitle = stringResource(R.string.login_welcome_subtitle),
+                titleTextStyle = MaterialTheme.typography.headlineMedium,
+                titleFontWeight = FontWeight.Bold,
+                titleColor = MaterialTheme.colorScheme.onBackground,
+                subtitleTextStyle = MaterialTheme.typography.bodyLarge,
+                subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                gapAfterTitle = 4.dp,
             )
 
             Spacer(Modifier.height(28.dp))
-
-            // Banner de error global
-            if (state.bannerError != null) {
-                ErrorBanner(
-                    error = state.bannerError,
-                    onDismiss = onDismissError,
-                    onRetry = if (state.bannerError is AuthError.Network) onSubmit else null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
-                        .testTag(LoginTestTags.ERROR_BANNER),
-                )
-            }
-
             // Email o usuario
             val emailFieldLabel = stringResource(R.string.login_email_placeholder)
             OutlinedTextField(
@@ -219,10 +227,9 @@ private fun LoginContent(
 
             Spacer(Modifier.height(12.dp))
 
-            // Password
             OutlinedTextField(
                 value = state.password,
-                onValueChange = onPasswordChange,
+                onValueChange = passwordInputChangeHandler(onPasswordChange),
                 singleLine = true,
                 isError = state.passwordError != null,
                 shape = RoundedCornerShape(14.dp),
@@ -263,6 +270,7 @@ private fun LoginContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(passwordFocus)
+                    .blockPasswordWhitespaceKeys()
                     .testTag(LoginTestTags.PASSWORD_FIELD)
                     .semantics {
                         contentDescription = "Contraseña"
@@ -271,130 +279,82 @@ private fun LoginContent(
 
             Spacer(Modifier.height(20.dp))
 
-            Button(
+            LulPrimaryButton(
+                text = stringResource(R.string.login_submit),
                 onClick = {
                     focusManager.clearFocus()
                     onSubmit()
                 },
                 enabled = !state.isLoading,
+                isLoading = state.isLoading,
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                     disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
                 ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .testTag(LoginTestTags.SUBMIT_BUTTON),
-            ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.5.dp,
-                        modifier = Modifier
-                            .size(22.dp)
-                            .testTag(LoginTestTags.LOADING),
-                    )
-                } else {
-                    Text(
-                        text = stringResource(R.string.login_submit),
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp,
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    Icon(
-                        imageVector = Icons.Outlined.ArrowForward,
-                        contentDescription = null,
-                    )
-                }
-            }
+                buttonHeight = 56.dp,
+                modifier = Modifier.testTag(LoginTestTags.SUBMIT_BUTTON),
+                loadingTestTag = LoginTestTags.LOADING,
+            )
 
             Spacer(Modifier.height(40.dp))
         }
 
-        // Footer "¿NO TIENES CUENTA? REGÍSTRATE"
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 24.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.login_no_account),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 12.sp,
-                letterSpacing = 1.sp,
-            )
-            Spacer(Modifier.width(6.dp))
-            TextButton(
-                onClick = onNavigateToRegister,
-                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+        if (!imeVisible) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = stringResource(R.string.login_register_cta),
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
+                    text = stringResource(R.string.login_no_account),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     letterSpacing = 1.sp,
                 )
+                Spacer(Modifier.width(6.dp))
+                TextButton(
+                    onClick = onNavigateToRegister,
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.login_register_cta),
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        letterSpacing = 1.sp,
+                    )
+                }
             }
         }
-    }
-}
 
-@Composable
-private fun ErrorBanner(
-    error: AuthError,
-    onDismiss: () -> Unit,
-    onRetry: (() -> Unit)?,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .background(
-                color = MaterialTheme.colorScheme.errorContainer,
-                shape = RoundedCornerShape(12.dp),
-            )
-            .padding(horizontal = 12.dp, vertical = 10.dp)
-            .semantics { contentDescription = "Error" },
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.ErrorOutline,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onErrorContainer,
-        )
-        Spacer(Modifier.width(10.dp))
-        Text(
-            text = error.toMessage(),
-            color = MaterialTheme.colorScheme.onErrorContainer,
-            modifier = Modifier.weight(1f),
-        )
-        if (onRetry != null) {
-            TextButton(
-                onClick = onRetry,
-                modifier = Modifier.testTag(LoginTestTags.RETRY_BUTTON),
-            ) {
-                Text(
-                    text = stringResource(R.string.login_retry),
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-        }
-        TextButton(onClick = onDismiss) {
-            Text(
-                text = stringResource(R.string.login_dismiss),
-                color = MaterialTheme.colorScheme.onErrorContainer,
+        state.bannerError?.let { error ->
+            LulErrorAlertDialog(
+                title = stringResource(R.string.error_dialog_title),
+                message = error.toMessage(),
+                dismissText = stringResource(R.string.login_dismiss),
+                onDismiss = onDismissError,
+                titleTextStyle = MaterialTheme.typography.titleLarge,
+                messageTextStyle = MaterialTheme.typography.bodyMedium,
+                iconTint = MaterialTheme.colorScheme.error,
+                retryText = if (error is AuthError.Network) {
+                    stringResource(R.string.login_retry)
+                } else {
+                    null
+                },
+                onRetry = if (error is AuthError.Network) onSubmit else null,
+                retryTestTag = LoginTestTags.RETRY_BUTTON,
+                errorTestTag = LoginTestTags.ERROR_BANNER,
             )
         }
     }
 }
 
 @Composable
-private fun filledFieldColors() = OutlinedTextFieldDefaults.colors(
+internal fun filledFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
     disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,

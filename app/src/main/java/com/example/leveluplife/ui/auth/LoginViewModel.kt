@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.leveluplife.data.auth.AuthErrorException
 import com.example.leveluplife.data.auth.AuthRepository
 import com.example.leveluplife.data.error.AuthError
+import com.example.leveluplife.data.habits.HabitRepository
+import com.example.leveluplife.domain.validation.ProfileInputSanitizer
 import com.example.leveluplife.domain.validation.Validators
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +17,7 @@ import kotlinx.coroutines.launch
 
 class LoginViewModel(
     private val authRepository: AuthRepository,
+    private val habitRepository: HabitRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginUiState())
@@ -31,10 +34,11 @@ class LoginViewModel(
     }
 
     fun onPasswordChange(value: String) {
+        val sanitized = ProfileInputSanitizer.sanitizePassword(value)
         _state.update {
             it.copy(
-                password = value,
-                passwordError = if (it.passwordError != null) Validators.validatePassword(value) else null,
+                password = sanitized,
+                passwordError = if (it.passwordError != null) Validators.validatePassword(sanitized) else null,
                 bannerError = null,
             )
         }
@@ -78,6 +82,7 @@ class LoginViewModel(
                             bannerError = null,
                         )
                     }
+                    session.user.id.toIntOrNull()?.let { habitRepository.setCurrentUserId(it) }
                 }
                 .onFailure { throwable ->
                     val authError = (throwable as? AuthErrorException)?.authError
@@ -100,11 +105,14 @@ class LoginViewModel(
         _state.update { it.copy(loggedInUser = null) }
     }
 
-    class Factory(private val authRepository: AuthRepository) : ViewModelProvider.Factory {
+    class Factory(
+        private val authRepository: AuthRepository,
+        private val habitRepository: HabitRepository
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             require(modelClass.isAssignableFrom(LoginViewModel::class.java))
-            return LoginViewModel(authRepository) as T
+            return LoginViewModel(authRepository, habitRepository) as T
         }
     }
 }

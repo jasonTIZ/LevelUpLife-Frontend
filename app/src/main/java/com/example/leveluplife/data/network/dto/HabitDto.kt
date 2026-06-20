@@ -8,15 +8,14 @@ data class HabitDto(
     val id: Int,
     val title: String = "",
     val description: String = "",
+    val disciplineId: Int = 0,
     val disciplineName: String = "",
     val userName: String = "",
+    val categoryId: Int = 0,
     val categoryName: String = "",
     val isActive: Boolean = false,
     val tasks: List<HabitTaskDto> = emptyList(),
 )
-
-@Serializable
-data class HabitTaskDto(val id: Int)
 
 @Serializable
 data class PaginationDto(

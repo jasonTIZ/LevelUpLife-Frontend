@@ -93,4 +93,79 @@ class RetryInterceptorTest {
         assertEquals(1, mockServer.requestCount)
         response.close()
     }
+
+    // --- 429 Rate Limiting ---
+
+    // Scenario: 429 with Retry-After 0 retries immediately and succeeds
+    @Test
+    fun `reintenta 429 con Retry-After cero y devuelve la respuesta exitosa`() {
+        mockServer.enqueue(MockResponse().setResponseCode(429).addHeader("Retry-After", "0"))
+        mockServer.enqueue(MockResponse().setResponseCode(429).addHeader("Retry-After", "0"))
+        mockServer.enqueue(MockResponse().setResponseCode(200))
+
+        val response = client(maxAttempts = 3).newCall(get()).execute()
+
+        assertEquals(200, response.code)
+        assertEquals(3, mockServer.requestCount)
+        response.close()
+    }
+
+    @Test
+    fun `devuelve el último 429 al agotar los intentos configurados`() {
+        repeat(3) { mockServer.enqueue(MockResponse().setResponseCode(429).addHeader("Retry-After", "0")) }
+
+        val response = client(maxAttempts = 3).newCall(get()).execute()
+
+        assertEquals(429, response.code)
+        assertEquals(3, mockServer.requestCount)
+        response.close()
+    }
+
+    @Test
+    fun `429 sin Retry-After usa backoff exponencial con override de cero para el test`() {
+        val noBackoff: (Int, String?, Int) -> Long = { _, _, _ -> 0L }
+        val client = OkHttpClient.Builder()
+            .addInterceptor(RetryInterceptor(maxAttempts = 3, backoffMs = noBackoff))
+            .build()
+        mockServer.enqueue(MockResponse().setResponseCode(429))
+        mockServer.enqueue(MockResponse().setResponseCode(200))
+
+        val response = client.newCall(get()).execute()
+
+        assertEquals(200, response.code)
+        assertEquals(2, mockServer.requestCount)
+        response.close()
+    }
+
+    // --- BackoffStrategy unit tests (no HTTP needed) ---
+
+    @Test
+    fun `backoff para 429 sin header usa exponencial con base 1s`() {
+        val backoff = RetryInterceptor.computeDefaultBackoff
+        assertEquals(1_000L, backoff(429, null, 1))
+        assertEquals(2_000L, backoff(429, null, 2))
+        assertEquals(4_000L, backoff(429, null, 3))
+    }
+
+    @Test
+    fun `backoff para 429 respeta el header Retry-After en segundos`() {
+        val backoff = RetryInterceptor.computeDefaultBackoff
+        assertEquals(5_000L, backoff(429, "5", 1))
+        assertEquals(0L, backoff(429, "0", 1))
+    }
+
+    @Test
+    fun `backoff para 5xx es siempre cero`() {
+        val backoff = RetryInterceptor.computeDefaultBackoff
+        assertEquals(0L, backoff(500, null, 1))
+        assertEquals(0L, backoff(503, null, 2))
+        assertEquals(0L, backoff(502, "5", 1))
+    }
+
+    @Test
+    fun `backoff para 429 esta limitado al maximo de 30 segundos`() {
+        val backoff = RetryInterceptor.computeDefaultBackoff
+        // attempt 16 → 2^15 * 1000 = 32_768_000ms, capped at 30_000
+        assertEquals(30_000L, backoff(429, null, 16))
+    }
 }

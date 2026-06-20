@@ -11,9 +11,16 @@
     <string name="login_register_cta">REGÍSTRATE</string>
     <string name="login_retry">Reintentar</string>
     <string name="login_dismiss">Cerrar</string>
+    <string name="error_dialog_title">Error</string>
+
+    <!-- Errores globales -->
+    <string name="error_rate_limited">Demasiadas solicitudes. Intentá de nuevo en un momento.</string>
 
     <!-- Login: errores -->
     <string name="login_error_invalid_credentials">Usuario/email o contraseña incorrectos</string>
+    <string name="login_error_session_expired">Tu sesión expiró. Iniciá sesión de nuevo.</string>
+    <string name="login_session_expired_redirect">Tu sesión terminó y se cerró automáticamente. Iniciá sesión de nuevo para continuar.</string>
+    <string name="session_forbidden_message">No tenés permiso para realizar esta acción.</string>
     <string name="login_error_account_locked">Tu cuenta está bloqueada. Intenta más tarde.</string>
     <string name="login_error_bad_request">Solicitud inválida. Revisa los datos ingresados.</string>
     <string name="login_error_server">Error del servidor. Intenta más tarde.</string>
@@ -23,13 +30,45 @@
     <!-- Validación de campos -->
     <string name="field_required">Campo obligatorio</string>
     <string name="field_invalid_email">Email inválido</string>
+    <string name="field_invalid_birthdate">Usa una fecha válida en formato AAAA-MM-DD</string>
+    <string name="field_invalid_characters">Solo se permiten letras, espacios, apóstrofes y guiones</string>
     <string name="field_invalid_username_or_email">Ingresa un email o usuario válido</string>
     <string name="field_min_length">Mínimo %1$d caracteres</string>
     <string name="field_max_length">Máximo %1$d caracteres</string>
+    <string name="field_invalid_range">Debe estar entre %1$d y %2$d</string>
+    <string name="field_password_mismatch">Las contraseñas no coinciden</string>
+    <string name="field_username_same_as_name">El usuario debe ser distinto al nombre</string>
+
+    <!-- Registro -->
+    <string name="register_title">Crea tu cuenta</string>
+    <string name="register_subtitle">Comienza tu aventura en Level Up Life</string>
+    <string name="register_name_placeholder">Nombre</string>
+    <string name="register_last_name_placeholder">Apellido</string>
+    <string name="register_email_placeholder">Email</string>
+    <string name="register_birthdate_placeholder">Fecha de nacimiento</string>
+    <string name="register_username_placeholder">Nombre de usuario</string>
+    <string name="register_password_placeholder">Contraseña</string>
+    <string name="register_confirm_password_placeholder">Confirmar contraseña</string>
+    <string name="register_class_placeholder">Clase de personaje</string>
+    <string name="register_class_warrior">Guerrero</string>
+    <string name="register_submit">REGISTRARME</string>
+    <string name="register_next">SIGUIENTE</string>
+    <string name="register_back">ATRÁS</string>
+    <string name="register_step2_title">Tu cuenta</string>
+    <string name="register_step2_subtitle">Usuario, email y contraseña</string>
+    <string name="register_has_account">¿YA TIENES CUENTA?</string>
+    <string name="register_login_cta">INICIA SESIÓN</string>
+    <string name="register_date_picker_confirm">Aceptar</string>
+    <string name="register_password_strength_weak">Contraseña débil</string>
+    <string name="register_password_strength_fair">Contraseña aceptable</string>
+    <string name="register_password_strength_strong">Contraseña fuerte</string>
+    <string name="register_error_duplicate_account">Esa cuenta ya existe</string>
+    <string name="register_success_login_required">Usuario registrado exitosamente.</string>
 
     <!-- Accesibilidad -->
     <string name="cd_show_password">Mostrar contraseña</string>
     <string name="cd_hide_password">Ocultar contraseña</string>
+    <string name="cd_open_date_picker">Abrir calendario</string>
     <string name="cd_switch_to_dark">Cambiar a modo oscuro</string>
     <string name="cd_switch_to_light">Cambiar a modo claro</string>
 
@@ -38,4 +77,394 @@
     <string name="dashboard_subtitle">Has iniciado sesión correctamente.</string>
     <string name="dashboard_session_active">Sesión activa</string>
     <string name="dashboard_logout">Cerrar sesión</string>
+
+    <!-- Create habit task -->
+    <string name="create_task_title">Nueva tarea</string>
+    <string name="create_task_subtitle">Agregá una tarea a tu hábito</string>
+    <string name="create_task_back">Regresar</string>
+    <string name="create_task_retry">Reintentar</string>
+    <string name="create_task_submit">Crear tarea</string>
+    <string name="create_task_templates_label">Plantillas rápidas</string>
+    <string name="create_habit_category_label">Categoría</string>
+    <string name="create_habit_categories_loading">Cargando categorías…</string>
+    <string name="create_habit_categories_empty">Sin categorías disponibles</string>
+    <string name="create_habit_discipline_label">Disciplina</string>
+    <string name="create_habit_disciplines_loading">Cargando disciplinas…</string>
+    <string name="create_habit_disciplines_empty">Sin disciplinas disponibles</string>
+    <string name="create_habit_title_section_label">Hábito</string>
+    <string name="create_task_section_basic">Información básica</string>
+    <string name="create_task_section_goal">Meta / criterio</string>
+    <string name="create_task_section_planning">Planificación</string>
+    <string name="create_task_section_preview">Vista previa</string>
+    <string name="create_task_field_habit">Hábito</string>
+    <string name="create_task_field_category">Categoría</string>
+    <string name="create_task_field_title">Título</string>
+    <string name="create_task_field_description">Descripción</string>
+    <string name="create_task_field_criteria_type">Meta a completar</string>
+    <string name="create_task_field_repetitions">Objetivo</string>
+    <string name="create_task_field_unit">Unidad de medida</string>
+    <string name="create_task_field_evidence">Tipo de evidencia</string>
+    <string name="create_task_field_difficulty">Dificultad</string>
+    <string name="create_task_field_frequency">Frecuencia</string>
+    <string name="create_task_field_period_length">Duración</string>
+    <string name="create_task_field_period_unit">Periodo</string>
+    <string name="create_task_field_start_date">Fecha de inicio</string>
+    <string name="create_task_start_date_hint">Elegí hoy o una fecha futura en el calendario</string>
+    <string name="update_task_start_date_hint">Si no la cambiás, se mantiene la fecha original. Al modificarla, elegí hoy o una fecha futura.</string>
+    <string name="create_task_partial_allowed">Permitir progreso parcial</string>
+    <string name="create_task_preview_title">Vista previa</string>
+    <string name="create_task_preview_no_description">Sin descripción</string>
+    <string name="create_task_preview_label_goal">Meta</string>
+    <string name="create_task_preview_label_frequency">Frecuencia</string>
+    <string name="create_task_preview_label_start">Inicio</string>
+    <string name="create_task_preview_partial_allowed">Progreso parcial permitido</string>
+    <string name="create_task_category_unknown">Sin categoría</string>
+    <string name="create_task_option_criteria_repetitions">Repeticiones</string>
+    <string name="create_task_option_criteria_timer">Cronómetro</string>
+    <string name="create_task_field_timer_seconds">Duración (segundos)</string>
+    <string name="create_task_field_timer_threshold">Umbral largo (segundos · opcional)</string>
+    <string name="create_task_timer_pause_allowed">Pausas permitidas</string>
+    <string name="create_task_timer_pause_label">Permitir pausas durante la tarea</string>
+    <string name="create_task_timer_seconds_hint">Entre 1 y 86400 segundos (máx. 24 h)</string>
+    <string name="create_task_timer_threshold_hint">Tiempo extendido opcional, mayor a la duración base</string>
+    <string name="create_task_error_timer_threshold">El umbral largo debe superar la duración base</string>
+    <string name="update_task_timer_propagation_notice">Los cambios al cronómetro se aplican de inmediato y solo a esta tarea.</string>
+
+    <!-- Timer preview (issue #34) -->
+    <string name="timer_preview_title">Vista previa del cronómetro</string>
+    <string name="timer_preview_show">Ver cronómetro</string>
+    <string name="timer_preview_hide">Ocultar cronómetro</string>
+    <string name="timer_preview_start">Iniciar</string>
+    <string name="timer_preview_pause">Pausar</string>
+    <string name="timer_preview_resume">Reanudar</string>
+    <string name="timer_preview_reset">Reiniciar</string>
+    <string name="timer_preview_no_pause">Sin pausas</string>
+    <string name="timer_preview_idle">Listo para iniciar</string>
+    <string name="timer_preview_running">En curso…</string>
+    <string name="timer_preview_paused">En pausa</string>
+    <string name="timer_preview_done">¡Tiempo cumplido!</string>
+    <string name="timer_preview_extended_goal">Meta extendida: %1$s</string>
+    <string name="timer_preview_accuracy_note">Vista previa local · el tiempo real se valida al completar la tarea</string>
+    <string name="task_detail_timer_section">Cronómetro</string>
+    <string name="task_detail_timer_duration">Duración requerida</string>
+    <string name="task_detail_timer_threshold">Meta extendida</string>
+    <string name="task_detail_timer_pause">Pausas</string>
+    <string name="task_detail_timer_pause_yes">Permitidas</string>
+    <string name="task_detail_timer_pause_no">No permitidas</string>
+
+    <!-- Pomodoro (standalone timer) -->
+    <string name="pomodoro_title">Pomodoro</string>
+    <string name="pomodoro_mode_free">Libre</string>
+    <string name="pomodoro_mode_task">Desde tarea</string>
+    <string name="pomodoro_free_label">Elige una duración</string>
+    <string name="pomodoro_free_minutes">Minutos</string>
+    <string name="pomodoro_free_start">Iniciar cronómetro</string>
+    <string name="pomodoro_minutes_short">%1$d min</string>
+    <string name="pomodoro_task_pick_habit">Elige un hábito</string>
+    <string name="pomodoro_task_pick_task">Elige una tarea con cronómetro</string>
+    <string name="pomodoro_task_none">Este hábito no tiene tareas con cronómetro</string>
+    <string name="pomodoro_no_habits">No tienes hábitos activos</string>
+    <string name="pomodoro_change">Cambiar tiempo</string>
+    <string name="pomodoro_source_free">Cronómetro libre</string>
+    <string name="pomodoro_retry">Reintentar</string>
+    <string name="create_task_timer_examples_label">Ejemplos rápidos</string>
+    <string name="create_task_timer_minutes_format">≈ %1$s min</string>
+    <string name="create_task_timer_example_1min">1 min</string>
+    <string name="create_task_timer_example_5min">5 min</string>
+    <string name="create_task_timer_example_25min">25 min</string>
+    <string name="create_task_option_criteria_evidence">Evidencia</string>
+    <string name="create_task_option_unit_reps">Repeticiones</string>
+    <string name="create_task_option_unit_series">Series</string>
+    <string name="create_task_option_unit_km">Kilómetros</string>
+    <string name="create_task_option_unit_cals">Calorías</string>
+    <string name="create_task_option_evidence_photo">Foto</string>
+    <string name="create_task_option_evidence_video">Video</string>
+    <string name="create_task_option_evidence_health">Health Connect</string>
+    <string name="create_task_option_difficulty_easy">Fácil</string>
+    <string name="create_task_option_difficulty_medium">Media</string>
+    <string name="create_task_option_difficulty_hard">Difícil</string>
+    <string name="create_task_option_difficulty_epic">Épica</string>
+    <string name="create_task_option_frequency_daily">Diaria</string>
+    <string name="create_task_option_frequency_weekly">Semanal</string>
+    <string name="create_task_option_frequency_monthly">Mensual</string>
+    <string name="create_task_option_period_days">Días</string>
+    <string name="create_task_option_period_weeks">Semanas</string>
+    <string name="create_task_option_period_months">Meses</string>
+    <string name="create_task_error_invalid_number">Valor numérico inválido</string>
+    <string name="create_task_error_invalid_date">Fecha inválida. Usá el formato AAAA-MM-DD</string>
+    <string name="create_task_error_past_date">La fecha de inicio no puede ser anterior a hoy</string>
+    <string name="create_task_error_invalid_option">Selección inválida</string>
+    <string name="create_task_error_criteria_required">Completa los criterios de repetición</string>
+    <string name="create_task_error_evidence_required">Selecciona un tipo de evidencia</string>
+    <string name="create_task_success_message">¡Tarea creada correctamente!</string>
+
+    <!-- Evidence gallery -->
+    <string name="evidence_gallery_title">Evidencias</string>
+    <string name="evidence_gallery_empty">No hay evidencias para esta tarea</string>
+    <string name="evidence_gallery_error_not_found">Tarea no encontrada</string>
+    <string name="evidence_gallery_error_generic">No se pudieron cargar las evidencias</string>
+    <string name="evidence_gallery_retry">Reintentar</string>
+    <string name="evidence_gallery_uploaded_on">Subido el %1$s</string>
+    <string name="evidence_gallery_view_button">Ver evidencias</string>
+
+    <!-- Evidence upload -->
+    <string name="evidence_upload_button">Subir evidencia</string>
+    <string name="evidence_upload_success">Evidencia subida correctamente</string>
+    <string name="evidence_upload_error_generic">No se pudo subir la evidencia. Intentá de nuevo.</string>
+    <string name="evidence_upload_error_invalid">Datos inválidos. Verificá el archivo seleccionado.</string>
+    <string name="evidence_upload_error_file">No se pudo leer el archivo seleccionado.</string>
+
+    <string name="update_task_title">Editar tarea</string>
+    <string name="update_task_subtitle">Actualizá los requisitos de la tarea</string>
+    <string name="update_task_submit">Guardar cambios</string>
+    <string name="update_task_success">¡Tarea actualizada correctamente!</string>
+    <string name="update_task_edit">Editar</string>
+    <string name="update_task_conflict_title">Conflicto al guardar</string>
+    <string name="update_task_conflict_message">La tarea cambió en otro lugar. Recargá los datos para ver la versión más reciente e intentá de nuevo.</string>
+    <string name="update_task_conflict_reload">Recargar</string>
+    <string name="update_task_conflict_dismiss">Cancelar</string>
+
+    <!-- Task detail -->
+    <string name="task_detail_title">Detalle de la tarea</string>
+    <string name="task_detail_meta">%1$s · %2$s · inicio %3$s</string>
+    <string name="task_detail_planning_section">PLANIFICACIÓN</string>
+    <string name="task_detail_criteria_section">CRITERIOS</string>
+    <string name="task_detail_criteria_goal">Meta</string>
+    <string name="task_detail_criteria_missing">Sin detalle configurado</string>
+    <string name="task_detail_criteria_inactive">Criterio inactivo</string>
+    <string name="task_detail_plan_duration">Duración del plan</string>
+    <string name="task_detail_period_value">%1$d %2$s</string>
+    <string name="task_detail_xp">Experiencia</string>
+    <string name="task_detail_xp_value">%1$d XP</string>
+    <string name="task_detail_week_days">Días de la semana</string>
+    <string name="weekday_mon">Lun</string>
+    <string name="weekday_tue">Mar</string>
+    <string name="weekday_wed">Mié</string>
+    <string name="weekday_thu">Jue</string>
+    <string name="weekday_fri">Vie</string>
+    <string name="weekday_sat">Sáb</string>
+    <string name="weekday_sun">Dom</string>
+    <string name="period_unit_day">día</string>
+    <string name="period_unit_days">días</string>
+    <string name="period_unit_week">semana</string>
+    <string name="period_unit_weeks">semanas</string>
+    <string name="period_unit_month">mes</string>
+    <string name="period_unit_months">meses</string>
+    <string name="task_detail_status_active">Activa</string>
+    <string name="task_detail_status_inactive">Inactiva</string>
+    <string name="task_detail_status_completed">Completada</string>
+    <string name="task_detail_untitled">Tarea sin título</string>
+    <string name="task_detail_timer_with_pause">%1$s (pausas permitidas)</string>
+    <string name="task_detail_timer_no_pause">%1$s (sin pausas)</string>
+    <string name="task_detail_back_home">Volver al inicio</string>
+
+    <!-- Complete habit task -->
+    <string name="complete_task_button">Completar tarea</string>
+    <string name="complete_task_already_completed">Esta tarea ya fue completada.</string>
+    <string name="complete_task_reward_title">¡Buen trabajo!</string>
+    <string name="complete_task_reward_subtitle">Cada hábito completado te acerca a una mejor versión de ti.</string>
+    <string name="complete_task_reward_task_label">HAS COMPLETADO</string>
+    <string name="complete_task_xp_earned">+%1$d XP</string>
+    <string name="complete_task_current_level">Nivel actual: %1$d</string>
+    <string name="complete_task_level_progress">%1$d / %2$d XP para el siguiente nivel</string>
+    <string name="complete_task_streak_updated">¡Racha actualizada!</string>
+    <string name="complete_task_reward_continue">Continuar</string>
+    <string name="complete_task_level_up_title">¡SUBISTE DE NIVEL!</string>
+    <string name="complete_task_level_up_transition">Nivel %1$d → %2$d</string>
+    <string name="complete_task_level_up_message">Cada hábito completado te acerca a una mejor versión de ti mismo.</string>
+
+    <!-- Home screen -->
+    <string name="home_level_short">Nv. %1$d</string>
+    <string name="home_level_progress">%1$d / %2$d XP</string>
+    <string name="home_total_xp_value">%1$d XP</string>
+    <string name="home_total_xp_content_description">XP total acumulado: %1$d</string>
+    <string name="home_streak_content_description">Racha de %1$d días seguidos</string>
+    <string name="home_streak_detail">Llevás %1$d días seguidos completando hábitos. El fuego se enciende al llegar a 3 días. Completá al menos uno hoy para mantenerla.</string>
+    <plurals name="home_streak_days">
+        <item quantity="one">%d día</item>
+        <item quantity="other">%d días</item>
+    </plurals>
+
+    <!-- Deactivate habit task -->
+    <string name="deactivate_task_button">Desactivar tarea</string>
+    <string name="deactivate_task_confirm_title">¿Desactivar esta tarea?</string>
+    <string name="deactivate_task_confirm_message">La tarea dejará de mostrarse en la app, pero el historial y los registros anteriores se conservan en el sistema.\n\nEsta acción no se puede deshacer desde la aplicación.</string>
+    <string name="deactivate_task_confirm_ack">Entiendo que se ocultará de las listas activas y el historial se conserva</string>
+    <string name="deactivate_task_confirm_button">Desactivar</string>
+    <string name="deactivate_task_confirming">Desactivando…</string>
+    <string name="deactivate_task_success">Tarea desactivada correctamente.</string>
+
+    <!-- Habit detail tasks -->
+    <string name="habit_detail_default_title">Detalle del hábito</string>
+    <string name="habit_detail_tasks_section">TAREAS ACTIVAS</string>
+    <string name="habit_detail_active_tasks_count">%1$d activas</string>
+    <string name="habit_detail_with_criteria_count">%1$d con criterios</string>
+    <string name="habit_detail_no_active_tasks">No hay tareas activas en este hábito.</string>
+    <string name="habit_detail_no_repetition_criteria">Sin criterios de repetición</string>
+    <string name="habit_detail_task_default_title">Tarea %1$d</string>
+    <string name="habit_detail_task_subtitle">%1$s · %2$s · %3$s</string>
+    <string name="habit_detail_edit_action">Editar</string>
+    <string name="habit_detail_save">Guardar cambios</string>
+    <string name="habit_detail_cancel">Cancelar</string>
+    <string name="habit_detail_saving">Guardando…</string>
+    <string name="habit_detail_edit_section">EDITAR HÁBITO</string>
+    <string name="habit_detail_new_tasks_section">NUEVAS TAREAS</string>
+    <string name="habit_detail_add_task">Agregar tarea</string>
+    <string name="habit_detail_title_field">Título del hábito</string>
+    <string name="habit_detail_title_placeholder">Ej. Ejercicio diario</string>
+    <string name="habit_detail_description_field">Descripción (opcional)</string>
+    <string name="habit_detail_update_success">Hábito actualizado</string>
+
+    <!-- Home: eliminar hábito -->
+    <string name="home_delete_habit_action">Eliminar hábito</string>
+    <string name="home_delete_habit_title">Eliminar hábito</string>
+    <string name="home_delete_habit_message">¿Seguro que deseas eliminar «%1$s»? Se eliminarán también todas sus tareas.</string>
+    <string name="home_delete_habit_confirm">Eliminar</string>
+    <string name="home_delete_habit_cancel">Cancelar</string>
+
+    <!-- Evidencia: Health Connect -->
+    <string name="evidence_health_sync_button">Sincronizar Health Connect</string>
+    <string name="evidence_health_pick_title">¿Qué dato quieres registrar?</string>
+    <string name="evidence_health_metric_steps">Pasos de hoy</string>
+    <string name="evidence_health_metric_distance">Distancia de hoy (km)</string>
+    <string name="evidence_health_metric_calories">Calorías activas de hoy</string>
+    <string name="evidence_health_metric_exercise">Minutos de ejercicio de hoy</string>
+    <string name="evidence_health_cancel">Cancelar</string>
+    <string name="evidence_health_unavailable">Health Connect no está disponible en este dispositivo.</string>
+    <string name="evidence_health_permission_denied">Se necesitan permisos de Health Connect para leer tus datos.</string>
+    <string name="evidence_health_read_failed">No se pudieron leer los datos de Health Connect.</string>
+    <string name="evidence_health_value_steps">%1$s pasos</string>
+    <string name="evidence_health_value_distance">%1$s km recorridos</string>
+    <string name="evidence_health_value_calories">%1$s kcal activas</string>
+    <string name="evidence_health_value_exercise">%1$s min de ejercicio</string>
+    <string name="evidence_health_value_generic">%1$s %2$s</string>
+
+    <!-- Dificultad por IA -->
+    <string name="ai_difficulty_failed_title">Dificultad asignada automáticamente</string>
+    <string name="ai_difficulty_failed_message">La IA no pudo determinar el nivel de dificultad de la tarea, así que se asignó dificultad media.</string>
+
+    <!-- Notificaciones de tareas -->
+    <string name="notif_channel_task_reminders">Recordatorios de tareas</string>
+    <string name="notif_task_pending_today_title">Tienes una tarea pendiente para hoy</string>
+    <string name="notif_task_expired_title">Tarea caducada</string>
+    <string name="notif_task_expired_text">Se te caducó la tarea: %1$s</string>
+
+    <!-- Settings / deactivate account -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_back">Volver</string>
+    <string name="settings_deactivate_section_title">Desactivar cuenta</string>
+    <string name="settings_deactivate_consequences">Al desactivar tu cuenta:\n\n• No podrás iniciar sesión de nuevo.\n• Tu progreso y hábitos quedarán inactivos.\n• Se cerrará la sesión en este dispositivo.\n• Se borrarán los datos locales de la app.</string>
+    <string name="settings_reactivation_info">La reactivación no está disponible desde la app. Si necesitás recuperar tu cuenta, contactá al equipo de soporte.</string>
+    <string name="settings_deactivate_button">Desactivar mi cuenta</string>
+    <string name="settings_confirm_title">¿Desactivar cuenta?</string>
+    <string name="settings_confirm_message">Esta acción desactiva tu cuenta de forma permanente desde la app. Confirmá solo si entendés las consecuencias.</string>
+    <string name="settings_confirm_acknowledge">Entiendo las consecuencias y quiero continuar</string>
+    <string name="settings_deactivate_reason_label">Motivo (opcional)</string>
+    <string name="settings_deactivate_reason_hint">Contanos por qué te vas…</string>
+    <string name="settings_cancel">Cancelar</string>
+    <string name="settings_confirm_deactivate">Desactivar</string>
+    <string name="settings_deactivating">Desactivando…</string>
+    <string name="settings_deactivate_success">Tu cuenta fue desactivada. La sesión local se cerró correctamente.</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Mi perfil</string>
+    <string name="profile_back">Volver</string>
+    <string name="profile_subtitle">Revisá tu información pública</string>
+    <string name="profile_edit_subtitle">Modificá los campos que quieras actualizar</string>
+    <string name="profile_edit">Editar perfil</string>
+    <string name="profile_cancel_edit">Cancelar</string>
+    <string name="profile_not_set">Sin definir</string>
+    <string name="profile_avatar_change">Cambiar avatar</string>
+    <string name="profile_avatar_hint">JPG, PNG o WebP. Máximo 2 MB.</string>
+    <string name="profile_avatar_too_large">La imagen supera el tamaño máximo</string>
+    <string name="profile_avatar_invalid_type">Formato de imagen no permitido</string>
+    <string name="profile_avatar_persist_failed">No se pudo guardar la imagen. Intentá de nuevo.</string>
+    <string name="profile_name_label">Nombre</string>
+    <string name="profile_last_name_label">Apellido</string>
+    <string name="profile_email_label">Email</string>
+    <string name="profile_username_label">Usuario</string>
+    <string name="profile_birthdate_label">Fecha de nacimiento</string>
+    <string name="profile_birthdate_hint">AAAA-MM-DD (opcional)</string>
+    <string name="profile_bio_label">Bio</string>
+    <string name="profile_bio_hint">Contá algo sobre vos (solo en este dispositivo por ahora)</string>
+    <string name="profile_class_label">Clase</string>
+    <string name="profile_level_label">Nivel %1$d</string>
+    <string name="profile_save">Guardar cambios</string>
+    <string name="profile_saving">Guardando…</string>
+    <string name="profile_save_success">Perfil actualizado correctamente</string>
+    <string name="profile_load_error">No se pudo cargar el perfil</string>
+    <string name="profile_error_network">Sin conexión. Revisá tu red e intentá de nuevo.</string>
+    <string name="profile_error_conflict">Ese usuario ya está en uso.</string>
+    <string name="profile_error_precondition">El perfil cambió en otro lugar. Recargá e intentá de nuevo.</string>
+    <string name="profile_retry">Reintentar</string>
+    <string name="profile_logout">Cerrar sesión</string>
+    <string name="profile_logout_confirm_title">¿Cerrar sesión?</string>
+    <string name="profile_logout_confirm_message">Se cerrará tu sesión en este dispositivo. Tendrás que volver a iniciar sesión para entrar.</string>
+    <string name="profile_logout_confirm">Cerrar sesión</string>
+    <string name="cd_profile_avatar">Avatar de perfil</string>
+
+    <!-- Coach / AI chat -->
+    <string name="coach_title">Coach</string>
+    <string name="coach_subtitle">Asistente de hábitos</string>
+    <string name="coach_empty_title">¿En qué te puedo ayudar?</string>
+    <string name="coach_welcome">Soy tu coach de hábitos personales. Escribime o elegí una sugerencia.</string>
+    <string name="coach_input_hint">Escribí tu mensaje…</string>
+    <string name="coach_send_button">Enviar</string>
+    <string name="coach_clear_history">Limpiar conversación</string>
+    <string name="coach_keyboard_hint">Enter para enviar · Shift+Enter para nueva línea · Esc para cerrar teclado</string>
+    <string name="coach_suggestion_1">¿Cómo mejorar mis hábitos de sueño?</string>
+    <string name="coach_suggestion_2">¿Qué ejercicios son fáciles de mantener?</string>
+    <string name="coach_suggestion_3">Ayúdame a crear una rutina diaria</string>
+    <!-- Store / reward catalog -->
+    <string name="store_title">TIENDA</string>
+    <string name="store_back">Volver</string>
+    <string name="store_search_hint">Buscar items…</string>
+    <string name="store_sort_menu_cd">Ordenar</string>
+    <string name="store_sort_name">Nombre (A–Z)</string>
+    <string name="store_sort_price_asc">Precio: menor a mayor</string>
+    <string name="store_sort_price_desc">Precio: mayor a menor</string>
+    <string name="store_empty">No hay items disponibles</string>
+    <string name="store_error_generic">No se pudieron cargar los items de la tienda</string>
+    <string name="store_retry">Reintentar</string>
+    <string name="store_unavailable_badge">No disponible</string>
+    <string name="store_owned_badge">Obtenido</string>
+    <string name="store_cost_xp">%1$d XP</string>
+    <string name="store_detail_cost">Costo</string>
+    <string name="store_detail_effect">Efecto</string>
+    <string name="store_detail_effect_value">%1$s</string>
+    <string name="store_detail_type">Tipo</string>
+    <string name="store_detail_description_label">DESCRIPCIÓN</string>
+    <string name="store_detail_no_description">Sin descripción disponible</string>
+    <string name="store_detail_redeem_button">Canjear</string>
+    <string name="store_detail_redeem_disabled">No disponible para canjear</string>
+    <string name="store_redeem_coming_soon">Funcionalidad de canje próximamente disponible</string>
+    <string name="store_purchase_success">¡Item canjeado correctamente!</string>
+    <string name="store_purchase_success_button">¡Canjeado!</string>
+    <string name="store_purchase_error_insufficient">No tenés suficiente XP para este item</string>
+    <string name="store_purchase_error_not_found">Este item ya no está disponible</string>
+    <string name="store_purchase_error_generic">No se pudo completar el canje. Intentá de nuevo.</string>
+    <string name="store_cost_gold">%1$d oro</string>
+    <string name="store_buy_button">Comprar</string>
+    <string name="store_buy_success">¡%1$s comprado!</string>
+    <!-- Inventory -->
+    <string name="inventory_title">MI INVENTARIO</string>
+    <string name="inventory_back">Volver</string>
+    <string name="inventory_empty">Tu inventario está vacío</string>
+    <string name="inventory_error">No se pudo cargar el inventario</string>
+    <string name="inventory_retry">Reintentar</string>
+    <string name="inventory_quantity">x%1$d</string>
+
+    <!-- Evidence gallery - delete -->
+    <string name="evidence_gallery_delete_button">Eliminar</string>
+    <string name="evidence_gallery_delete_confirm_title">¿Eliminar evidencia?</string>
+    <string name="evidence_gallery_delete_confirm_message">Esta acción eliminará permanentemente la evidencia del sistema. No es posible recuperarla una vez eliminada.</string>
+    <string name="evidence_gallery_delete_irreversible_ack">Entiendo que esta acción es permanente e irreversible</string>
+    <string name="evidence_gallery_delete_confirm_button">Eliminar</string>
+    <string name="evidence_gallery_delete_cancel">Cancelar</string>
+    <string name="evidence_gallery_delete_confirming">Eliminando…</string>
+    <string name="evidence_gallery_delete_success">Evidencia eliminada correctamente</string>
+    <string name="evidence_gallery_delete_error_forbidden">No tenés permiso para eliminar esta evidencia</string>
+    <string name="evidence_gallery_delete_error_not_found">La evidencia ya no existe</string>
+    <string name="evidence_gallery_delete_error_task_completed">No se puede eliminar la evidencia de una tarea ya completada</string>
+    <string name="evidence_gallery_delete_error_generic">No se pudo eliminar la evidencia</string>
 </resources>

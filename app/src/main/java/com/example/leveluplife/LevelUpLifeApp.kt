@@ -1,6 +1,7 @@
 package com.example.leveluplife
 
 import android.app.Application
+import com.example.leveluplife.notifications.TaskReminderScheduler
 
 class LevelUpLifeApp : Application() {
 
@@ -11,5 +12,6 @@ class LevelUpLifeApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        TaskReminderScheduler.schedule(this)
     }
 }
